@@ -13,6 +13,10 @@ interface Config {
     baseUrl: string;
     target: string;
   };
+  chatApi: {
+    baseUrl: string;
+    target: string;
+  };
   auth: {
     keycloakUrl: string;
   };
@@ -29,6 +33,10 @@ const config: Config = {
   },
   gatewayApi: {
     baseUrl: '/api',
+    target: import.meta.env.VITE_API_TARGET || 'http://localhost:3030',
+  },
+  chatApi: {
+    baseUrl: '/bazar-chat/api',
     target: import.meta.env.VITE_API_TARGET || 'http://localhost:3030',
   },
   auth: {

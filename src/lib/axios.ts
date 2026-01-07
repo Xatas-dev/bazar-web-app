@@ -1,5 +1,7 @@
 import axios from 'axios';
 import config from '@/config';
+import { toast } from '@/hooks/use-toast';
+
 
 export const axiosInstance = axios.create({
   baseURL: config.api.baseUrl,
@@ -25,6 +27,14 @@ export const personaAxiosInstance = axios.create({
   },
 });
 
+export const chatAxiosInstance = axios.create({
+  baseURL: config.chatApi.baseUrl,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // CSRF Handling
 // We expect the backend to set a cookie named XSRF-TOKEN (standard Spring Security behavior)
 // Axios automatically looks for this cookie and sets the X-XSRF-TOKEN header if xsrfCookieName and xsrfHeaderName are configured.
@@ -36,10 +46,11 @@ gatewayAxiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
 
 
 
-import { toast } from '@/hooks/use-toast';
 
 personaAxiosInstance.defaults.xsrfCookieName = 'XSRF-TOKEN';
 personaAxiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
+chatAxiosInstance.defaults.xsrfCookieName = 'XSRF-TOKEN';
+chatAxiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
 
 // Interceptor to handle 403 errors globally
 const handleForbiddenError = (error: any) => {
@@ -56,5 +67,6 @@ const handleForbiddenError = (error: any) => {
 axiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 gatewayAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 personaAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
+chatAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 
 

@@ -31,6 +31,17 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        '/bazar-chat': {
+          target: target,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/ws': {
+            target: target,
+            ws: true,
+            changeOrigin: true,
+            secure: false
+        },
         '/logout': {
           target: target,
           changeOrigin: true,

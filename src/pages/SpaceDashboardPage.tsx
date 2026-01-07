@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Box } from "lucide-react";
 import SpaceMembersPage from "@/pages/SpaceMembersPage";
+import { ChatTab } from "@/components/chat/ChatTab";
 
 export default function SpaceDashboardPage() {
   const { spaceId } = useParams();
@@ -46,9 +47,8 @@ export default function SpaceDashboardPage() {
                     <TabsTrigger
                         value="chat"
                         className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                        disabled
                     >
-                        Chat (Soon)
+                        Chat
                     </TabsTrigger>
                     <TabsTrigger
                         value="storage"
@@ -93,6 +93,10 @@ export default function SpaceDashboardPage() {
                          <div className="border rounded-lg p-4 bg-background">
                             <SpaceMembersPage />
                          </div>
+                    </TabsContent>
+
+                    <TabsContent value="chat" className="mt-0">
+                         <ChatTab spaceId={id} />
                     </TabsContent>
                 </div>
             </Tabs>
