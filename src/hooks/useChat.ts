@@ -4,8 +4,7 @@ import {
   ChatResponse,
   CreateChatRequest,
   CreateMessageRequest,
-  MessagePageResponse,
-  MessageResponse
+  MessagePageResponse
 } from '@/types/chat';
 
 // --- Chat Hooks ---
