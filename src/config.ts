@@ -40,7 +40,7 @@ const config: Config = {
     target: 'http://api.bazar.local',
   },
   auth: {
-    keycloakUrl: 'http://auth.bazar.local/oauth2/authorization/keycloak',
+    keycloakUrl: 'http://bazar.local/oauth2/authorization/keycloak',
   },
 };
 
