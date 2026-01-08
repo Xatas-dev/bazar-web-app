@@ -30,7 +30,7 @@ export const AppLayout = () => {
 
   const handleLogout = async () => {
       try {
-          await fetch('/logout', { method: 'POST' });
+          await fetch('/api/logout', { method: 'POST' });
           window.location.href = '/';
       } catch (e) {
           console.error("Logout failed", e);
