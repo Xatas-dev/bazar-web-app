@@ -3,19 +3,15 @@
 interface Config {
   api: {
     baseUrl: string;
-    target: string;
   };
   gatewayApi: {
     baseUrl: string;
-    target: string;
   };
   personaApi: {
     baseUrl: string;
-    target: string;
   };
   chatApi: {
     baseUrl: string;
-    target: string;
   };
   auth: {
     keycloakUrl: string;
@@ -24,23 +20,19 @@ interface Config {
 
 const config: Config = {
   api: {
-    baseUrl: '/bazar-space/api',
-    target: 'http://api.bazar.local',
+    baseUrl: '/api/bazar-space/api'
   },
   personaApi: {
-    baseUrl: '/bazar-persona/api',
-    target: 'http://api.bazar.local',
+    baseUrl: '/api/bazar-persona/api'
   },
   gatewayApi: {
-    baseUrl: '/api',
-    target: 'http://api.bazar.local',
+    baseUrl: '/api/api'
   },
   chatApi: {
-    baseUrl: '/bazar-chat/api',
-    target: 'http://api.bazar.local',
+    baseUrl: '/api/bazar-chat/api'
   },
   auth: {
-    keycloakUrl: 'http://bazar.local/oauth2/authorization/keycloak',
+    keycloakUrl: '/api/oauth2/authorization/keycloak',
   },
 };
 
