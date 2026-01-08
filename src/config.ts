@@ -25,22 +25,22 @@ interface Config {
 const config: Config = {
   api: {
     baseUrl: '/bazar-space/api',
-    target: import.meta.env.VITE_API_GATEWAY_URL,
+    target: 'http://api.bazar.local',
   },
   personaApi: {
     baseUrl: '/bazar-persona/api',
-    target: import.meta.env.VITE_API_GATEWAY_URL,
+    target: 'http://api.bazar.local',
   },
   gatewayApi: {
     baseUrl: '/api',
-    target: import.meta.env.VITE_API_GATEWAY_URL,
+    target: 'http://api.bazar.local',
   },
   chatApi: {
     baseUrl: '/bazar-chat/api',
-    target: import.meta.env.VITE_API_GATEWAY_URL,
+    target: 'http://api.bazar.local',
   },
   auth: {
-    keycloakUrl: import.meta.env.VITE_KEYCLOAK_URL,
+    keycloakUrl: 'http://auth.bazar.local/oauth2/authorization/keycloak',
   },
 };
 
