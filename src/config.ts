@@ -32,7 +32,7 @@ const config: Config = {
     baseUrl: '/api/bazar-chat/api'
   },
   auth: {
-    keycloakUrl: '/api/oauth2/authorization/keycloak',
+    keycloakUrl: '/oauth2/authorization/keycloak',
   },
 };
 
