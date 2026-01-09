@@ -20,7 +20,7 @@ export const useChatWebSocket = (chatId: number | undefined) => {
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.host; // localhost:5173
-        const brokerURL = `${protocol}//${host}/ws/bazar-chat/api/ws`;
+        const brokerURL = `${protocol}//${host}/api/ws/bazar-chat/api/ws`;
 
         const client = new Client({
             brokerURL: brokerURL,
