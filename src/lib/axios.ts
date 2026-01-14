@@ -3,8 +3,15 @@ import config from '@/config';
 import { toast } from '@/hooks/use-toast';
 
 
+const getBaseURL = (apiConfig: { baseUrl: string; target: string }) => {
+  return process.env.NODE_ENV === 'development'
+      ? apiConfig.target   // локально используем mock / dev
+      : apiConfig.baseUrl; // в проде настоящий backend
+};
+
+
 export const axiosInstance = axios.create({
-  baseURL: config.api.baseUrl,
+  baseURL: getBaseURL(config.api),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -12,7 +19,7 @@ export const axiosInstance = axios.create({
 });
 
 export const gatewayAxiosInstance = axios.create({
-  baseURL: config.gatewayApi.baseUrl,
+  baseURL: getBaseURL(config.gatewayApi),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -20,7 +27,7 @@ export const gatewayAxiosInstance = axios.create({
 });
 
 export const personaAxiosInstance = axios.create({
-  baseURL: config.personaApi.baseUrl,
+  baseURL: getBaseURL(config.personaApi),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -28,7 +35,7 @@ export const personaAxiosInstance = axios.create({
 });
 
 export const chatAxiosInstance = axios.create({
-  baseURL: config.chatApi.baseUrl,
+  baseURL: getBaseURL(config.chatApi),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
