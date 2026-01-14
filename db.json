@@ -1,0 +1,491 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "userName": "testuser",
+      "email": "test@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "userPic": "https://api.dicebear.com/7.x/avataaars/svg?seed=testuser",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "userName": "johndoe",
+      "email": "john@example.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "userPic": "https://api.dicebear.com/7.x/avataaars/svg?seed=johndoe",
+      "createdAt": "2024-01-02T00:00:00Z",
+      "updatedAt": "2024-01-02T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "userName": "janedoe",
+      "email": "jane@example.com",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "userPic": "https://api.dicebear.com/7.x/avataaars/svg?seed=janedoe",
+      "createdAt": "2024-01-03T00:00:00Z",
+      "updatedAt": "2024-01-03T00:00:00Z"
+    }
+  ],
+  "space": {
+    "spaceIds": [
+      1,
+      2,
+      3
+    ]
+  },
+  "space_users": [
+    {
+      "spaceId": 1,
+      "userIds": [
+        "1",
+        "2"
+      ]
+    },
+    {
+      "spaceId": 2,
+      "userIds": [
+        "1",
+        "3"
+      ]
+    },
+    {
+      "spaceId": 3,
+      "userIds": [
+        "2",
+        "3"
+      ]
+    }
+  ],
+  "chats": [
+    {
+      "id": 1,
+      "spaceId": 1,
+      "name": "General Chat",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "spaceId": 2,
+      "name": "Project Discussion",
+      "createdAt": "2024-01-02T00:00:00Z",
+      "updatedAt": "2024-01-02T00:00:00Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": 1,
+      "chatId": 1,
+      "userId": "1",
+      "content": "Hello everyone!",
+      "createdAt": "2024-01-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "chatId": 1,
+      "userId": "2",
+      "content": "Hi! How are you?",
+      "createdAt": "2024-01-01T10:05:00Z"
+    },
+    {
+      "id": 3,
+      "chatId": 1,
+      "userId": "1",
+      "content": "I'm doing great, thanks!",
+      "createdAt": "2024-01-01T10:10:00Z"
+    },
+    {
+      "id": 4,
+      "chatId": 2,
+      "userId": "1",
+      "content": "Let's discuss the project timeline",
+      "createdAt": "2024-01-02T09:00:00Z"
+    },
+    {
+      "id": 5,
+      "chatId": 2,
+      "userId": "3",
+      "content": "Sure, I have some ideas",
+      "createdAt": "2024-01-02T09:15:00Z"
+    }
+  ],
+  "temp-get-subjects": [
+    {
+      "group": "Backgrounds",
+      "subjects": [
+        {
+          "id": "bg-1",
+          "name": "Ocean Sunset",
+          "description": "Beautiful ocean sunset gradient background",
+          "price": 4.99,
+          "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&h=200&fit=crop",
+          "group": "Backgrounds",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "bg-2",
+          "name": "Mountain View",
+          "description": "Stunning mountain landscape background",
+          "price": 5.99,
+          "imageUrl": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&h=200&fit=crop",
+          "group": "Backgrounds",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "bg-3",
+          "name": "City Lights",
+          "description": "Urban city night lights background",
+          "price": 6.99,
+          "imageUrl": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=300&h=200&fit=crop",
+          "group": "Backgrounds",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "bg-4",
+          "name": "Forest Path",
+          "description": "Peaceful forest path background",
+          "price": 4.99,
+          "imageUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=200&fit=crop",
+          "group": "Backgrounds",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "group": "Avatar Frames",
+      "subjects": [
+        {
+          "id": "frame-1",
+          "name": "Gold Frame",
+          "description": "Elegant golden avatar frame",
+          "price": 2.99,
+          "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&h=200&fit=crop",
+          "group": "Avatar Frames",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "frame-2",
+          "name": "Silver Frame",
+          "description": "Modern silver avatar frame",
+          "price": 2.49,
+          "imageUrl": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=300&h=200&fit=crop",
+          "group": "Avatar Frames",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "frame-3",
+          "name": "Neon Frame",
+          "description": "Colorful neon glow frame",
+          "price": 3.99,
+          "imageUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=300&h=200&fit=crop",
+          "group": "Avatar Frames",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "frame-4",
+          "name": "Retro Frame",
+          "description": "Vintage style avatar frame",
+          "price": 1.99,
+          "imageUrl": "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=300&h=200&fit=crop",
+          "group": "Avatar Frames",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "group": "Cursors",
+      "subjects": [
+        {
+          "id": "cursor-1",
+          "name": "Rainbow Cursor",
+          "description": "Animated rainbow trail cursor",
+          "price": 1.99,
+          "imageUrl": "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=300&h=200&fit=crop",
+          "group": "Cursors",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "cursor-2",
+          "name": "Fire Cursor",
+          "description": "Burning fire effect cursor",
+          "price": 2.49,
+          "imageUrl": "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=300&h=200&fit=crop",
+          "group": "Cursors",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "cursor-3",
+          "name": "Star Cursor",
+          "description": "Sparkling star trail cursor",
+          "price": 1.99,
+          "imageUrl": "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=300&h=200&fit=crop",
+          "group": "Cursors",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "group": "Themes",
+      "subjects": [
+        {
+          "id": "theme-1",
+          "name": "Dark Mode Pro",
+          "description": "Premium dark theme with custom colors",
+          "price": 7.99,
+          "imageUrl": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=300&h=200&fit=crop",
+          "group": "Themes",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "theme-2",
+          "name": "Light Mode Pro",
+          "description": "Clean light theme with pastel colors",
+          "price": 7.99,
+          "imageUrl": "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=300&h=200&fit=crop",
+          "group": "Themes",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "theme-3",
+          "name": "Nature Theme",
+          "description": "Nature-inspired green theme",
+          "price": 5.99,
+          "imageUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=200&fit=crop",
+          "group": "Themes",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    }
+  ],
+  "subject-details": [
+    {
+      "id": "bg-1",
+      "name": "Ocean Sunset",
+      "description": "Beautiful ocean sunset gradient background with warm orange and purple tones. Perfect for creating a relaxing atmosphere in your space. This background features a stunning view of the sun setting over the horizon with gentle waves reflecting the golden light.",
+      "price": 4.99,
+      "images": [
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=600&fit=crop"
+      ],
+      "group": "Backgrounds",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "bg-2",
+      "name": "Mountain View",
+      "description": "Stunning mountain landscape background featuring majestic peaks covered in snow. This breathtaking view captures the beauty of nature with clear blue skies and lush green valleys below.",
+      "price": 5.99,
+      "images": [
+        "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop"
+      ],
+      "group": "Backgrounds",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "bg-3",
+      "name": "City Lights",
+      "description": "Urban city night lights background with vibrant neon colors and illuminated skyscrapers. Perfect for creating a modern, energetic atmosphere in your digital space.",
+      "price": 6.99,
+      "images": [
+        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&h=600&fit=crop"
+      ],
+      "group": "Backgrounds",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "bg-4",
+      "name": "Forest Path",
+      "description": "Peaceful forest path background with sunlight filtering through the trees. This serene nature scene brings tranquility and calm to your space.",
+      "price": 4.99,
+      "images": [
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=800&h=600&fit=crop"
+      ],
+      "group": "Backgrounds",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "frame-1",
+      "name": "Gold Frame",
+      "description": "Elegant golden avatar frame with intricate patterns and a luxurious finish. Add a touch of sophistication to your profile with this premium frame.",
+      "price": 2.99,
+      "images": [
+        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&h=600&fit=crop"
+      ],
+      "group": "Avatar Frames",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "frame-2",
+      "name": "Silver Frame",
+      "description": "Modern silver avatar frame with sleek design and metallic shine. Perfect for a contemporary and professional look.",
+      "price": 2.49,
+      "images": [
+        "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=800&h=600&fit=crop"
+      ],
+      "group": "Avatar Frames",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "frame-3",
+      "name": "Neon Frame",
+      "description": "Colorful neon glow frame with vibrant RGB lighting effects. Stand out with this eye-catching cyberpunk-style frame.",
+      "price": 3.99,
+      "images": [
+        "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&h=600&fit=crop"
+      ],
+      "group": "Avatar Frames",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "frame-4",
+      "name": "Retro Frame",
+      "description": "Vintage style avatar frame with classic design elements. Perfect for those who love nostalgic aesthetics.",
+      "price": 1.99,
+      "images": [
+        "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      ],
+      "group": "Avatar Frames",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "cursor-1",
+      "name": "Rainbow Cursor",
+      "description": "Animated rainbow trail cursor that follows your mouse with colorful particles. Add fun and vibrancy to your navigation experience.",
+      "price": 1.99,
+      "images": [
+        "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=800&h=600&fit=crop"
+      ],
+      "group": "Cursors",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "cursor-2",
+      "name": "Fire Cursor",
+      "description": "Burning fire effect cursor with realistic flames and sparks. Make your cursor feel powerful and dynamic.",
+      "price": 2.49,
+      "images": [
+        "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&h=600&fit=crop"
+      ],
+      "group": "Cursors",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "cursor-3",
+      "name": "Star Cursor",
+      "description": "Sparkling star trail cursor with magical particle effects. Add a touch of wonder to your interactions.",
+      "price": 1.99,
+      "images": [
+        "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&h=600&fit=crop"
+      ],
+      "group": "Cursors",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "theme-1",
+      "name": "Dark Mode Pro",
+      "description": "Premium dark theme with custom colors and smooth transitions. Easy on the eyes and perfect for late-night sessions.",
+      "price": 7.99,
+      "images": [
+        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=800&h=600&fit=crop"
+      ],
+      "group": "Themes",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "theme-2",
+      "name": "Light Mode Pro",
+      "description": "Clean light theme with pastel colors and modern design. Bright and cheerful for a positive user experience.",
+      "price": 7.99,
+      "images": [
+        "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop"
+      ],
+      "group": "Themes",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "theme-3",
+      "name": "Nature Theme",
+      "description": "Nature-inspired green theme with organic colors and natural elements. Bring the outdoors into your digital space.",
+      "price": 5.99,
+      "images": [
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&h=600&fit=crop"
+      ],
+      "group": "Themes",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "purchases": [
+    {
+      "subjectId": "bg-1",
+      "id": 1
+    },
+    {
+      "subjectId": "bg-2",
+      "id": 2
+    },
+    {
+      "subjectId": "bg-2",
+      "id": 3
+    }
+  ]
+}

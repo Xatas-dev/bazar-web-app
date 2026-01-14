@@ -1,0 +1,16 @@
+{
+  "/users/iam": "/users/1",
+  "/bazar-space/api/space": "/space",
+  "/bazar-space/api/space/:id": "/space/:id",
+  "/bazar-space/api/space/:id/user": "/space_users?spaceId=:id",
+  "/bazar-space/api/space/user": "/space_users",
+  "/bazar-persona/api/users": "/users",
+  "/bazar-persona/api/users/:id": "/users/:id",
+  "/bazar-persona/api/users/iam": "/users/1",
+  "/bazar-chat/api/chats": "/chats",
+  "/bazar-chat/api/chats/:id": "/chats/:id",
+  "/bazar-chat/api/chats/:id/messages": "/messages?chatId=:id",
+  "/temp-get-subjects": "/temp-get-subjects",
+  "/temp-get-subjects/:id": "/subject-details/:id",
+  "/temp-submit-subject": "/purchases"
+}
