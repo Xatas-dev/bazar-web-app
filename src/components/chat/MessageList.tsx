@@ -1,11 +1,12 @@
 import { useRef, useEffect, useMemo, useState } from "react";
-import { useGetChatMessages } from "@/hooks/useChat";
+import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChat";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
 import { useUsers } from "@/hooks/useUsers";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {useChatWebSocket} from "@/hooks/useChatWebSocket.ts";
+import { useToast } from "@/hooks/use-toast";
 
 interface MessageListProps {
   chatId: number;
@@ -27,6 +28,29 @@ export const MessageList = ({ chatId }: MessageListProps) => {
   const { user: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const { toast } = useToast();
+  const deleteMessagesMutation = useDeleteMessages();
+
+  const handleDeleteMessage = (messageId: number) => {
+    deleteMessagesMutation.mutate(
+      { chatId, data: { messageIds: [messageId] } },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Сообщение удалено",
+            description: "Сообщение успешно удалено",
+          });
+        },
+        onError: () => {
+          toast({
+            variant: "destructive",
+            title: "Ошибка",
+            description: "Не удалось удалить сообщение",
+          });
+        },
+      }
+    );
+  };
 
   // Flatten messages
   // The backend sorts by createdAt DESC (newest first).
@@ -151,11 +175,12 @@ export const MessageList = ({ chatId }: MessageListProps) => {
                         isCurrentUser={isCurrentUser}
                         user={user}
                         showAvatar={showAvatar}
+                        onDelete={handleDeleteMessage}
                     />
                 );
             })
         )}
         <div id="scroll-anchor" />
-    </div>
+      </div>
   );
 }
