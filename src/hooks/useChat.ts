@@ -4,7 +4,8 @@ import {
   ChatResponse,
   CreateChatRequest,
   CreateMessageRequest,
-  MessagePageResponse
+  MessagePageResponse,
+  DeleteMessagesRequest
 } from '@/types/chat';
 
 // --- Chat Hooks ---
@@ -76,5 +77,14 @@ export const useCreateMessage = () => {
     onSuccess: (_, { chatId }) => {
       queryClient.invalidateQueries({ queryKey: ['chat', chatId, 'messages'] });
     },
+  });
+};
+
+export const useDeleteMessages = () => {
+  return useMutation<void, Error, { chatId: number; data: DeleteMessagesRequest }>({
+    mutationFn: async ({ chatId, data }) => {
+      await chatAxiosInstance.delete(`/chats/${chatId}/messages`, { data });
+    },
+    // No need to invalidate queries here - WebSocket will handle the cache update
   });
 };

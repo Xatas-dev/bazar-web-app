@@ -3,16 +3,24 @@ import { cn } from "@/lib/utils";
 import { MessageResponse } from "@/types/chat";
 import { UserDtoResponse } from "@/types/api";
 import { motion } from "framer-motion";
+import { MessageContextMenu } from "./MessageContextMenu";
 
 interface MessageItemProps {
   message: MessageResponse;
   isCurrentUser: boolean;
   user?: UserDtoResponse;
   showAvatar?: boolean;
+  onDelete?: (messageId: number) => void;
 }
 
-export const MessageItem = ({ message, isCurrentUser, user, showAvatar = true }: MessageItemProps) => {
+export const MessageItem = ({ message, isCurrentUser, user, showAvatar = true, onDelete }: MessageItemProps) => {
   const formattedTime = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const handleDelete = (messageId: number) => {
+    if (onDelete) {
+      onDelete(messageId);
+    }
+  };
 
   return (
     <motion.div
@@ -47,16 +55,18 @@ export const MessageItem = ({ message, isCurrentUser, user, showAvatar = true }:
              </span>
          )}
 
-        <div
-          className={cn(
-            "rounded-lg px-4 py-2 text-sm",
-            isCurrentUser
-              ? "bg-primary text-primary-foreground rounded-tr-none"
-              : "bg-muted text-foreground rounded-tl-none"
-          )}
-        >
-          {message.content}
-        </div>
+        <MessageContextMenu message={message} onDelete={handleDelete}>
+          <div
+            className={cn(
+              "rounded-lg px-4 py-2 text-sm cursor-pointer",
+              isCurrentUser
+                ? "bg-primary text-primary-foreground rounded-tr-none"
+                : "bg-muted text-foreground rounded-tl-none"
+            )}
+          >
+            {message.content}
+          </div>
+        </MessageContextMenu>
         <span className="text-[10px] text-muted-foreground mt-1 px-1">
             {formattedTime}
         </span>
