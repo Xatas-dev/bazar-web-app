@@ -83,10 +83,10 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: javascript-typescript
-        build-mode: manual
+        build-mode: none
 
     - name: Install dependencies for CodeQL
-      run: npm ci
+      run: npm install
 
     - name: Build for CodeQL (if exists)
       run: npm run build --if-present
