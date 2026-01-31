@@ -1,47 +1,126 @@
-name: bazar-web-app
+name: CI/CD Pipeline - Web App
 
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+  packages: read
+  
 on:
   push:
-    # 1. Trigger ONLY on release branches
     branches:
-      - "release/**"
+      - dev
+      - master
+      - 'release/**'
+  pull_request:
+    branches:
+      - dev
+      - master
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - release
+
 env:
   SERVICE_CONTEXT: ./
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/bazar-web-app
 
 jobs:
-  release-build:
+
+  # BUILD
+  build:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
 
-      # ======================================================
-      # STEP 1: Extract Version from package.json
-      # We need Node just for this step to read package.json easily
-      # ======================================================
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Extract Version from package.json
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (if exists)
+        run: npm run build --if-present
+
+      - name: Extract Version
         id: get_version
-        working-directory: ${{ env.SERVICE_CONTEXT }}
         run: |
-          # Extract version using node
           VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          echo "Detected App Version: $VERSION"
 
-          # Save it to GitHub Environment Variables for the next steps
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+  # CODE SCAN
+  code-scan:
+    runs-on: ubuntu-latest
 
-      # ======================================================
-      # STEP 2: Standard Docker Build
-      # ======================================================
+    if: |
+      (github.event_name == 'push' && github.ref_name == 'dev') ||
+      (github.event_name == 'push' && github.ref_name == 'master') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'dev') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'master')
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript-typescript
+        build-mode: manual
+
+    - name: Install dependencies for CodeQL
+      run: npm ci
+
+    - name: Build for CodeQL (if exists)
+      run: npm run build --if-present
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+
+
+  # SECRETS SCAN
+  secrets-scan:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+
+
+  # DOCKER PUBLISH (MASTER ONLY + RELEASE MANUAL)
+  docker-publish:
+    needs: [build, code-scan, secrets-scan]
+    runs-on: ubuntu-latest
+
+    if: |
+      (github.event_name == 'push' && github.ref_name == 'master') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'release')
+
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -51,17 +130,39 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push
-        uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v5
         with:
-          context: ${{ env.SERVICE_CONTEXT }}
-          file: ${{ env.SERVICE_CONTEXT }}/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
-          # Use the extracted APP_VERSION variable here
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }}
+            ${{ env.IMAGE_NAME }}:${{ needs.build.outputs.version }}
             ${{ env.IMAGE_NAME }}:latest
 
-          # Caching
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+
+  # RELEASE JIRA
+  release-jira:
+    needs: [build, code-scan, secrets-scan]
+    runs-on: ubuntu-latest
+
+    if: |
+      (github.event_name == 'push' && github.ref_name == 'master') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'release')
+
+    steps:
+      - name: Create JIRA Release
+        run: |
+          echo "Create JIRA release for version ${{ needs.build.outputs.version }}"
+
+
+  # DEPLOY (MANUAL ONLY, RELEASE)
+  deploy:
+    needs: release-jira
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'release'
+
+    steps:
+      - name: Deploy
+        run: |
+          echo "Deploying version ${{ needs.build.outputs.version }}"
