@@ -3,9 +3,9 @@ import config from '@/config';
 import { toast } from '@/hooks/use-toast';
 
 
-const getBaseURL = (apiConfig: { baseUrl: string; target: string }) => {
+const getBaseURL = (apiConfig: { baseUrl: string; targetLocal: string }) => {
   return process.env.NODE_ENV === 'development'
-      ? apiConfig.target   // локально используем mock / dev
+      ? apiConfig.targetLocal   // локально используем mock / dev
       : apiConfig.baseUrl; // в проде настоящий backend
 };
 
