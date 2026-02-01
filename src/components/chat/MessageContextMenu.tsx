@@ -33,8 +33,8 @@ export const MessageContextMenu = ({ message, children, onDelete }: MessageConte
     e.stopPropagation();
   };
 
-  // Don't show context menu if canDelete is false or undefined
-  if (!message.canDelete) {
+  // Don't show context menu if isDeletable is false or undefined
+  if (!message.isDeletable) {
     return <>{children}</>;
   }
 

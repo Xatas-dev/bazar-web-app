@@ -18,7 +18,7 @@ export interface MessageResponse {
   userId: string;
   content: string;
   createdAt: string;
-  canDelete?: boolean;
+  isDeletable?: boolean;
 }
 
 export interface MessagePageResponse {
