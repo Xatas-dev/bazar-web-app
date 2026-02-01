@@ -3,8 +3,17 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy source code and build
+# 1. Сначала копируем только файлы зависимостей
+# Это позволяет Docker кэшировать слой с node_modules, если зависимости не менялись
+COPY package*.json ./
+
+# 2. Устанавливаем зависимости
+RUN npm ci
+
+# 3. Копируем остальной исходный код
 COPY . .
+
+# 4. Собираем проект
 RUN npm run build
 
 # Stage 2: Production
