@@ -69,22 +69,38 @@ export const useGetChatMessages = (chatId: number | undefined, pageSize = 20) =>
 };
 
 export const useCreateMessage = () => {
-  const queryClient = useQueryClient();
   return useMutation<void, Error, { chatId: number; data: CreateMessageRequest }>({
     mutationFn: async ({ chatId, data }) => {
       await chatAxiosInstance.post(`/chats/${chatId}/messages`, data);
     },
-    onSuccess: (_, { chatId }) => {
-      queryClient.invalidateQueries({ queryKey: ['chat', chatId, 'messages'] });
-    },
+    // No need to invalidate queries here - WebSocket will handle the cache update
   });
 };
 
 export const useDeleteMessages = () => {
+  const queryClient = useQueryClient();
   return useMutation<void, Error, { chatId: number; data: DeleteMessagesRequest }>({
     mutationFn: async ({ chatId, data }) => {
       await chatAxiosInstance.delete(`/chats/${chatId}/messages`, { data });
     },
-    // No need to invalidate queries here - WebSocket will handle the cache update
+    onSuccess: (_, { chatId, data }) => {
+      // Immediately remove deleted messages from cache after successful DELETE
+      const deletedIds = new Set(data.messageIds);
+
+      queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) => {
+        if (!oldData) return oldData;
+
+        // Filter out deleted messages from all pages
+        const newPages = oldData.pages.map((page: any) => ({
+          ...page,
+          content: page.content.filter((msg: any) => !deletedIds.has(msg.id))
+        }));
+
+        return {
+          ...oldData,
+          pages: newPages
+        };
+      });
+    },
   });
 };
