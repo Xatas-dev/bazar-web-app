@@ -6,6 +6,7 @@ import path from 'path'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const target = env.VITE_API_TARGET || 'http://localhost:3030'
+  const localMockTarget = 'http://localhost:3000' // json-server для локальной разработки
 
   return {
     plugins: [react()],
@@ -22,17 +23,17 @@ export default defineConfig(({ mode }) => {
           secure: false, // For self-signed certs if needed, though localhost usually http
         },
         '/bazar-space/api': {
-          target: target,
+          target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
         },
         '/bazar-persona': {
-          target: target,
+          target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
         },
         '/bazar-chat': {
-          target: target,
+          target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
         },

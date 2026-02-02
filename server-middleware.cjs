@@ -1,4 +1,11 @@
 module.exports = (req, res, next) => {
+  // Handle GET /bazar-chat/api/chats/:chatId/messages - rewrite to /messages?chatId=:id
+  if (req.path.match(/\/bazar-chat\/api\/chats\/(\d+)\/messages/) && req.method === 'GET') {
+    const chatId = req.path.match(/\/bazar-chat\/api\/chats\/(\d+)\/messages/)[1];
+    req.url = `/messages?chatId=${chatId}&${new URLSearchParams(req.query).toString()}`;
+    req.path = '/messages';
+  }
+
   // Intercept messages endpoint to return paginated response
   if (req.path.includes('/messages') && req.method === 'GET') {
     // Store original send function
@@ -31,7 +38,7 @@ module.exports = (req, res, next) => {
           // User with id "1" can delete their own messages
           const messagesWithCanDelete = paginatedMessages.map(msg => ({
             ...msg,
-            canDelete: msg.userId === "1" // Current user is "1" in mock
+            isDeletable: msg.userId === "1" // Current user is "1" in mock
           }));
 
           const paginatedResponse = {

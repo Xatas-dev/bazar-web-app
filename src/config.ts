@@ -26,23 +26,23 @@ interface Config {
 const config: Config = {
   api: {
     baseUrl: '/api/bazar-space/api',
-    targetLocal: '/mock/api/bazar-space/api' // локальный mock для разработки пофиксить потом
+    targetLocal: '/bazar-space/api' // локальный json-server через vite proxy
   },
   personaApi: {
     baseUrl: '/api/bazar-persona/api',
-    targetLocal: '/mock/api/bazar-space/api' // локальный mock для разработки пофиксить потом
+    targetLocal: '/bazar-persona/api' // локальный json-server через vite proxy
   },
   gatewayApi: {
     baseUrl: '/api/api',
-    targetLocal: '/mock/api/bazar-space/api' // локальный mock для разработки пофиксить потом
+    targetLocal: '/api' // локальный json-server через vite proxy
   },
   chatApi: {
     baseUrl: '/api/bazar-chat/api',
-    targetLocal: '/mock/api/bazar-space/api' // локальный mock для разработки пофиксить потом
+    targetLocal: '/bazar-chat/api' // локальный json-server через vite proxy
   },
   auth: {
     keycloakUrl: '/api/oauth2/authorization/keycloak',
-      targetLocal: '/mock/api/bazar-space/api' // локальный mock для разработки пофиксить потом
+      targetLocal: '/oauth2/authorization/keycloak' // локальный mock
   },
 };
 
