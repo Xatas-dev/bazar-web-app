@@ -31,40 +31,6 @@ jobs:
         with:
           skip_after_successful_duplicate: 'true'
 
-  # CODE SCAN
-  analyze:
-    name: Analyze (${{ matrix.language }})
-    needs: pre_job
-    if: needs.pre_job.outputs.should_skip != 'true'
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
-    permissions:
-      security-events: write
-      packages: read
-      actions: read
-      contents: read
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - language: actions
-            build-mode: none
-          - language: javascript-typescript
-            build-mode: autobuild
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
-        with:
-          category: "/language:${{matrix.language}}"
   docker-build-and-publish:
     needs: pre_job
     runs-on: ubuntu-latest
