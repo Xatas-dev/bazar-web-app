@@ -1,5 +1,8 @@
-export interface SpaceDtoResponse {
+export interface GetSpaceDto {
   id: number;
   name: string;
-  description?: string;
+}
+
+export interface GetSpacesResponse {
+  spaces: GetSpaceDto[];
 }

@@ -31,13 +31,16 @@
       "updatedAt": "2024-01-03T00:00:00Z"
     }
   ],
-  "space": {
-    "spaceIds": [
-      1,
-      2,
-      3
-    ]
-  },
+  "spaces": [
+    {
+      "id": 1,
+      "name": "Хаты"
+    },
+    {
+      "id": 2,
+      "name": "Хаты 2"
+    }
+  ],
   "space_users": [
     {
       "spaceId": 1,
@@ -61,59 +64,8 @@
       ]
     }
   ],
-  "chats": [
-    {
-      "id": 1,
-      "spaceId": 1,
-      "name": "General Chat",
-      "createdAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z"
-    },
-    {
-      "id": 2,
-      "spaceId": 2,
-      "name": "Project Discussion",
-      "createdAt": "2024-01-02T00:00:00Z",
-      "updatedAt": "2024-01-02T00:00:00Z"
-    }
-  ],
-  "messages": [
-    {
-      "id": 1,
-      "chatId": 1,
-      "userId": "1",
-      "content": "Hello everyone!",
-      "createdAt": "2024-01-01T10:00:00Z"
-    },
-    {
-      "id": 2,
-      "chatId": 1,
-      "userId": "2",
-      "content": "Hi! How are you?",
-      "createdAt": "2024-01-01T10:05:00Z"
-    },
-    {
-      "id": 3,
-      "chatId": 1,
-      "userId": "1",
-      "content": "I'm doing great, thanks!",
-      "createdAt": "2024-01-01T10:10:00Z"
-    },
-    {
-      "id": 4,
-      "chatId": 2,
-      "userId": "1",
-      "content": "Let's discuss the project timeline",
-      "createdAt": "2024-01-02T09:00:00Z"
-    },
-    {
-      "id": 5,
-      "chatId": 2,
-      "userId": "3",
-      "content": "Sure, I have some ideas",
-      "createdAt": "2024-01-02T09:15:00Z"
-    }
-  ],
+  "chats": [],
+  "messages": [],
   "temp-get-subjects": [
     {
       "group": "Backgrounds",
