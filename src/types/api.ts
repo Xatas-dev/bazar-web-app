@@ -20,9 +20,6 @@ export interface GetUsersDtoRequest {
   search?: string;
 }
 
-export interface GetUserSpacesDtoResponse {
-  spaceIds: number[];
-}
 
 export interface AddUserToSpaceDtoRequest {
   userId: string;

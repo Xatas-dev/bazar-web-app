@@ -1,16 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { axiosInstance } from '@/lib/axios';
-import { GetUserSpacesDtoResponse, AddUserToSpaceDtoRequest } from '@/types/api';
+import { AddUserToSpaceDtoRequest } from '@/types/api';
+import { GetSpaceDto, GetSpacesResponse } from '@/types/space';
 
 // API Functions
-const getSpaces = async (): Promise<GetUserSpacesDtoResponse> => {
-  const { data } = await axiosInstance.get<GetUserSpacesDtoResponse>('/space');
+const getSpaces = async (): Promise<GetSpacesResponse> => {
+  const { data } = await axiosInstance.get<GetSpacesResponse>('/space');
   return data;
 };
 
-const createSpace = async (): Promise<number> => {
-  // The spec says POST /space takes no body and returns int64
-  const { data } = await axiosInstance.post<number>('/space');
+const createSpace = async (name: string): Promise<GetSpaceDto> => {
+  const { data } = await axiosInstance.post<GetSpaceDto>('/space', {}, {
+    params: { name }
+  });
+  return data;
+};
+
+const patchSpace = async ({ spaceId, name }: { spaceId: number; name: string }): Promise<GetSpaceDto> => {
+  const { data } = await axiosInstance.patch<GetSpaceDto>(`/space/${spaceId}`, {}, {
+    params: { name }
+  });
   return data;
 };
 
@@ -44,9 +53,31 @@ export const useCreateSpace = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createSpace,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['spaces'] });
+    onSuccess: (newSpace) => {
+      queryClient.setQueryData(['spaces'], (oldData: GetSpacesResponse | undefined) => {
+        if (!oldData) return { spaces: [newSpace] };
+        return {
+          ...oldData,
+          spaces: [...oldData.spaces, newSpace]
+        };
+      });
     },
+  });
+};
+
+export const usePatchSpace = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: patchSpace,
+    onSuccess: (updatedSpace) => {
+      queryClient.setQueryData(['spaces'], (oldData: GetSpacesResponse | undefined) => {
+        if (!oldData) return { spaces: [updatedSpace] };
+        return {
+          ...oldData,
+          spaces: oldData.spaces.map(s => s.id === updatedSpace.id ? updatedSpace : s)
+        };
+      });
+    }
   });
 };
 
@@ -72,8 +103,14 @@ export const useDeleteSpace = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteSpace,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['spaces'] });
+    onSuccess: (_, spaceId) => {
+      queryClient.setQueryData(['spaces'], (oldData: GetSpacesResponse | undefined) => {
+        if (!oldData) return { spaces: [] };
+        return {
+          ...oldData,
+          spaces: oldData.spaces.filter(s => s.id !== spaceId)
+        };
+      });
     },
   });
 };
