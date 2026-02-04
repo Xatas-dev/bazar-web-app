@@ -18,7 +18,7 @@ export const AppLayout = () => {
   const { user } = useUserStore();
   const { data: spacesData } = useSpaces();
   const { mutate: deleteSpace } = useDeleteSpace();
-  const spaces = spacesData?.spaceIds || [];
+  const spaces = spacesData?.spaces || [];
 
   const handleDeleteSpace = (e: React.MouseEvent, spaceId: number) => {
     e.preventDefault();
@@ -59,23 +59,23 @@ export const AppLayout = () => {
                              <Plus className="mr-2 h-4 w-4" /> Create Space
                         </Link>
                     </Button>
-                    {spaces.map(id => (
-                        <div key={id} className="group flex items-center relative">
+                    {spaces.map(space => (
+                        <div key={space.id} className="group flex items-center relative">
                             <NavLink
-                                to={`/spaces/${id}`}
+                                to={`/spaces/${space.id}`}
                                 className={({ isActive }) => cn(
                                     "flex-1 flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
                                     isActive ? "bg-accent text-accent-foreground" : "transparent"
                                 )}
                             >
                                 <Box className="mr-2 h-4 w-4" />
-                                Space #{id}
+                                {space.name}
                             </NavLink>
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 opacity-0 group-hover:opacity-100 absolute right-1 top-1/2 -translate-y-1/2"
-                                onClick={(e) => handleDeleteSpace(e, id)}
+                                onClick={(e) => handleDeleteSpace(e, space.id)}
                             >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>

@@ -114,5 +114,128 @@ module.exports = (req, res, next) => {
     return; // Don't call next()
   }
 
+  // Handle /bazar-space/api/space logic
+  // Note: routes.json rewrites /bazar-space/api/space to /spaces, so we check both paths
+  if (req.path === '/bazar-space/api/space' || req.path === '/spaces') {
+    if (req.method === 'GET') {
+      const originalSend = res.send;
+      res.send = function(data) {
+        try {
+          const spaces = JSON.parse(data);
+          if (Array.isArray(spaces)) {
+            return originalSend.call(this, JSON.stringify({ spaces }));
+          }
+        } catch (e) {}
+        return originalSend.call(this, data);
+      };
+    } else if (req.method === 'POST') {
+      if (req.query.name) {
+         const fs = require('fs');
+         const path = require('path');
+         const dbPath = path.join(__dirname, 'db.json');
+         const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+
+         const maxId = db.spaces.reduce((max, s) => Math.max(max, s.id), 0);
+         const newSpace = { id: maxId + 1, name: req.query.name };
+
+         db.spaces.push(newSpace);
+         fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+
+         res.status(201).json(newSpace);
+         return;
+      }
+    }
+  }
+
+  // Handle /bazar-space/api/space/:id PATCH
+  if (req.path.match(/\/bazar-space\/api\/space\/\d+/) && req.method === 'PATCH') {
+    const id = Number(req.path.match(/\/bazar-space\/api\/space\/(\d+)/)[1]);
+    const name = req.query.name;
+
+    if (name && !isNaN(id)) {
+        const fs = require('fs');
+        const path = require('path');
+        const dbPath = path.join(__dirname, 'db.json');
+        const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        const space = db.spaces.find(s => s.id === id);
+
+        if (space) {
+            space.name = name;
+            fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+            res.json(space);
+            return;
+        }
+    }
+  }
+
+  // Handle /bazar-space/api/space/:id/user GET
+  if (req.path.match(/\/bazar-space\/api\/space\/\d+\/user/) && req.method === 'GET') {
+    const originalSend = res.send;
+    res.send = function(data) {
+      try {
+        const result = JSON.parse(data);
+        if (Array.isArray(result)) {
+           if (result.length > 0 && result[0].userIds) {
+               return originalSend.call(this, JSON.stringify(result[0].userIds));
+           }
+           if (result.length === 0) {
+               return originalSend.call(this, JSON.stringify([]));
+           }
+        }
+      } catch (e) {}
+      return originalSend.call(this, data);
+    };
+  }
+
+  // Handle POST /bazar-space/api/space/user
+  if (req.path === '/bazar-space/api/space/user' && req.method === 'POST') {
+     const fs = require('fs');
+     const path = require('path');
+     const { spaceId, userId } = req.body;
+
+     if (spaceId && userId) {
+        const dbPath = path.join(__dirname, 'db.json');
+        const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        const spaceUsers = db.space_users.find(su => su.spaceId === Number(spaceId));
+
+        if (spaceUsers) {
+            if (!spaceUsers.userIds.includes(userId)) {
+                spaceUsers.userIds.push(userId);
+                fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+            }
+            res.status(200).send();
+            return;
+        } else {
+             db.space_users.push({
+                 spaceId: Number(spaceId),
+                 userIds: [userId]
+             });
+             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+             res.status(200).send();
+             return;
+        }
+     }
+  }
+
+  // Handle DELETE /bazar-space/api/space/:spaceId/user/:userId
+  if (req.path.match(/\/bazar-space\/api\/space\/\d+\/user\/.+/) && req.method === 'DELETE') {
+     const fs = require('fs');
+     const path = require('path');
+     const match = req.path.match(/\/bazar-space\/api\/space\/(\d+)\/user\/(.+)/);
+     const spaceId = Number(match[1]);
+     const userId = match[2];
+
+     const dbPath = path.join(__dirname, 'db.json');
+     const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+     const spaceUsers = db.space_users.find(su => su.spaceId === spaceId);
+
+     if (spaceUsers) {
+         spaceUsers.userIds = spaceUsers.userIds.filter(id => id !== userId);
+         fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+     }
+     res.status(200).send();
+     return;
+  }
+
   next();
 };
