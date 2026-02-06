@@ -13,7 +13,7 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
         const newMessage: MessageResponse = {
             id: payload.id,
             chatId: event.chatId,
-            userId: payload.userId,
+            author: payload.author,
             content: payload.content,
             createdAt: payload.createdAt
         };
@@ -123,7 +123,7 @@ export const useChatWebSocket = (chatId: number | undefined) => {
 
 // 🧪 TEST HELPER: Simulate WebSocket events manually (development only)
 // Usage in browser console:
-// window.simulateWSEvent({ type: 'CREATED', chatId: 1, payload: { id: 999, userId: 'test-user', content: 'Test message', createdAt: new Date().toISOString() } })
+// window.simulateWSEvent({ type: 'CREATED', chatId: 1, payload: { id: 999, author: { userId: '1', firstName: 'Test', lastName: 'User', status: 'RESOLVED' }, content: 'Test message', createdAt: new Date().toISOString() } })
 // window.simulateWSEvent({ type: 'DELETED', chatId: 1, payload: { ids: [999] } })
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     (window as any).simulateWSEvent = (event: WebSocketChatEvent) => {
