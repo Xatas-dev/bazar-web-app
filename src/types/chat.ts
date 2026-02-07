@@ -12,10 +12,22 @@ export interface CreateMessageRequest {
   content: string;
 }
 
+export enum AuthorStatus {
+  RESOLVED = 'RESOLVED',
+  UNKNOWN = 'UNKNOWN'
+}
+
+export interface MessageAuthor {
+  userId: string;
+  firstName: string | null;
+  lastName: string | null;
+  status: AuthorStatus;
+}
+
 export interface MessageResponse {
   id: number;
   chatId: number;
-  userId: string;
+  author: MessageAuthor;
   content: string;
   createdAt: string;
   isDeletable?: boolean;
@@ -47,7 +59,7 @@ export enum ChatEventType {
 
 export interface MessageCreatedPayload {
   id: number;
-  userId: string;
+  author: MessageAuthor;
   content: string;
   createdAt: string;
 }
