@@ -64,8 +64,100 @@
       ]
     }
   ],
-  "chats": [],
-  "messages": [],
+  "chats": [
+    {
+      "id": 1,
+      "spaceId": 1,
+      "name": "General Chat",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": 2,
+      "spaceId": 2,
+      "name": "Project Discussion",
+      "createdAt": "2024-01-02T00:00:00Z",
+      "updatedAt": "2024-01-02T00:00:00Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": 1,
+      "chatId": 1,
+      "author": {
+        "userId": "1",
+        "firstName": "Test",
+        "lastName": "User",
+        "status": "RESOLVED"
+      },
+      "content": "Hello everyone!",
+      "createdAt": "2024-01-01T10:00:00Z",
+      "isDeletable": true
+    },
+    {
+      "id": 2,
+      "chatId": 1,
+      "author": {
+        "userId": "2",
+        "firstName": "John",
+        "lastName": "Doe",
+        "status": "RESOLVED"
+      },
+      "content": "Hi! How are you?",
+      "createdAt": "2024-01-01T10:05:00Z"
+    },
+    {
+      "id": 3,
+      "chatId": 1,
+      "author": {
+        "userId": "1",
+        "firstName": "Test",
+        "lastName": "User",
+        "status": "RESOLVED"
+      },
+      "content": "I'm doing great, thanks!",
+      "createdAt": "2024-01-01T10:10:00Z",
+      "isDeletable": true
+
+    },
+    {
+      "id": 4,
+      "chatId": 2,
+      "author": {
+        "userId": "1",
+        "firstName": "Test",
+        "lastName": "User",
+        "status": "RESOLVED"
+      },
+      "content": "Let's discuss the project timeline",
+      "createdAt": "2024-01-02T09:00:00Z",
+      "isDeletable": true
+    },
+    {
+      "id": 5,
+      "chatId": 2,
+      "author": {
+        "userId": "3",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "status": "RESOLVED"
+      },
+      "content": "Sure, I have some ideas",
+      "createdAt": "2024-01-02T09:15:00Z"
+    },
+    {
+      "id": 6,
+      "chatId": 1,
+      "author": {
+        "userId": "unknown-user-123",
+        "firstName": null,
+        "lastName": null,
+        "status": "UNKNOWN"
+      },
+      "content": "This is a message from an unknown user",
+      "createdAt": "2024-01-01T10:15:00Z"
+    }
+  ],
   "temp-get-subjects": [
     {
       "group": "Backgrounds",

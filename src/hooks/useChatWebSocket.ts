@@ -13,7 +13,7 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
         const newMessage: MessageResponse = {
             id: payload.id,
             chatId: event.chatId,
-            userId: payload.userId,
+            author: payload.author,
             content: payload.content,
             createdAt: payload.createdAt
         };
@@ -86,7 +86,7 @@ export const useChatWebSocket = (chatId: number | undefined) => {
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.host; // localhost:5173
-        const brokerURL = `${protocol}//${host}/api/ws/bazar-chat/api/ws`;
+        const brokerURL = `${protocol}//${host}/api/ws/bazar-chat/ws`;
 
         const client = new Client({
             brokerURL: brokerURL,
@@ -123,7 +123,7 @@ export const useChatWebSocket = (chatId: number | undefined) => {
 
 // 🧪 TEST HELPER: Simulate WebSocket events manually (development only)
 // Usage in browser console:
-// window.simulateWSEvent({ type: 'CREATED', chatId: 1, payload: { id: 999, userId: 'test-user', content: 'Test message', createdAt: new Date().toISOString() } })
+// window.simulateWSEvent({ type: 'CREATED', chatId: 1, payload: { id: 999, author: { userId: '1', firstName: 'Test', lastName: 'User', status: 'RESOLVED' }, content: 'Test message', createdAt: new Date().toISOString() } })
 // window.simulateWSEvent({ type: 'DELETED', chatId: 1, payload: { ids: [999] } })
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     (window as any).simulateWSEvent = (event: WebSocketChatEvent) => {

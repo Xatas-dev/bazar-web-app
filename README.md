@@ -21,7 +21,13 @@ window.simulateWSEvent({
   chatId: 1, // ID чата
   payload: {
     id: 999, // ID нового сообщения
-    userId: 'test-user', // ID пользователя
+    author:
+      {
+        userId: '1',
+        firstName: 'Test',
+        lastName: 'User',
+        status: 'RESOLVED'
+      },        
     content: 'Тестовое сообщение', // Текст сообщения
     createdAt: new Date().toISOString() // Время создания
   }

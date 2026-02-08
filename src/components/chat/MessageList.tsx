@@ -2,7 +2,6 @@ import { useRef, useEffect, useMemo, useState } from "react";
 import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChat";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
-import { useUsers } from "@/hooks/useUsers";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {useChatWebSocket} from "@/hooks/useChatWebSocket.ts";
@@ -70,24 +69,6 @@ export const MessageList = ({ chatId }: MessageListProps) => {
     const flat = data.pages.flatMap(page => page.content);
     return flat.reverse(); // Now oldest at index 0, newest at last index
   }, [data]);
-
-  // Extract User IDs to fetch user info
-  const userIds = useMemo(() => {
-    const ids = new Set<string>();
-    allMessages.forEach(msg => {
-        if (msg.userId) ids.add(msg.userId);
-    });
-    return Array.from(ids);
-  }, [allMessages]);
-
-  const { data: users } = useUsers(userIds);
-
-  // Create a map for easy lookup
-  const userMap = useMemo(() => {
-    const map = new Map();
-    users?.forEach(u => map.set(u.id, u));
-    return map;
-  }, [users]);
 
   // Scroll handling
   // When new messages arrive (at the bottom), if we were at the bottom, auto-scroll to new bottom.
@@ -160,20 +141,18 @@ export const MessageList = ({ chatId }: MessageListProps) => {
             </div>
         ) : (
             allMessages.map((msg, index) => {
-                const isCurrentUser = msg.userId === currentUser?.id;
-                const user = userMap.get(msg.userId);
+                const isCurrentUser = msg.author.userId === currentUser?.id;
 
                 // Grouping logic: Show avatar only if previous message was from a different user
                 // or if it's the first message
                 const prevMsg = allMessages[index - 1];
-                const showAvatar = !prevMsg || prevMsg.userId !== msg.userId;
+                const showAvatar = !prevMsg || prevMsg.author.userId !== msg.author.userId;
 
                 return (
                     <MessageItem
                         key={msg.id}
                         message={msg}
                         isCurrentUser={isCurrentUser}
-                        user={user}
                         showAvatar={showAvatar}
                         onDelete={handleDeleteMessage}
                     />

@@ -34,15 +34,8 @@ module.exports = (req, res, next) => {
           const end = start + size;
           const paginatedMessages = sortedMessages.slice(start, end);
 
-          // Add canDelete attribute to each message
-          // User with id "1" can delete their own messages
-          const messagesWithCanDelete = paginatedMessages.map(msg => ({
-            ...msg,
-            isDeletable: msg.userId === "1" // Current user is "1" in mock
-          }));
-
           const paginatedResponse = {
-            content: messagesWithCanDelete,
+            content: paginatedMessages,
             page: page,
             pageSize: size,
             totalElements: sortedMessages.length,

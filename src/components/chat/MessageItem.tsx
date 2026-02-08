@@ -1,25 +1,46 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { MessageResponse } from "@/types/chat";
-import { UserDtoResponse } from "@/types/api";
+import { MessageResponse, AuthorStatus } from "@/types/chat";
 import { motion } from "framer-motion";
 import { MessageContextMenu } from "./MessageContextMenu";
 
 interface MessageItemProps {
   message: MessageResponse;
   isCurrentUser: boolean;
-  user?: UserDtoResponse;
   showAvatar?: boolean;
   onDelete?: (messageId: number) => void;
 }
 
-export const MessageItem = ({ message, isCurrentUser, user, showAvatar = true, onDelete }: MessageItemProps) => {
+export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelete }: MessageItemProps) => {
   const formattedTime = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const handleDelete = (messageId: number) => {
     if (onDelete) {
       onDelete(messageId);
     }
+  };
+
+  // Determine display name based on author status
+  const getAuthorDisplayName = () => {
+    if (message.author.status === AuthorStatus.UNKNOWN) {
+      return "Неизвестный пользователь";
+    }
+
+    const firstName = message.author.firstName || '';
+    const lastName = message.author.lastName || '';
+    return `${firstName} ${lastName}`.trim() || "Неизвестный пользователь";
+  };
+
+  // Get initials for avatar fallback
+  const getAuthorInitials = () => {
+    if (message.author.status === AuthorStatus.UNKNOWN) {
+      return "??";
+    }
+
+    const firstName = message.author.firstName || '';
+    const lastName = message.author.lastName || '';
+    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    return initials || "??";
   };
 
   return (
@@ -36,8 +57,7 @@ export const MessageItem = ({ message, isCurrentUser, user, showAvatar = true, o
          <div className="flex-shrink-0 w-8">
             {showAvatar ? (
                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.userPic || undefined} alt={user?.userName || "User"} />
-                    <AvatarFallback>{user?.userName?.slice(0, 2).toUpperCase() || "??"}</AvatarFallback>
+                    <AvatarFallback>{getAuthorInitials()}</AvatarFallback>
                 </Avatar>
             ) : <div className="w-8" />}
          </div>
@@ -51,7 +71,7 @@ export const MessageItem = ({ message, isCurrentUser, user, showAvatar = true, o
       >
          {!isCurrentUser && showAvatar && (
              <span className="text-xs text-muted-foreground mb-1 ml-1">
-                 {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : user?.userName || 'Unknown'}
+                 {getAuthorDisplayName()}
              </span>
          )}
 
