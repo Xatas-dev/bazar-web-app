@@ -22,20 +22,23 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false, // For self-signed certs if needed, though localhost usually http
         },
-        '/bazar-space/api': {
+        '/bazar-space': {
           target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => mode === 'development' ? path.replace(/^\/bazar-space/, '') : path,
         },
         '/bazar-persona': {
           target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => mode === 'development' ? path.replace(/^\/bazar-persona/, '') : path,
         },
         '/bazar-chat': {
           target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => mode === 'development' ? path.replace(/^\/bazar-chat/, '') : path,
         },
         '/ws': {
             target: target,

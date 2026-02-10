@@ -3,20 +3,28 @@ import { cn } from "@/lib/utils";
 import { MessageResponse, AuthorStatus } from "@/types/chat";
 import { motion } from "framer-motion";
 import { MessageContextMenu } from "./MessageContextMenu";
+import { Reply } from "lucide-react";
 
 interface MessageItemProps {
   message: MessageResponse;
   isCurrentUser: boolean;
   showAvatar?: boolean;
   onDelete?: (messageId: number) => void;
+  onReply?: (message: MessageResponse) => void;
 }
 
-export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelete }: MessageItemProps) => {
+export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelete, onReply }: MessageItemProps) => {
   const formattedTime = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const handleDelete = (messageId: number) => {
     if (onDelete) {
       onDelete(messageId);
+    }
+  };
+
+  const handleReply = (message: MessageResponse) => {
+    if (onReply) {
+      onReply(message);
     }
   };
 
@@ -41,6 +49,19 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
     const lastName = message.author.lastName || '';
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     return initials || "??";
+  };
+
+  // Get display name for reply author
+  const getReplyAuthorDisplayName = () => {
+    if (!message.reply) return "";
+
+    if (message.reply.author.status === AuthorStatus.UNKNOWN) {
+      return "Неизвестный пользователь";
+    }
+
+    const firstName = message.reply.author.firstName || '';
+    const lastName = message.reply.author.lastName || '';
+    return `${firstName} ${lastName}`.trim() || "Неизвестный пользователь";
   };
 
   return (
@@ -75,7 +96,7 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
              </span>
          )}
 
-        <MessageContextMenu message={message} onDelete={handleDelete}>
+        <MessageContextMenu message={message} onDelete={handleDelete} onReply={handleReply}>
           <div
             className={cn(
               "rounded-lg px-4 py-2 text-sm cursor-pointer",
@@ -84,6 +105,20 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
                 : "bg-muted text-foreground rounded-tl-none"
             )}
           >
+            {message.reply && (
+              <div className={cn(
+                "mb-2 pb-2 border-l-2 pl-2 text-xs opacity-80",
+                isCurrentUser
+                  ? "border-primary-foreground/30"
+                  : "border-muted-foreground/30"
+              )}>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <Reply className="h-3 w-3" />
+                  <span className="font-medium">{getReplyAuthorDisplayName()}</span>
+                </div>
+                <p className="truncate">{message.reply.contentPreview}</p>
+              </div>
+            )}
             {message.content}
           </div>
         </MessageContextMenu>

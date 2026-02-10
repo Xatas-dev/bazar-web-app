@@ -88,7 +88,7 @@
         "userId": "1",
         "firstName": "Test",
         "lastName": "User",
-        "status": "RESOLVED"
+        "status": "EXIST"
       },
       "content": "Hello everyone!",
       "createdAt": "2024-01-01T10:00:00Z",
@@ -101,7 +101,7 @@
         "userId": "2",
         "firstName": "John",
         "lastName": "Doe",
-        "status": "RESOLVED"
+        "status": "EXIST"
       },
       "content": "Hi! How are you?",
       "createdAt": "2024-01-01T10:05:00Z"
@@ -113,12 +113,21 @@
         "userId": "1",
         "firstName": "Test",
         "lastName": "User",
-        "status": "RESOLVED"
+        "status": "EXIST"
       },
       "content": "I'm doing great, thanks!",
       "createdAt": "2024-01-01T10:10:00Z",
-      "isDeletable": true
-
+      "isDeletable": true,
+      "reply": {
+        "id": 2,
+        "author": {
+          "userId": "2",
+          "firstName": "John",
+          "lastName": "Doe",
+          "status": "EXIST"
+        },
+        "contentPreview": "Hi! How are you?"
+      }
     },
     {
       "id": 4,
@@ -127,7 +136,7 @@
         "userId": "1",
         "firstName": "Test",
         "lastName": "User",
-        "status": "RESOLVED"
+        "status": "EXIST"
       },
       "content": "Let's discuss the project timeline",
       "createdAt": "2024-01-02T09:00:00Z",
@@ -140,7 +149,7 @@
         "userId": "3",
         "firstName": "Jane",
         "lastName": "Doe",
-        "status": "RESOLVED"
+        "status": "EXIST"
       },
       "content": "Sure, I have some ideas",
       "createdAt": "2024-01-02T09:15:00Z"
@@ -156,6 +165,51 @@
       },
       "content": "This is a message from an unknown user",
       "createdAt": "2024-01-01T10:15:00Z"
+    },
+    {
+      "id": 7,
+      "chatId": 1,
+      "author": {
+        "userId": "2",
+        "firstName": "John",
+        "lastName": "Doe",
+        "status": "EXIST"
+      },
+      "content": "That's great to hear! What have you been up to?",
+      "createdAt": "2024-01-01T10:20:00Z",
+      "reply": {
+        "id": 3,
+        "author": {
+          "userId": "1",
+          "firstName": "Test",
+          "lastName": "User",
+          "status": "EXIST"
+        },
+        "contentPreview": "I'm doing great, thanks!"
+      }
+    },
+    {
+      "id": 8,
+      "chatId": 2,
+      "author": {
+        "userId": "1",
+        "firstName": "Test",
+        "lastName": "User",
+        "status": "EXIST"
+      },
+      "content": "Great! Let's schedule a meeting to discuss them in detail.",
+      "createdAt": "2024-01-02T09:20:00Z",
+      "isDeletable": true,
+      "reply": {
+        "id": 5,
+        "author": {
+          "userId": "3",
+          "firstName": "Jane",
+          "lastName": "Doe",
+          "status": "EXIST"
+        },
+        "contentPreview": "Sure, I have some ideas"
+      }
     }
   ],
   "temp-get-subjects": [

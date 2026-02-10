@@ -26,7 +26,7 @@ window.simulateWSEvent({
         userId: '1',
         firstName: 'Test',
         lastName: 'User',
-        status: 'RESOLVED'
+        status: 'EXIST'
       },        
     content: 'Тестовое сообщение', // Текст сообщения
     createdAt: new Date().toISOString() // Время создания
