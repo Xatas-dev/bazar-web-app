@@ -10,10 +10,11 @@ export interface ChatResponse {
 
 export interface CreateMessageRequest {
   content: string;
+  replyMessageId?: number;
 }
 
 export enum AuthorStatus {
-  RESOLVED = 'RESOLVED',
+  EXIST = 'EXIST',
   UNKNOWN = 'UNKNOWN'
 }
 
@@ -24,6 +25,12 @@ export interface MessageAuthor {
   status: AuthorStatus;
 }
 
+export interface ReplyMessage {
+  id: number;
+  author: MessageAuthor;
+  contentPreview: string;
+}
+
 export interface MessageResponse {
   id: number;
   chatId: number;
@@ -31,6 +38,7 @@ export interface MessageResponse {
   content: string;
   createdAt: string;
   isDeletable?: boolean;
+  reply?: ReplyMessage;
 }
 
 export interface MessagePageResponse {
@@ -62,6 +70,7 @@ export interface MessageCreatedPayload {
   author: MessageAuthor;
   content: string;
   createdAt: string;
+  reply?: ReplyMessage;
 }
 
 export interface MessageDeletedPayload {

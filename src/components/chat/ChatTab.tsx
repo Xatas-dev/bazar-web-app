@@ -3,6 +3,8 @@ import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { Loader2, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { MessageResponse } from "@/types/chat";
 
 interface ChatTabProps {
   spaceId: number;
@@ -12,6 +14,7 @@ export function ChatTab({ spaceId }: ChatTabProps) {
   const { data: chat, isLoading: isLoadingChat } = useGetChatBySpace(spaceId);
   const createChatMutation = useCreateChat();
   const createMessageMutation = useCreateMessage();
+  const [replyToMessage, setReplyToMessage] = useState<MessageResponse | null>(null);
 
   // Handle creating chat if it doesn't exist
   // Based on the spec, we might need to manually create it or it might be 404.
@@ -22,10 +25,18 @@ export function ChatTab({ spaceId }: ChatTabProps) {
       createChatMutation.mutate({ spaceId });
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (content: string, replyMessageId?: number) => {
       if (chat?.id) {
-          createMessageMutation.mutate({ chatId: chat.id, data: { content } });
+          createMessageMutation.mutate({ chatId: chat.id, data: { content, replyMessageId } });
       }
+  };
+
+  const handleReply = (message: MessageResponse) => {
+      setReplyToMessage(message);
+  };
+
+  const handleCancelReply = () => {
+      setReplyToMessage(null);
   };
 
   if (isLoadingChat) {
@@ -64,12 +75,14 @@ export function ChatTab({ spaceId }: ChatTabProps) {
           </div>
 
           {/* Message List */}
-          <MessageList chatId={chat.id} />
+          <MessageList chatId={chat.id} onReply={handleReply} />
 
           {/* Input Area */}
           <ChatInput
             onSendMessage={handleSendMessage}
             isLoading={createMessageMutation.isPending}
+            replyToMessage={replyToMessage}
+            onCancelReply={handleCancelReply}
           />
       </div>
   );

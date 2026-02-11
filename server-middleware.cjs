@@ -1,7 +1,7 @@
 module.exports = (req, res, next) => {
-  // Handle GET /bazar-chat/api/chats/:chatId/messages - rewrite to /messages?chatId=:id
-  if (req.path.match(/\/bazar-chat\/api\/chats\/(\d+)\/messages/) && req.method === 'GET') {
-    const chatId = req.path.match(/\/bazar-chat\/api\/chats\/(\d+)\/messages/)[1];
+  // Handle GET /chats/:chatId/messages - rewrite to /messages?chatId=:id
+  if (req.path.match(/\/chats\/(\d+)\/messages/) && req.method === 'GET') {
+    const chatId = req.path.match(/\/chats\/(\d+)\/messages/)[1];
     req.url = `/messages?chatId=${chatId}&${new URLSearchParams(req.query).toString()}`;
     req.path = '/messages';
   }
@@ -107,9 +107,9 @@ module.exports = (req, res, next) => {
     return; // Don't call next()
   }
 
-  // Handle /bazar-space/api/space logic
-  // Note: routes.json rewrites /bazar-space/api/space to /spaces, so we check both paths
-  if (req.path === '/bazar-space/api/space' || req.path === '/spaces') {
+  // Handle /space logic
+  // Note: routes.json rewrites /space to /spaces, so we check both paths
+  if (req.path === '/space' || req.path === '/spaces') {
     if (req.method === 'GET') {
       const originalSend = res.send;
       res.send = function(data) {
@@ -140,9 +140,9 @@ module.exports = (req, res, next) => {
     }
   }
 
-  // Handle /bazar-space/api/space/:id PATCH
-  if (req.path.match(/\/bazar-space\/api\/space\/\d+/) && req.method === 'PATCH') {
-    const id = Number(req.path.match(/\/bazar-space\/api\/space\/(\d+)/)[1]);
+  // Handle /space/:id PATCH
+  if (req.path.match(/\/space\/\d+/) && req.method === 'PATCH') {
+    const id = Number(req.path.match(/\/space\/(\d+)/)[1]);
     const name = req.query.name;
 
     if (name && !isNaN(id)) {
@@ -161,8 +161,8 @@ module.exports = (req, res, next) => {
     }
   }
 
-  // Handle /bazar-space/api/space/:id/user GET
-  if (req.path.match(/\/bazar-space\/api\/space\/\d+\/user/) && req.method === 'GET') {
+  // Handle /space/:id/user GET
+  if (req.path.match(/\/space\/\d+\/user/) && req.method === 'GET') {
     const originalSend = res.send;
     res.send = function(data) {
       try {
@@ -180,8 +180,8 @@ module.exports = (req, res, next) => {
     };
   }
 
-  // Handle POST /bazar-space/api/space/user
-  if (req.path === '/bazar-space/api/space/user' && req.method === 'POST') {
+  // Handle POST /space/user
+  if (req.path === '/space/user' && req.method === 'POST') {
      const fs = require('fs');
      const path = require('path');
      const { spaceId, userId } = req.body;
@@ -210,11 +210,11 @@ module.exports = (req, res, next) => {
      }
   }
 
-  // Handle DELETE /bazar-space/api/space/:spaceId/user/:userId
-  if (req.path.match(/\/bazar-space\/api\/space\/\d+\/user\/.+/) && req.method === 'DELETE') {
+  // Handle DELETE /space/:spaceId/user/:userId
+  if (req.path.match(/\/space\/\d+\/user\/.+/) && req.method === 'DELETE') {
      const fs = require('fs');
      const path = require('path');
-     const match = req.path.match(/\/bazar-space\/api\/space\/(\d+)\/user\/(.+)/);
+     const match = req.path.match(/\/space\/(\d+)\/user\/(.+)/);
      const spaceId = Number(match[1]);
      const userId = match[2];
 
