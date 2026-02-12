@@ -27,7 +27,7 @@
     "userId": "1",
     "firstName": "Test",
     "lastName": "User",
-    "status": "RESOLVED"
+    "status": "EXIST"
   },
   "content": "Hello!",
   "createdAt": "2024-01-01T10:00:00Z"
@@ -38,7 +38,7 @@
 
 ```typescript
 enum AuthorStatus {
-  RESOLVED = 'RESOLVED',  // Пользователь найден, данные доступны
+  EXIST = 'EXIST',  // Пользователь найден, данные доступны
   UNKNOWN = 'UNKNOWN'     // Пользователь не найден
 }
 
@@ -52,7 +52,7 @@ interface MessageAuthor {
 
 ### Логика отображения
 
-- **RESOLVED**: Отображаем `firstName` и `lastName`
+- **EXIST**: Отображаем `firstName` и `lastName`
 - **UNKNOWN**: Отображаем заглушку "Неизвестный пользователь"
 
 ### WebSocket события
@@ -84,7 +84,7 @@ interface MessageAuthor {
       "userId": "1",
       "firstName": "Test",
       "lastName": "User",
-      "status": "RESOLVED"
+      "status": "EXIST"
     },
     "content": "Test message",
     "createdAt": "2024-01-01T10:00:00Z"
@@ -128,7 +128,7 @@ window.simulateWSEvent({
       userId: '1',
       firstName: 'Test',
       lastName: 'User',
-      status: 'RESOLVED'
+      status: 'EXIST'
     },
     content: 'Test message',
     createdAt: new Date().toISOString()

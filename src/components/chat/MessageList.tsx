@@ -6,12 +6,14 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {useChatWebSocket} from "@/hooks/useChatWebSocket.ts";
 import { useToast } from "@/hooks/use-toast";
+import { MessageResponse } from "@/types/chat";
 
 interface MessageListProps {
   chatId: number;
+  onReply?: (message: MessageResponse) => void;
 }
 
-export const MessageList = ({ chatId }: MessageListProps) => {
+export const MessageList = ({ chatId, onReply }: MessageListProps) => {
   // Connect to WebSocket
   useChatWebSocket(chatId);
 
@@ -155,6 +157,7 @@ export const MessageList = ({ chatId }: MessageListProps) => {
                         isCurrentUser={isCurrentUser}
                         showAvatar={showAvatar}
                         onDelete={handleDeleteMessage}
+                        onReply={onReply}
                     />
                 );
             })

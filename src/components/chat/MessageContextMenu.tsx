@@ -6,19 +6,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MessageResponse } from "@/types/chat";
-import { Trash2 } from "lucide-react";
+import { Trash2, Reply } from "lucide-react";
 
 interface MessageContextMenuProps {
   message: MessageResponse;
   children: React.ReactNode;
   onDelete: (messageId: number) => void;
+  onReply: (message: MessageResponse) => void;
 }
 
-export const MessageContextMenu = ({ message, children, onDelete }: MessageContextMenuProps) => {
+export const MessageContextMenu = ({ message, children, onDelete, onReply }: MessageContextMenuProps) => {
   const [open, setOpen] = useState(false);
 
   const handleDelete = () => {
     onDelete(message.id);
+    setOpen(false);
+  };
+
+  const handleReply = () => {
+    onReply(message);
     setOpen(false);
   };
 
@@ -32,11 +38,6 @@ export const MessageContextMenu = ({ message, children, onDelete }: MessageConte
     // Prevent opening on left click
     e.stopPropagation();
   };
-
-  // Don't show context menu if isDeletable is false or undefined
-  if (!message.isDeletable) {
-    return <>{children}</>;
-  }
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
@@ -56,12 +57,21 @@ export const MessageContextMenu = ({ message, children, onDelete }: MessageConte
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuItem
-          onClick={handleDelete}
-          className="text-destructive focus:text-destructive cursor-pointer"
+          onClick={handleReply}
+          className="cursor-pointer"
         >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Удалить
+          <Reply className="mr-2 h-4 w-4" />
+          Ответить
         </DropdownMenuItem>
+        {message.isDeletable && (
+          <DropdownMenuItem
+            onClick={handleDelete}
+            className="text-destructive focus:text-destructive cursor-pointer"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Удалить
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
