@@ -15,7 +15,8 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
             chatId: event.chatId,
             author: payload.author,
             content: payload.content,
-            createdAt: payload.createdAt
+            createdAt: payload.createdAt,
+            reply: payload.reply
         };
 
         // Update React Query Cache - add new message
