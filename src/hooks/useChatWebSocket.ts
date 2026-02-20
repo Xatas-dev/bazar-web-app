@@ -2,6 +2,7 @@ import {useEffect, useRef} from 'react';
 import {Client} from '@stomp/stompjs';
 import {useQueryClient} from '@tanstack/react-query';
 import {MessageResponse, WebSocketChatEvent, ChatEventType, MessageCreatedPayload, MessageDeletedPayload} from '@/types/chat';
+import config from "@/config.ts";
 
 // Helper function to process WebSocket events (extracted for testing)
 const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryClient: any) => {
@@ -87,7 +88,9 @@ export const useChatWebSocket = (chatId: number | undefined) => {
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.host; // localhost:5173
-        const brokerURL = `${protocol}//${host}/api/ws/bazar-chat/ws`;
+        const chatWsBaseUrl = process.env.NODE_ENV === 'development' ?
+            config.chatWs.targetLocal : config.chatWs.baseUrl
+        const brokerURL = `${protocol}//${host}${chatWsBaseUrl}`;
 
         const client = new Client({
             brokerURL: brokerURL,

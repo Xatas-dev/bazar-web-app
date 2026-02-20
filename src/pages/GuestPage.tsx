@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import config from "@/config";
 
 export default function GuestPage() {
-  const loginUrl = config.auth.keycloakUrl;
+  const loginUrl = process.env.NODE_ENV === 'development'
+        ? config.auth.targetLocal
+        : config.auth.keycloakUrl;
 
   return (
     <div className="flex flex-col items-center justify-center space-y-20 py-20 px-4">
