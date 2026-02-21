@@ -47,6 +47,7 @@
         "realm_client": "false",
         "oidc.ciba.grant.enabled": "false",
         "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "http://localhost:5173/*",
         "standard.token.exchange.enabled": "false",
         "frontchannel.logout.session.required": "true",
         "display.on.consent.screen": "false",
