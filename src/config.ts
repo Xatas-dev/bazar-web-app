@@ -17,6 +17,10 @@ interface Config {
         baseUrl: string;
         targetLocal: string;
     };
+    chatWs: {
+      baseUrl: string;
+      targetLocal: string;
+    };
     auth: {
         keycloakUrl: string;
         targetLocal: string;
@@ -24,6 +28,10 @@ interface Config {
 }
 
 const config: Config = {
+    chatWs: {
+        baseUrl: "/api/ws/bazar-chat/ws",
+        targetLocal: "/ws/bazar-chat/ws"
+    },
     api: {
         baseUrl: '/api/bazar-space',
         targetLocal: '/bazar-space' // локальный json-server через vite proxy
@@ -43,7 +51,8 @@ const config: Config = {
     auth: {
         keycloakUrl: '/api/oauth2/authorization/keycloak',
         targetLocal: '/oauth2/authorization/keycloak' // локальный mock
-    },
+    }
+
 };
 
 export default config;

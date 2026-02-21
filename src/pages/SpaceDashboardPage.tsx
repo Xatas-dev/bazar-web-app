@@ -68,69 +68,71 @@ export default function SpaceDashboardPage() {
   return (
     <div className="flex flex-col h-full">
         {/* Tabs Header */}
-        <div className="border-b px-4 pt-2 bg-card">
-            <h2 className="text-2xl font-bold mb-4 flex items-center pt-4">
-                <Box className="mr-2 h-6 w-6" /> {currentSpace ? currentSpace.name : `Space #${id}`}
+        <div className="border-b px-2 sm:px-4 pt-2 bg-card">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center pt-4">
+                <Box className="mr-2 h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                <span className="truncate">{currentSpace ? currentSpace.name : `Space #${id}`}</span>
             </h2>
-            <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="w-full justify-start bg-transparent p-0 h-auto rounded-none border-b border-transparent">
+            <Tabs defaultValue="chat" className="w-full">
+                <TabsList className="w-full justify-start bg-transparent p-0 h-auto rounded-none border-b border-transparent overflow-x-auto">
+                    <TabsTrigger
+                        value="chat"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base"
+                    >
+                        Chat
+                    </TabsTrigger>
                     <TabsTrigger
                         value="overview"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base"
                     >
                         Overview
                     </TabsTrigger>
                     <TabsTrigger
                         value="members"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base"
                     >
                         Members
                     </TabsTrigger>
                     <TabsTrigger
-                        value="chat"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
-                    >
-                        Chat
-                    </TabsTrigger>
-                    <TabsTrigger
                         value="storage"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base whitespace-nowrap"
                         disabled
                     >
-                        Storage (Soon)
+                        Storage
                     </TabsTrigger>
                 </TabsList>
 
                 {/* Content Area */}
-                <div className="p-6">
+                <div className="p-3 sm:p-6">
                     <TabsContent value="overview" className="mt-0 space-y-4">
                          <Card>
-                            <CardHeader>
-                                <CardTitle>Space Settings</CardTitle>
+                            <CardHeader className="p-4 sm:p-6">
+                                <CardTitle className="text-lg sm:text-xl">Space Settings</CardTitle>
                                 <CardDescription>Manage your space configuration.</CardDescription>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                                 <div className="space-y-4">
                                      <div className="grid w-full items-center gap-1.5">
                                         <Label htmlFor="spaceName">Space Name</Label>
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-col sm:flex-row gap-2">
                                             <Input
                                                 id="spaceName"
                                                 value={spaceName}
                                                 onChange={(e) => setSpaceName(e.target.value)}
+                                                className="flex-1"
                                             />
-                                            <Button onClick={handleUpdateSpace} disabled={patchSpaceMutation.isPending}>
+                                            <Button onClick={handleUpdateSpace} disabled={patchSpaceMutation.isPending} className="w-full sm:w-auto">
                                                 {patchSpaceMutation.isPending ? "Saving..." : <><Save className="mr-2 h-4 w-4" /> Save</>}
                                             </Button>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between p-4 border rounded-lg bg-destructive/10 border-destructive/20 mt-8">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-destructive/10 border-destructive/20 mt-8 gap-4">
                                         <div>
                                             <h3 className="font-medium text-destructive">Delete Space</h3>
                                             <p className="text-sm text-muted-foreground">Permanently remove this space and all its data.</p>
                                         </div>
-                                        <Button variant="destructive" onClick={handleDeleteSpace}>
+                                        <Button variant="destructive" onClick={handleDeleteSpace} className="w-full sm:w-auto">
                                             <Trash2 className="mr-2 h-4 w-4" /> Delete Space
                                         </Button>
                                     </div>
