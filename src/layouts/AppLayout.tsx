@@ -32,7 +32,7 @@ export const AppLayout = () => {
         try {
             // Always go through API Gateway
             const logoutUrl = process.env.NODE_ENV === 'development' ? '/logout' : '/api/logout'
-            const response = await fetch(logoutUrl, {
+            await fetch(logoutUrl, {
                 method: 'POST',
                 credentials: 'include', // Important for cookies
                 redirect: 'follow' // Don't follow redirects automatically
