@@ -28,14 +28,24 @@ export const AppLayout = () => {
     }
   };
 
-  const handleLogout = async () => {
-      try {
-          await fetch('/api/logout', { method: 'POST' });
-          window.location.href = '/';
-      } catch (e) {
-          console.error("Logout failed", e);
-      }
-  };
+    const handleLogout = async () => {
+        try {
+            // Always go through API Gateway
+            const logoutUrl = process.env.NODE_ENV === 'development' ? '/logout' : '/api/logout'
+            await fetch(logoutUrl, {
+                method: 'POST',
+                credentials: 'include', // Important for cookies
+                redirect: 'follow' // Don't follow redirects automatically
+            });
+
+            // Clear local state and redirect to home
+            window.location.href = '/';
+        } catch (e) {
+            console.error("Logout failed", e);
+            // Still redirect to home on error
+            window.location.href = '/';
+        }
+    };
 
   return (
     <div className="h-screen overflow-hidden bg-background flex">

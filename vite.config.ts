@@ -5,8 +5,8 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const target = env.VITE_API_TARGET || 'http://localhost:3030'
-  const localMockTarget = 'http://localhost:3000' // json-server для локальной разработки
+  const target = env.VITE_API_TARGET || 'http://localhost:8080'
+  const localMockTarget = 'http://localhost:8080' // json-server для локальной разработки
 
   return {
     plugins: [react()],
@@ -26,19 +26,16 @@ export default defineConfig(({ mode }) => {
           target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => mode === 'development' ? path.replace(/^\/bazar-space/, '') : path,
         },
         '/bazar-persona': {
           target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => mode === 'development' ? path.replace(/^\/bazar-persona/, '') : path,
         },
         '/bazar-chat': {
           target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => mode === 'development' ? path.replace(/^\/bazar-chat/, '') : path,
         },
         '/ws': {
             target: target,
@@ -47,6 +44,11 @@ export default defineConfig(({ mode }) => {
             secure: false
         },
         '/logout': {
+          target: target,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/oauth': {
           target: target,
           changeOrigin: true,
           secure: false,
