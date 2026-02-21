@@ -15,3 +15,5 @@ yarn-error.log*
 .idea/*
 db.json
 dist
+
+/devSandbox/space-policy.yaml
