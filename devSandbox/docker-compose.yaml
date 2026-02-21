@@ -35,7 +35,11 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
-    command: start-dev
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ./bazar-realm.json:/opt/keycloak/data/import/bazar-realm-realm.json:ro
     ports:
       - "9999:8080"
     depends_on:
@@ -49,6 +53,7 @@ services:
       start_period: 90s
     networks:
       - app-network
+
   cerbos:
     image: ghcr.io/cerbos/cerbos:latest
     container_name: cerbos
