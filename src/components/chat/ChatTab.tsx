@@ -1,10 +1,11 @@
-import { useCreateChat, useCreateMessage, useGetChatBySpace } from "@/hooks/useChat";
+import { useCreateChat, useCreateMessage, useGetChatBySpace, useEditMessage } from "@/hooks/useChat";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { Loader2, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { MessageResponse } from "@/types/chat";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatTabProps {
   spaceId: number;
@@ -14,12 +15,10 @@ export function ChatTab({ spaceId }: ChatTabProps) {
   const { data: chat, isLoading: isLoadingChat } = useGetChatBySpace(spaceId);
   const createChatMutation = useCreateChat();
   const createMessageMutation = useCreateMessage();
+  const editMessageMutation = useEditMessage();
+  const { toast } = useToast();
   const [replyToMessage, setReplyToMessage] = useState<MessageResponse | null>(null);
-
-  // Handle creating chat if it doesn't exist
-  // Based on the spec, we might need to manually create it or it might be 404.
-  // The error handling in axios interceptor might show a toast, but here we want to handle the 404 case gracefully if possible.
-  // If `error` occurs, we can show a "Initialize Chat" button.
+  const [editingMessage, setEditingMessage] = useState<MessageResponse | null>(null);
 
   const handleCreateChat = () => {
       createChatMutation.mutate({ spaceId });
@@ -39,12 +38,42 @@ export function ChatTab({ spaceId }: ChatTabProps) {
       setReplyToMessage(null);
   };
 
+  const handleEditMessage = (message: MessageResponse) => {
+      setEditingMessage(message);
+  };
+
+  const handleCancelEdit = () => {
+      setEditingMessage(null);
+  };
+
+  const handleEditMessageSubmit = (messageId: number, newContent: string) => {
+      if (chat?.id) {
+          editMessageMutation.mutate(
+              { chatId: chat.id, messageId, data: { newContent } },
+              {
+                  onSuccess: () => {
+                      toast({
+                          title: "Сообщение отредактировано",
+                          description: "Сообщение успешно обновлено",
+                      });
+                      setEditingMessage(null);
+                  },
+                  onError: () => {
+                      toast({
+                          variant: "destructive",
+                          title: "Ошибка",
+                          description: "Не удалось отредактировать сообщение",
+                      });
+                  },
+              }
+          );
+      }
+  };
+
   if (isLoadingChat) {
       return <div className="flex h-[400px] items-center justify-center"><Loader2 className="animate-spin" /></div>;
   }
 
-  // If no chat found (assuming API returns 404 or empty equivalent that results in error or undefined data)
-  // Check if we have data or if we should show create button
   if (!chat) {
       return (
           <div className="flex h-[400px] flex-col items-center justify-center gap-4 text-center">
@@ -75,14 +104,17 @@ export function ChatTab({ spaceId }: ChatTabProps) {
           </div>
 
           {/* Message List */}
-          <MessageList chatId={chat.id} onReply={handleReply} />
+          <MessageList chatId={chat.id} onReply={handleReply} onEdit={handleEditMessage} />
 
           {/* Input Area */}
           <ChatInput
             onSendMessage={handleSendMessage}
-            isLoading={createMessageMutation.isPending}
+            onEditMessage={handleEditMessageSubmit}
+            isLoading={createMessageMutation.isPending || editMessageMutation.isPending}
             replyToMessage={replyToMessage}
+            editingMessage={editingMessage}
             onCancelReply={handleCancelReply}
+            onCancelEdit={handleCancelEdit}
           />
       </div>
   );

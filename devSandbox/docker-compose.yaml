@@ -139,16 +139,18 @@ services:
     restart: unless-stopped
 
   bazar-chat:
-    image: basegod/bazar-chat:latest
+    image: basegod/bazar-chat:latest-SNAPSHOT
     container_name: bazar-chat
     environment:
-      - DB_URL=jdbc:postgresql://postgresql:5432/bzrchat
-      - DB_USER=postgres
-      - DB_PASS=postgres
-      - KC_EXTERNAL_URL=http://host.docker.internal:9999
-      - KC_REALM=bazar-realm
-      - LOGGING_LEVEL=INFO
+      - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrchat
+      - SYSTEM_DB_USERNAME=postgres
+      - SYSTEM_DB_PASSWORD=postgres
+      - SYSTEM_LOGGING_LEVEL=INFO
+      - INTEGRATION_KEYCLOAK_EXTERNAL_URL=http://host.docker.internal:9999
+      - INTEGRATION_KEYCLOAK_REALM=bazar-realm
       - INTEGRATION_REST_BAZAR_PERSONA_API_URL=http://bazar-persona:8080/api
+      - SETTING_SCHEDULER_MESSAGE_DELETE_MESSAGES=0 0 3 * * *
+      - SETTING_MESSAGE_REPLY_PREVIEW_LENGTH=30
     depends_on:
       postgresql:
         condition: service_healthy

@@ -31,13 +31,18 @@ export interface ReplyMessage {
   contentPreview: string;
 }
 
+export enum AllowedMessageAction {
+  DELETE = 'DELETE',
+  EDIT = 'EDIT'
+}
+
 export interface MessageResponse {
   id: number;
   chatId: number;
   author: MessageAuthor;
   content: string;
   createdAt: string;
-  isDeletable?: boolean;
+  allowedActions?: AllowedMessageAction[];
   reply?: ReplyMessage;
 }
 
@@ -62,7 +67,8 @@ export interface DeleteMessagesRequest {
 // WebSocket Event Types
 export enum ChatEventType {
   CREATED = 'CREATED',
-  DELETED = 'DELETED'
+  DELETED = 'DELETED',
+  EDITED = 'EDITED'
 }
 
 export interface MessageCreatedPayload {
@@ -70,6 +76,7 @@ export interface MessageCreatedPayload {
   author: MessageAuthor;
   content: string;
   createdAt: string;
+  allowedActions?: AllowedMessageAction[];
   reply?: ReplyMessage;
 }
 
@@ -77,8 +84,13 @@ export interface MessageDeletedPayload {
   ids: number[];
 }
 
+export interface MessageEditedPayload {
+  messageId: number;
+  newContent: string;
+}
+
 export interface WebSocketChatEvent {
   type: ChatEventType;
   chatId: number;
-  payload: MessageCreatedPayload | MessageDeletedPayload;
+  payload: MessageCreatedPayload | MessageDeletedPayload | MessageEditedPayload;
 }
