@@ -11,9 +11,10 @@ interface MessageItemProps {
   showAvatar?: boolean;
   onDelete?: (messageId: number) => void;
   onReply?: (message: MessageResponse) => void;
+  onEdit?: (message: MessageResponse) => void;
 }
 
-export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelete, onReply }: MessageItemProps) => {
+export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelete, onReply, onEdit }: MessageItemProps) => {
   const formattedTime = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const handleDelete = (messageId: number) => {
@@ -25,6 +26,12 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
   const handleReply = (message: MessageResponse) => {
     if (onReply) {
       onReply(message);
+    }
+  };
+
+  const handleEdit = (message: MessageResponse) => {
+    if (onEdit) {
+      onEdit(message);
     }
   };
 
@@ -96,7 +103,7 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
              </span>
          )}
 
-        <MessageContextMenu message={message} onDelete={handleDelete} onReply={handleReply}>
+        <MessageContextMenu message={message} onDelete={handleDelete} onReply={handleReply} onEdit={handleEdit}>
           <div
             className={cn(
               "rounded-lg px-4 py-2 text-sm cursor-pointer",

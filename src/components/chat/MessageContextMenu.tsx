@@ -5,18 +5,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MessageResponse } from "@/types/chat";
-import { Trash2, Reply } from "lucide-react";
+import { MessageResponse, AllowedMessageAction } from "@/types/chat";
+import { Trash2, Reply, Edit2 } from "lucide-react";
 
 interface MessageContextMenuProps {
   message: MessageResponse;
   children: React.ReactNode;
   onDelete: (messageId: number) => void;
   onReply: (message: MessageResponse) => void;
+  onEdit: (message: MessageResponse) => void;
 }
 
-export const MessageContextMenu = ({ message, children, onDelete, onReply }: MessageContextMenuProps) => {
+export const MessageContextMenu = ({ message, children, onDelete, onReply, onEdit }: MessageContextMenuProps) => {
   const [open, setOpen] = useState(false);
+
+  const canDelete = message.allowedActions?.includes(AllowedMessageAction.DELETE) ?? false;
+  const canEdit = message.allowedActions?.includes(AllowedMessageAction.EDIT) ?? false;
 
   const handleDelete = () => {
     onDelete(message.id);
@@ -25,6 +29,11 @@ export const MessageContextMenu = ({ message, children, onDelete, onReply }: Mes
 
   const handleReply = () => {
     onReply(message);
+    setOpen(false);
+  };
+
+  const handleEdit = () => {
+    onEdit(message);
     setOpen(false);
   };
 
@@ -63,7 +72,16 @@ export const MessageContextMenu = ({ message, children, onDelete, onReply }: Mes
           <Reply className="mr-2 h-4 w-4" />
           Ответить
         </DropdownMenuItem>
-        {message.isDeletable && (
+        {canEdit && (
+          <DropdownMenuItem
+            onClick={handleEdit}
+            className="cursor-pointer"
+          >
+            <Edit2 className="mr-2 h-4 w-4" />
+            Редактировать
+          </DropdownMenuItem>
+        )}
+        {canDelete && (
           <DropdownMenuItem
             onClick={handleDelete}
             className="text-destructive focus:text-destructive cursor-pointer"

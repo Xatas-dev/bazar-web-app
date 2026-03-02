@@ -1,11 +1,12 @@
 import {useEffect, useRef} from 'react';
 import {Client} from '@stomp/stompjs';
 import {useQueryClient} from '@tanstack/react-query';
-import {MessageResponse, WebSocketChatEvent, ChatEventType, MessageCreatedPayload, MessageDeletedPayload} from '@/types/chat';
+import {MessageResponse, WebSocketChatEvent, ChatEventType, MessageCreatedPayload, MessageDeletedPayload, MessageEditedPayload} from '@/types/chat';
 import config from "@/config.ts";
 
 // Helper function to process WebSocket events (extracted for testing)
 const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryClient: any) => {
+
     // Handle different event types
     if (event.type === ChatEventType.CREATED) {
         const payload = event.payload as MessageCreatedPayload;
@@ -17,6 +18,7 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
             author: payload.author,
             content: payload.content,
             createdAt: payload.createdAt,
+            allowedActions: payload.allowedActions,
             reply: payload.reply
         };
 
@@ -55,6 +57,55 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
                 ...page,
                 content: page.content.filter((msg: MessageResponse) => !deletedIds.has(msg.id))
             }));
+
+            return {
+                ...oldData,
+                pages: newPages
+            };
+        });
+    } else if (event.type === ChatEventType.EDITED) {
+        const payload = event.payload as MessageEditedPayload;
+
+        // Update React Query Cache - update message content and reply previews
+        queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) => {
+            if (!oldData) return oldData;
+
+            // Helper function to truncate content preview to 30 characters
+            const truncatePreview = (content: string): string => {
+                if (content.length > 30) {
+                    return content.substring(0, 30) + '...';
+                }
+                return content;
+            };
+
+            // Find and update the message in all pages, also update reply contentPreview
+            const newPages = oldData.pages.map((page: any) => {
+                const newContent = page.content.map((msg: MessageResponse) => {
+                    let updatedMsg = msg;
+
+                    // Update main message content
+                    if (msg.id === payload.messageId) {
+                        updatedMsg = { ...msg, content: payload.newContent };
+                    }
+
+                    // Update contentPreview in reply if this message is replying to the edited message
+                    if (msg.reply && msg.reply.id === payload.messageId) {
+                        updatedMsg = {
+                            ...updatedMsg,
+                            reply: {
+                                ...msg.reply,
+                                contentPreview: truncatePreview(payload.newContent)
+                            }
+                        };
+                    }
+
+                    return updatedMsg;
+                });
+                return {
+                    ...page,
+                    content: newContent
+                };
+            });
 
             return {
                 ...oldData,
@@ -129,6 +180,7 @@ export const useChatWebSocket = (chatId: number | undefined) => {
 // Usage in browser console:
 // window.simulateWSEvent({ type: 'CREATED', chatId: 1, payload: { id: 999, author: { userId: '1', firstName: 'Test', lastName: 'User', status: 'EXIST' }, content: 'Test message', createdAt: new Date().toISOString() } })
 // window.simulateWSEvent({ type: 'DELETED', chatId: 1, payload: { ids: [999] } })
+// window.simulateWSEvent({ type: 'EDITED', chatId: 1, payload: { messageId: 999, newContent: 'Updated message content' } })
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     (window as any).simulateWSEvent = (event: WebSocketChatEvent) => {
         console.log('🧪 Simulating WebSocket event:', event);

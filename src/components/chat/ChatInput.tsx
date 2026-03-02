@@ -1,30 +1,58 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizontal, X, Reply } from "lucide-react";
+import { SendHorizontal, X, Reply, Edit2 } from "lucide-react";
 import { MessageResponse, AuthorStatus } from "@/types/chat";
 
 interface ChatInputProps {
   onSendMessage: (content: string, replyMessageId?: number) => void;
+  onEditMessage?: (messageId: number, newContent: string) => void;
   isLoading: boolean;
   replyToMessage?: MessageResponse | null;
+  editingMessage?: MessageResponse | null;
   onCancelReply?: () => void;
+  onCancelEdit?: () => void;
 }
 
-export const ChatInput = ({ onSendMessage, isLoading, replyToMessage, onCancelReply }: ChatInputProps) => {
+export const ChatInput = ({
+  onSendMessage,
+  onEditMessage,
+  isLoading,
+  replyToMessage,
+  editingMessage,
+  onCancelReply,
+  onCancelEdit
+}: ChatInputProps) => {
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Update content when switching between edit and reply
+  useEffect(() => {
+    if (editingMessage) {
+      setContent(editingMessage.content);
+    } else if (replyToMessage) {
+      setContent("");
+    }
+  }, [editingMessage, replyToMessage]);
+
   const handleSend = () => {
     if (content.trim() && !isLoading) {
-      onSendMessage(content, replyToMessage?.id);
+      if (editingMessage && onEditMessage) {
+        // Edit existing message
+        onEditMessage(editingMessage.id, content);
+      } else {
+        // Send new message
+        onSendMessage(content, replyToMessage?.id);
+      }
       setContent("");
       // Reset height
       if (textareaRef.current) {
           textareaRef.current.style.height = 'auto';
       }
-      // Clear reply after sending
-      if (onCancelReply) {
+      // Clear reply/edit after sending
+      if (editingMessage && onCancelEdit) {
+        onCancelEdit();
+      } else if (onCancelReply) {
         onCancelReply();
       }
     }
@@ -57,7 +85,33 @@ export const ChatInput = ({ onSendMessage, isLoading, replyToMessage, onCancelRe
 
   return (
     <div className="border-t bg-background">
-      {replyToMessage && (
+      {editingMessage && (
+        <div className="px-4 pt-3 pb-2 bg-muted/30 border-b">
+          <div className="flex items-start justify-between gap-2 max-w-4xl mx-auto">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Edit2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                <span className="text-xs font-medium text-muted-foreground">
+                  Редактирование сообщения
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                {editingMessage.content.substring(0, 30)}
+                {editingMessage.content.length > 30 ? '...' : ''}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0"
+              onClick={onCancelEdit}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      {replyToMessage && !editingMessage && (
         <div className="px-4 pt-3 pb-2 bg-muted/30 border-b">
           <div className="flex items-start justify-between gap-2 max-w-4xl mx-auto">
             <div className="flex-1 min-w-0">
@@ -107,3 +161,4 @@ export const ChatInput = ({ onSendMessage, isLoading, replyToMessage, onCancelRe
     </div>
   );
 }
+
