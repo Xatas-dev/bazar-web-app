@@ -8,6 +8,10 @@ import {
   DeleteMessagesRequest
 } from '@/types/chat';
 
+export interface EditMessageRequest {
+  newContent: string;
+}
+
 // --- Chat Hooks ---
 
 export const useGetChatBySpace = (spaceId: number) => {
@@ -104,3 +108,13 @@ export const useDeleteMessages = () => {
     },
   });
 };
+
+export const useEditMessage = () => {
+  return useMutation<void, Error, { chatId: number; messageId: number; data: EditMessageRequest }>({
+    mutationFn: async ({ chatId, messageId, data }) => {
+      await chatAxiosInstance.patch(`/chats/${chatId}/messages/${messageId}`, data);
+    },
+    // No need to invalidate queries here - WebSocket will handle the cache update
+  });
+};
+

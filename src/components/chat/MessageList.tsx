@@ -11,9 +11,10 @@ import { MessageResponse } from "@/types/chat";
 interface MessageListProps {
   chatId: number;
   onReply?: (message: MessageResponse) => void;
+  onEdit?: (message: MessageResponse) => void;
 }
 
-export const MessageList = ({ chatId, onReply }: MessageListProps) => {
+export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   // Connect to WebSocket
   useChatWebSocket(chatId);
 
@@ -51,6 +52,12 @@ export const MessageList = ({ chatId, onReply }: MessageListProps) => {
         },
       }
     );
+  };
+
+  const handleEditMessage = (message: MessageResponse) => {
+    if (onEdit) {
+      onEdit(message);
+    }
   };
 
   // Flatten messages
@@ -158,6 +165,7 @@ export const MessageList = ({ chatId, onReply }: MessageListProps) => {
                         showAvatar={showAvatar}
                         onDelete={handleDeleteMessage}
                         onReply={onReply}
+                        onEdit={handleEditMessage}
                     />
                 );
             })
