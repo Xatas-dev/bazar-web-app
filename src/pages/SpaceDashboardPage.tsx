@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Trash2, Box, Save } from "lucide-react";
 import SpaceMembersPage from "@/pages/SpaceMembersPage";
 import { ChatTab } from "@/components/chat/ChatTab";
+import { StorageTab } from "@/components/storage/StorageTab";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SpaceDashboardPage() {
@@ -96,7 +97,6 @@ export default function SpaceDashboardPage() {
                     <TabsTrigger
                         value="storage"
                         className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base whitespace-nowrap"
-                        disabled
                     >
                         Storage
                     </TabsTrigger>
@@ -155,6 +155,10 @@ export default function SpaceDashboardPage() {
 
                     <TabsContent value="chat" className="mt-0">
                          <ChatTab spaceId={id} />
+                    </TabsContent>
+
+                    <TabsContent value="storage" className="mt-0">
+                         <StorageTab spaceId={id} />
                     </TabsContent>
                 </div>
             </Tabs>
