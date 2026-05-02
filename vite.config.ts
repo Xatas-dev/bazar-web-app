@@ -37,6 +37,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        '/bazar-storage': {
+          target: mode === 'development' ? localMockTarget : target,
+          changeOrigin: true,
+          secure: false,
+        },
         '/ws': {
             target: target,
             ws: true,
