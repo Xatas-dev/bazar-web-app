@@ -93,7 +93,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
     fileInputRef.current?.click();
   };
 
-  const pollFileStatus = async (spaceIdParam: number, fileUuid: string) => {
+  // Poll возвращает объект с полями status и author (если есть)
+  const pollFileStatus = async (spaceIdParam: number, fileUuid: string): Promise<{ status: string; author?: V1GetNodesAuthorResponse | null }> => {
     const interval = 2000; // ms
     const maxAttempts = 60; // ~2 minutes
 
@@ -101,17 +102,17 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
       try {
         const res = await getFileStatus({ spaceId: spaceIdParam, fileUuid });
         if (res?.status === 'UPLOADED') {
-          return 'UPLOADED';
+          return { status: 'UPLOADED', author: res.author ?? null };
         }
         if (res?.status === 'ERROR') {
-          return 'ERROR';
+          return { status: 'ERROR' };
         }
       } catch (e) {
         // ignore transient errors, continue polling
       }
       await new Promise((r) => setTimeout(r, interval));
     }
-    return 'TIMEOUT';
+    return { status: 'TIMEOUT' };
   };
 
   const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,9 +170,9 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
       toast({ title: 'Upload started', description: `File "${name}" uploaded to storage. Waiting for processing...` });
 
       // Poll status
-      const status = await pollFileStatus(spaceId, fileUuid);
+      const result = await pollFileStatus(spaceId, fileUuid);
 
-      if (status === 'UPLOADED') {
+      if (result.status === 'UPLOADED') {
         toast({ title: 'Success', description: `File "${name}" uploaded successfully` });
 
         // Insert temporary entry into cache to avoid full refresh
@@ -185,7 +186,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
               size: file.size,
               type: 'FILE',
               uploadedAt: new Date().toISOString(),
-              author: null,
+              author: result.author ?? null,
             };
             const newContent = [newNode, ...old.content];
             return {
@@ -197,7 +198,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
         } catch (e) {
           // ignore cache update errors
         }
-      } else if (status === 'ERROR') {
+      } else if (result.status === 'ERROR') {
         toast({ title: 'Upload failed', description: 'Загрузка файла не удалась по техническим причинам', variant: 'destructive' });
       } else {
         toast({ title: 'Upload timeout', description: 'Не удалось получить статус загрузки. Попробуйте позже.', variant: 'destructive' });

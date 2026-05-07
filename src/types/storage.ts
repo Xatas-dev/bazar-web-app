@@ -32,4 +32,6 @@ export interface V1GetUploadUrlResponse {
 
 export interface V1GetFileStatusResponse {
   status: string;
+  // Новое поле: author присутствует когда status = 'UPLOADED'
+  author?: V1GetNodesAuthorResponse | null;
 }
