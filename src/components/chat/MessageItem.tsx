@@ -106,7 +106,7 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
         <MessageContextMenu message={message} onDelete={handleDelete} onReply={handleReply} onEdit={handleEdit}>
           <div
             className={cn(
-              "rounded-lg px-4 py-2 text-sm cursor-pointer",
+              "rounded-lg px-4 py-2 text-sm cursor-text select-text",
               isCurrentUser
                 ? "bg-primary text-primary-foreground rounded-tr-none"
                 : "bg-muted text-foreground rounded-tl-none"
