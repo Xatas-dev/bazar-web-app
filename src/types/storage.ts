@@ -5,7 +5,7 @@ export interface V1GetNodesAuthorResponse {
 }
 
 export interface V1GetNodesResponse {
-  fileUuid: string;
+  nodeId: string;
   fileName: string | null;
   size: number;
   type: string;
@@ -27,7 +27,7 @@ export interface V1GetDownloadUrlResponse {
 
 export interface V1GetUploadUrlResponse {
   uploadUrl: string;
-  fileUuid: string;
+  nodeId: string;
 }
 
 export interface V1GetFileStatusResponse {
