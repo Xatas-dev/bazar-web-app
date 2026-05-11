@@ -52,9 +52,9 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleDownload = async (fileUuid: string, fileName: string | null) => {
+  const handleDownload = async (nodeId: string, fileName: string | null) => {
     try {
-      const response = await downloadUrlMutation.mutateAsync({ spaceId, fileUuid });
+      const response = await downloadUrlMutation.mutateAsync({ spaceId, nodeId });
 
       const link = document.createElement('a');
       link.href = response.downloadUrl;
@@ -94,13 +94,13 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   };
 
   // Poll возвращает объект с полями status и author (если есть)
-  const pollFileStatus = async (spaceIdParam: number, fileUuid: string): Promise<{ status: string; author?: V1GetNodesAuthorResponse | null }> => {
+  const pollFileStatus = async (spaceIdParam: number, nodeId: string): Promise<{ status: string; author?: V1GetNodesAuthorResponse | null }> => {
     const interval = 2000; // ms
     const maxAttempts = 60; // ~2 minutes
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        const res = await getFileStatus({ spaceId: spaceIdParam, fileUuid });
+        const res = await getFileStatus({ spaceId: spaceIdParam, nodeId });
         if (res?.status === 'UPLOADED') {
           return { status: 'UPLOADED', author: res.author ?? null };
         }
@@ -146,7 +146,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
     try {
       const init = await initiateUploadMutation.mutateAsync({ spaceId, fileName: name, size: file.size });
       const uploadUrl = init.uploadUrl;
-      const fileUuid = init.fileUuid;
+      const nodeId = init.nodeId;
 
       // PUT to S3 using fetch to avoid axios interceptors
       const contentType = file.type || 'application/octet-stream';
@@ -170,7 +170,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
       toast({ title: 'Upload started', description: `File "${name}" uploaded to storage. Waiting for processing...` });
 
       // Poll status
-      const result = await pollFileStatus(spaceId, fileUuid);
+      const result = await pollFileStatus(spaceId, nodeId);
 
       if (result.status === 'UPLOADED') {
         toast({ title: 'Success', description: `File "${name}" uploaded successfully` });
@@ -181,7 +181,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
           queryClient.setQueryData(queryKey, (old: any) => {
             if (!old) return old;
             const newNode = {
-              fileUuid: fileUuid,
+              nodeId: nodeId,
               fileName: name,
               size: file.size,
               type: 'FILE',
@@ -273,7 +273,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
 
                   return (
                     <div
-                      key={file.fileUuid}
+                      key={file.nodeId}
                       className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -296,7 +296,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDownload(file.fileUuid, file.fileName)}
+                        onClick={() => handleDownload(file.nodeId, file.fileName)}
                         disabled={downloadUrlMutation.isPending}
                         className="flex-shrink-0 ml-2"
                       >

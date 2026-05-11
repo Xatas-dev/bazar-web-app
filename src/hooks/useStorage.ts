@@ -22,41 +22,29 @@ const getNodes = async ({ spaceId, page = 0, pageSize = 20 }: GetNodesParams): P
   return data;
 };
 
-const getDownloadUrl = async ({ spaceId, fileUuid }: { spaceId: number; fileUuid: string }): Promise<V1GetDownloadUrlResponse> => {
+const getDownloadUrl = async ({ spaceId, nodeId }: { spaceId: number; nodeId: string }): Promise<V1GetDownloadUrlResponse> => {
   const { data } = await storageAxiosInstance.get<V1GetDownloadUrlResponse>(
-    `/v1/spaces/${spaceId}/nodes/url-for-download`,
-    {
-      params: {
-        fileUuid,
-      },
-    }
+    `/v1/spaces/${spaceId}/nodes/${nodeId}/download`
   );
   return data;
 };
 
 // Получение URL для upload (инициация загрузки)
 const getUploadUrl = async ({ spaceId, fileName, size }: { spaceId: number; fileName: string; size: number }) : Promise<V1GetUploadUrlResponse> => {
-  const { data } = await storageAxiosInstance.get<V1GetUploadUrlResponse>(
-    `/v1/spaces/${spaceId}/nodes/upload-url`,
+  const { data } = await storageAxiosInstance.post<V1GetUploadUrlResponse>(
+    `/v1/spaces/${spaceId}/nodes`,
     {
-      params: {
-        fileName,
-        size,
-      },
+      fileName,
+      size,
     }
   );
   return data;
 };
 
 // Проверка статуса файла
-export const getFileStatus = async ({ spaceId, fileUuid }: { spaceId: number; fileUuid: string }): Promise<V1GetFileStatusResponse> => {
+export const getFileStatus = async ({ spaceId, nodeId }: { spaceId: number; nodeId: string }): Promise<V1GetFileStatusResponse> => {
   const { data } = await storageAxiosInstance.get<V1GetFileStatusResponse>(
-    `/v1/spaces/${spaceId}/nodes/status`,
-    {
-      params: {
-        fileUuid,
-      },
-    }
+    `/v1/spaces/${spaceId}/nodes/${nodeId}/status`
   );
   return data;
 };
@@ -72,7 +60,7 @@ export const useNodes = ({ spaceId, page = 0, pageSize = 20 }: GetNodesParams) =
 
 export const useDownloadUrl = () => {
   return useMutation({
-    mutationFn: ({ spaceId, fileUuid }: { spaceId: number; fileUuid: string }) => getDownloadUrl({ spaceId, fileUuid }),
+    mutationFn: ({ spaceId, nodeId }: { spaceId: number; nodeId: string }) => getDownloadUrl({ spaceId, nodeId }),
   });
 };
 
