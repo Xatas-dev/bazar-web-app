@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNodes, useDownloadUrl, useInitiateUpload } from '@/hooks/useStorage';
+import { useNodes, useDownloadUrl, useInitiateUpload, useDeleteNode } from '@/hooks/useStorage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileIcon, ChevronLeft, ChevronRight, Loader2, Upload } from 'lucide-react';
+import { Download, FileIcon, ChevronLeft, ChevronRight, Loader2, Upload, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatBytes } from '@/lib/utils';
 import { V1GetNodesAuthorResponse } from '@/types/storage';
@@ -36,9 +36,13 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   const pageSize = 20;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [deletedNodeIds, setDeletedNodeIds] = useState<Set<string>>(new Set());
+  const [pendingDeleteNodeIds, setPendingDeleteNodeIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setCurrentPage(0);
+    setDeletedNodeIds(new Set());
+    setPendingDeleteNodeIds(new Set());
   }, [spaceId]);
 
   const { data: nodesData, isLoading, error } = useNodes({
@@ -48,6 +52,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   });
 
   const downloadUrlMutation = useDownloadUrl();
+  const deleteNodeMutation = useDeleteNode();
   const initiateUploadMutation = useInitiateUpload();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -72,6 +77,47 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
         title: 'Error',
         description: 'Failed to download file',
         variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteFile = async (nodeId: string, fileName: string | null) => {
+    if (deletedNodeIds.has(nodeId) || pendingDeleteNodeIds.has(nodeId)) {
+      return;
+    }
+
+    if (!confirm(`Delete file "${fileName || 'unnamed'}"?`)) {
+      return;
+    }
+
+    setPendingDeleteNodeIds((prev) => {
+      const next = new Set(prev);
+      next.add(nodeId);
+      return next;
+    });
+
+    try {
+      await deleteNodeMutation.mutateAsync({ spaceId, nodeId });
+      setDeletedNodeIds((prev) => {
+        const next = new Set(prev);
+        next.add(nodeId);
+        return next;
+      });
+      toast({
+        title: 'Success',
+        description: `File "${fileName || 'unnamed'}" deleted successfully`,
+      });
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete file',
+        variant: 'destructive',
+      });
+    } finally {
+      setPendingDeleteNodeIds((prev) => {
+        const next = new Set(prev);
+        next.delete(nodeId);
+        return next;
       });
     }
   };
@@ -270,16 +316,25 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
               <div className="space-y-2">
                 {files.map((file) => {
                   const fileName = file.fileName?.trim() || 'Unnamed file';
+                  const isDeleted = deletedNodeIds.has(file.nodeId);
+                  const isPendingDelete = pendingDeleteNodeIds.has(file.nodeId);
 
                   return (
                     <div
                       key={file.nodeId}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${isDeleted ? 'border-dashed bg-muted/40 opacity-60' : 'hover:bg-muted/50'}`}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <FileIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{fileName}</p>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <p className="font-medium truncate">{fileName}</p>
+                            {isDeleted && (
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                Удалён
+                              </span>
+                            )}
+                          </div>
                           <div className="flex gap-2 text-xs text-muted-foreground flex-wrap">
                             <span>{formatBytes(file.size)}</span>
                             {file.uploadedAt && (
@@ -293,22 +348,40 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                           </div>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDownload(file.nodeId, file.fileName)}
-                        disabled={downloadUrlMutation.isPending}
-                        className="flex-shrink-0 ml-2"
-                      >
-                        {downloadUrlMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </>
-                        )}
-                      </Button>
+                      {!isDeleted && (
+                        <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDownload(file.nodeId, file.fileName)}
+                            disabled={downloadUrlMutation.isPending || isPendingDelete}
+                          >
+                            {downloadUrlMutation.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Download className="h-4 w-4 mr-2" />
+                                Download
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
+                            disabled={isPendingDelete}
+                          >
+                            {isPendingDelete ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
