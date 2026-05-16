@@ -196,6 +196,8 @@ services:
       - SETTING_MAX_FILE_SIZE=52428800
       - SETTING_NOT_ALLOWED_EXTENSIONS=[exe, sh, bat, msi, bin, ps1, hta]
       - SETTING_MAX_FILE_NAME_LENGTH=100
+      - SETTING_SCHEDULE_DELETE_MARKED_FILES_BATCH_SIZE=2
+      - SETTING_SCHEDULE_DELETE_MARKED_FILES_CRON=0 */2 * * * *
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -209,13 +211,14 @@ services:
 
 
   bazar-files:
-    image: basegod/bazar-files:latest
+    image: basegod/bazar-files:latest-SNAPSHOT
     container_name: bazar-files
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrfiles
       - SYSTEM_DB_USERNAME=postgres
       - SYSTEM_DB_PASSWORD=postgres
       - SYSTEM_S3_ENDPOINT=http://localhost:9000
+      - SYSTEM_S3_INTERNAL_ENDPOINT=http://rustfs:9000
       - SYSTEM_S3_REGION=us-east-1
       - SYSTEM_S3_ACCESS_KEY=test
       - SYSTEM_S3_SECRET_KEY=test123
@@ -223,6 +226,8 @@ services:
       - SETTING_S3_UPLOAD_URL_TTL=3600
       - SETTING_S3_DOWNLOAD_URL_TTL=3600
       - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SETTING_SCHEDULER_DELETE_FILES_CRON=60s
+      - SETTING_SCHEDULER_DELETE_FILES_BATCH_SIZE=2
     depends_on:
       postgresql:
         condition: service_healthy

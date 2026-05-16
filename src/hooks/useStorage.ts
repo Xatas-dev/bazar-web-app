@@ -29,6 +29,10 @@ const getDownloadUrl = async ({ spaceId, nodeId }: { spaceId: number; nodeId: st
   return data;
 };
 
+const deleteNode = async ({ spaceId, nodeId }: { spaceId: number; nodeId: string }): Promise<void> => {
+  await storageAxiosInstance.delete(`/v1/spaces/${spaceId}/nodes/${nodeId}`);
+};
+
 // Получение URL для upload (инициация загрузки)
 const getUploadUrl = async ({ spaceId, fileName, size }: { spaceId: number; fileName: string; size: number }) : Promise<V1GetUploadUrlResponse> => {
   const { data } = await storageAxiosInstance.post<V1GetUploadUrlResponse>(
@@ -61,6 +65,12 @@ export const useNodes = ({ spaceId, page = 0, pageSize = 20 }: GetNodesParams) =
 export const useDownloadUrl = () => {
   return useMutation({
     mutationFn: ({ spaceId, nodeId }: { spaceId: number; nodeId: string }) => getDownloadUrl({ spaceId, nodeId }),
+  });
+};
+
+export function useDeleteNode() {
+  return useMutation({
+    mutationFn: ({ spaceId, nodeId }: { spaceId: number; nodeId: string }) => deleteNode({ spaceId, nodeId }),
   });
 };
 
