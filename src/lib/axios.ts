@@ -50,6 +50,14 @@ export const storageAxiosInstance = axios.create({
   },
 });
 
+export const authorizationAxiosInstance = axios.create({
+  baseURL: getBaseURL(config.authorizationApi),
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // CSRF Handling
 // We expect the backend to set a cookie named XSRF-TOKEN (standard Spring Security behavior)
 // Axios automatically looks for this cookie and sets the X-XSRF-TOKEN header if xsrfCookieName and xsrfHeaderName are configured.
@@ -65,6 +73,8 @@ personaAxiosInstance.defaults.xsrfCookieName = 'XSRF-TOKEN';
 personaAxiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
 chatAxiosInstance.defaults.xsrfCookieName = 'XSRF-TOKEN';
 chatAxiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
+authorizationAxiosInstance.defaults.xsrfCookieName = 'XSRF-TOKEN';
+authorizationAxiosInstance.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
 
 // Request interceptor to add Authorization header
 const addAuthorizationHeader = (requestConfig: any) => {
@@ -98,11 +108,13 @@ gatewayAxiosInstance.interceptors.request.use(addAuthorizationHeader);
 personaAxiosInstance.interceptors.request.use(addAuthorizationHeader);
 chatAxiosInstance.interceptors.request.use(addAuthorizationHeader);
 storageAxiosInstance.interceptors.request.use(addAuthorizationHeader);
+authorizationAxiosInstance.interceptors.request.use(addAuthorizationHeader);
 
 axiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 gatewayAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 personaAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 chatAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 storageAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
+authorizationAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
 
 

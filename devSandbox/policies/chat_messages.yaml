@@ -1,0 +1,34 @@
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: default
+  resource: chat_messages
+  rules:
+    - actions: [READ]
+      effect: EFFECT_ALLOW
+      roles: [user]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: has(P.attr.allowed_actions) && 'chat_messages:READ' in P.attr.allowed_actions
+
+    - actions: [WRITE]
+      effect: EFFECT_ALLOW
+      roles: [user]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: has(P.attr.allowed_actions) && 'chat_messages:WRITE' in P.attr.allowed_actions
+
+    - actions: [DELETE]
+      effect: EFFECT_ALLOW
+      roles: [user]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: has(P.attr.allowed_actions) && 'chat_messages:DELETE' in P.attr.allowed_actions

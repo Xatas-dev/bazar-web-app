@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { axiosInstance } from '@/lib/axios';
 import { AddUserToSpaceDtoRequest } from '@/types/api';
-import { GetSpaceDto, GetSpacesResponse } from '@/types/space';
+import { GetSpaceDto, GetSpacesResponse, GetUsersInSpaceResponse } from '@/types/space';
 
 // API Functions
 const getSpaces = async (): Promise<GetSpacesResponse> => {
@@ -27,8 +27,8 @@ const addUserToSpace = async (payload: AddUserToSpaceDtoRequest): Promise<void> 
   await axiosInstance.post('/space/user', payload);
 };
 
-const getSpaceUsers = async (spaceId: number): Promise<string[]> => {
-  const { data } = await axiosInstance.get<string[]>(`/space/${spaceId}/user`);
+const getSpaceUsersEnriched = async (spaceId: number): Promise<GetUsersInSpaceResponse> => {
+  const { data } = await axiosInstance.get<GetUsersInSpaceResponse>(`/spaces/${spaceId}/users`);
   return data;
 };
 
@@ -94,7 +94,7 @@ export const useAddUserToSpace = () => {
 export const useSpaceUsers = (spaceId: number) => {
   return useQuery({
     queryKey: ['space-users', spaceId],
-    queryFn: () => getSpaceUsers(spaceId),
+    queryFn: () => getSpaceUsersEnriched(spaceId),
     enabled: !!spaceId,
   });
 };

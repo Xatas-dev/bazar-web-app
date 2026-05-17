@@ -1,0 +1,13 @@
+server:
+  httpListenAddr: ":3592"
+  grpcListenAddr: ":3593"
+
+audit:
+  enabled: true
+  accessLogsEnabled: true
+  decisionLogsEnabled: true
+  backend: file
+  file:
+    path: /var/cerbos/audit/audit.log
+    additionalPaths:
+      - stdout
