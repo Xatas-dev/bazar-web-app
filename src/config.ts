@@ -21,6 +21,10 @@ interface Config {
         baseUrl: string;
         targetLocal: string;
     };
+    authorizationApi: {
+        baseUrl: string;
+        targetLocal: string;
+    };
     chatWs: {
       baseUrl: string;
       targetLocal: string;
@@ -55,6 +59,10 @@ const config: Config = {
     storageApi: {
         baseUrl: '/api/bazar-storage',
         targetLocal: '/bazar-storage'
+    },
+    authorizationApi: {
+        baseUrl: '/api/bazar-authorization',
+        targetLocal: '/bazar-authorization'
     },
     auth: {
         keycloakUrl: '/api/oauth2/authorization/keycloak',
