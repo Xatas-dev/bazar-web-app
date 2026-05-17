@@ -17,6 +17,14 @@ interface Config {
         baseUrl: string;
         targetLocal: string;
     };
+    storageApi: {
+        baseUrl: string;
+        targetLocal: string;
+    };
+    authorizationApi: {
+        baseUrl: string;
+        targetLocal: string;
+    };
     chatWs: {
       baseUrl: string;
       targetLocal: string;
@@ -47,6 +55,14 @@ const config: Config = {
     chatApi: {
         baseUrl: '/api/bazar-chat',
         targetLocal: '/bazar-chat' // локальный json-server через vite proxy
+    },
+    storageApi: {
+        baseUrl: '/api/bazar-storage',
+        targetLocal: '/bazar-storage'
+    },
+    authorizationApi: {
+        baseUrl: '/api/bazar-authorization',
+        targetLocal: '/bazar-authorization'
     },
     auth: {
         keycloakUrl: '/api/oauth2/authorization/keycloak',

@@ -12,6 +12,7 @@ interface ChatInputProps {
   editingMessage?: MessageResponse | null;
   onCancelReply?: () => void;
   onCancelEdit?: () => void;
+  readOnly?: boolean;
 }
 
 export const ChatInput = ({
@@ -21,7 +22,8 @@ export const ChatInput = ({
   replyToMessage,
   editingMessage,
   onCancelReply,
-  onCancelEdit
+  onCancelEdit,
+  readOnly = false,
 }: ChatInputProps) => {
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -36,7 +38,7 @@ export const ChatInput = ({
   }, [editingMessage, replyToMessage]);
 
   const handleSend = () => {
-    if (content.trim() && !isLoading) {
+    if (content.trim() && !isLoading && !readOnly) {
       if (editingMessage && onEditMessage) {
         // Edit existing message
         onEditMessage(editingMessage.id, content);
@@ -69,6 +71,9 @@ export const ChatInput = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (readOnly) {
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -139,7 +144,7 @@ export const ChatInput = ({
       )}
       <div className="p-4">
         <div className="flex items-end gap-2 max-w-4xl mx-auto">
-          <Textarea
+           <Textarea
             ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -147,11 +152,13 @@ export const ChatInput = ({
             placeholder="Type a message..."
             className="min-h-[2.5rem] max-h-32 resize-none"
             rows={1}
+            readOnly={readOnly}
+            title={readOnly ? "У вас нет прав на отправку сообщений в этом пространстве" : undefined}
           />
           <Button
               size="icon"
               onClick={handleSend}
-              disabled={!content.trim() || isLoading}
+               disabled={readOnly || !content.trim() || isLoading}
               className="mb-0.5 shrink-0"
           >
             <SendHorizontal className="h-4 w-4" />

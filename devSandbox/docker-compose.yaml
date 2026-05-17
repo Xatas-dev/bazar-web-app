@@ -62,13 +62,14 @@ services:
     image: ghcr.io/cerbos/cerbos:latest
     container_name: cerbos
     volumes:
-      - ./space-policy.yaml:/policies/space-policy.yaml
-    command: server --set=storage.driver=disk --set=storage.disk.directory=/policies
+      - ./policies:/policies
+      - ./configs/cerbos.yaml:/configs/cerbos.yaml
+    command: server --set=storage.driver=disk --set=storage.disk.directory=/policies --config=/configs/cerbos.yaml
     networks:
       - app-network
 
   bazar-api-gateway:
-    image: basegod/bazar-api-gateway:latest
+    image: basegod/bazar-api-gateway:1.0.2-SNAPSHOT
     container_name: bazar-api-gateway
     environment:
       - KC_URL=http://host.docker.internal:9999
@@ -77,7 +78,9 @@ services:
       - CLIENT_SECRET=secret
       - BAZAR_SPACE_URL=http://bazar-space:8080
       - BAZAR_PERSONA_URL=http://bazar-persona:8080
+      - BAZAR_AUTHORIZATION_URL=http://bazar-authorization:8080
       - BAZAR_CHAT_URL=http://bazar-chat:8080
+      - BAZAR_STORAGE_URL=http://bazar-storage:8080
       - BAZAR_CHAT_WS_URL=ws://bazar-chat:8080
       - FRONTEND_URL=http://localhost:5173
       - OAUTH_REDIRECT_URI=http://localhost:8080/login/oauth2/code/keycloak
@@ -97,14 +100,14 @@ services:
     restart: unless-stopped
 
   bazar-authorization:
-    image: basegod/bazar-authorization:latest
+    image: basegod/bazar-authorization:1.0.2-SNAPSHOT
     container_name: bazar-authorization
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrauthz
       - DB_USER=postgres
       - DB_PASS=postgres
-      - KC_URL=http://host.docker.internal:9999
-      - KC_REALM=bazar-realm
+      - KC_ISSUER_URL=http://host.docker.internal:9999/realms/bazar-realm
+      - KC_JWK_URL=http://host.docker.internal:9999/realms/bazar-realm/protocol/openid-connect/certs
       - LOGGING_LEVEL=INFO
       - CERBOS_URL=cerbos:3593
     depends_on:
@@ -119,7 +122,7 @@ services:
     restart: unless-stopped
 
   bazar-space:
-    image: basegod/bazar-space:latest
+    image: basegod/bazar-space:1.0.2-SNAPSHOT
     container_name: bazar-space
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrspace
@@ -128,7 +131,10 @@ services:
       - KC_URL=http://host.docker.internal:9999
       - KC_REALM=bazar-realm
       - LOGGING_LEVEL=INFO
-      - BAZAR_AUTHORIZATION_GRPC_URL=static://bazar-authorization:9090
+      - BAZAR_AUTHORIZATION_HOST=bazar-authorization
+      - BAZAR_AUTHORIZATION_PORT=9090
+      - BAZAR_AUTHORIZATION_API_URL=http://bazar-authorization:8080/api
+      - BAZAR_PERSONA_API_URL=http://bazar-persona:8080/api
     depends_on:
       postgresql:
         condition: service_healthy
@@ -179,6 +185,120 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+
+  bazar-storage:
+    image: basegod/bazar-storage:latest-SNAPSHOT
+    container_name: bazar-storage
+    environment:
+      - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrstorage
+      - SYSTEM_DB_USERNAME=postgres
+      - SYSTEM_DB_PASSWORD=postgres
+      - INTEGRATION_KEYCLOAK_EXTERNAL_URL=http://host.docker.internal:9999
+      - INTEGRATION_KEYCLOAK_REALM=bazar-realm
+      - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - INTEGRATION_REST_BAZAR_FILES_API_URL=http://bazar-files:8080/api
+      - INTEGRATION_REST_BAZAR_PERSONA_API_URL=http://bazar-persona:8080/api
+      - SETTING_MAX_FILE_SIZE=52428800
+      - SETTING_NOT_ALLOWED_EXTENSIONS=[exe, sh, bat, msi, bin, ps1, hta]
+      - SETTING_MAX_FILE_NAME_LENGTH=100
+      - SETTING_SCHEDULE_DELETE_MARKED_FILES_BATCH_SIZE=2
+      - SETTING_SCHEDULE_DELETE_MARKED_FILES_CRON=0 */2 * * * *
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+
+  bazar-files:
+    image: basegod/bazar-files:latest-SNAPSHOT
+    container_name: bazar-files
+    environment:
+      - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrfiles
+      - SYSTEM_DB_USERNAME=postgres
+      - SYSTEM_DB_PASSWORD=postgres
+      - SYSTEM_S3_ENDPOINT=http://localhost:9000
+      - SYSTEM_S3_INTERNAL_ENDPOINT=http://rustfs:9000
+      - SYSTEM_S3_REGION=us-east-1
+      - SYSTEM_S3_ACCESS_KEY=test
+      - SYSTEM_S3_SECRET_KEY=test123
+      - SETTING_S3_BUCKET_FILES=files
+      - SETTING_S3_UPLOAD_URL_TTL=3600
+      - SETTING_S3_DOWNLOAD_URL_TTL=3600
+      - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SETTING_SCHEDULER_DELETE_FILES_CRON=60s
+      - SETTING_SCHEDULER_DELETE_FILES_BATCH_SIZE=2
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      rustfs:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-server:7.2.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://host.docker.internal:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8083:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - app-network
+
+  rustfs:
+    image: rustfs/rustfs@sha256:23ff2af1ec2d64e0fb9608a1c39b5eb96fcff3a8efecf332986c948b0e3e4f8a
+    container_name: rustfs
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      RUSTFS_ACCESS_KEY: test
+      RUSTFS_SECRET_KEY: test123
+
+    volumes:
+      - ./data:/data
+    networks:
+      - app-network
 
 networks:
   app-network:

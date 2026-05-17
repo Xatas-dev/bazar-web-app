@@ -9,9 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ChatTabProps {
   spaceId: number;
+  canWrite?: boolean;
 }
 
-export function ChatTab({ spaceId }: ChatTabProps) {
+export function ChatTab({ spaceId, canWrite = true }: ChatTabProps) {
   const { data: chat, isLoading: isLoadingChat } = useGetChatBySpace(spaceId);
   const createChatMutation = useCreateChat();
   const createMessageMutation = useCreateMessage();
@@ -20,9 +21,13 @@ export function ChatTab({ spaceId }: ChatTabProps) {
   const [replyToMessage, setReplyToMessage] = useState<MessageResponse | null>(null);
   const [editingMessage, setEditingMessage] = useState<MessageResponse | null>(null);
 
-  const handleCreateChat = () => {
-      createChatMutation.mutate({ spaceId });
-  };
+   const handleCreateChat = () => {
+       if (!canWrite) {
+           toast({ title: "Нет прав", description: "У вас нет прав на создание чата в этом пространстве", variant: 'destructive' });
+           return;
+       }
+       createChatMutation.mutate({ spaceId });
+   };
 
   const handleSendMessage = (content: string, replyMessageId?: number) => {
       if (chat?.id) {
@@ -107,15 +112,16 @@ export function ChatTab({ spaceId }: ChatTabProps) {
           <MessageList chatId={chat.id} onReply={handleReply} onEdit={handleEditMessage} />
 
           {/* Input Area */}
-          <ChatInput
-            onSendMessage={handleSendMessage}
-            onEditMessage={handleEditMessageSubmit}
-            isLoading={createMessageMutation.isPending || editMessageMutation.isPending}
-            replyToMessage={replyToMessage}
-            editingMessage={editingMessage}
-            onCancelReply={handleCancelReply}
-            onCancelEdit={handleCancelEdit}
-          />
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                onEditMessage={handleEditMessageSubmit}
+                isLoading={createMessageMutation.isPending || editMessageMutation.isPending}
+                replyToMessage={replyToMessage}
+                editingMessage={editingMessage}
+                onCancelReply={handleCancelReply}
+                onCancelEdit={handleCancelEdit}
+                readOnly={!canWrite}
+              />
       </div>
   );
 }

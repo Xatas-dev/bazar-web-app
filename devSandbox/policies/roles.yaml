@@ -1,0 +1,68 @@
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: default
+  resource: roles
+  rules:
+    - actions: [ READ ]
+      effect: EFFECT_ALLOW
+      roles: [ user ]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: >
+                  has(P.attr.allowed_actions) && (
+                    'roles:READ' in P.attr.allowed_actions || 
+                    (has(P.attr.role_id) && has(R.attr.id) && P.attr.role_id == R.attr.id)
+                  )
+
+    - actions: [ CREATE ]
+      effect: EFFECT_ALLOW
+      roles: [ user ]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: >
+                  has(P.attr.actions_to_grant) &&
+                  has(P.attr.grantable_actions) &&
+                  P.attr.actions_to_grant.isSubset(P.attr.grantable_actions) &&
+                  has(P.attr.allowed_actions) &&
+                  'roles:CREATE' in P.attr.allowed_actions
+
+    - actions: [ ASSIGN ]
+      effect: EFFECT_ALLOW
+      roles: [ user ]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: >
+                  has(P.attr.allowed_actions) &&
+                  'roles:ASSIGN' in P.attr.allowed_actions &&
+                  has(P.attr.assignable_roles) &&
+                  has(R.attr.id) &&
+                  R.attr.id in P.attr.assignable_roles
+
+    - actions: [ EDIT ]
+      effect: EFFECT_ALLOW
+      roles: [ user ]
+      condition:
+        match:
+          all:
+            of:
+              - expr: has(R.attr.scope) && R.attr.scope != "GLOBAL"
+              - any:
+                  of:
+                    - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+                    - all:
+                        of:
+                          - expr: has(P.attr.allowed_actions) && 'roles:EDIT' in P.attr.allowed_actions
+                          - expr: has(P.attr.actions_to_grant) && has(P.attr.grantable_actions) && P.attr.actions_to_grant.isSubset(P.attr.grantable_actions)
+                          - any:
+                              of:
+                                - expr: has(R.attr.created_by) && has(P.attr.user_id) && R.attr.created_by == P.attr.user_id
+                                - expr: has(P.attr.manageable_roles) && has(R.attr.id) && R.attr.id in P.attr.manageable_roles

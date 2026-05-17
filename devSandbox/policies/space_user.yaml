@@ -1,0 +1,28 @@
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: default
+  resource: space_user
+  rules:
+    - actions: [ADD]
+      effect: EFFECT_ALLOW
+      roles: [user]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: has(P.attr.allowed_actions) && 'space_user:ADD' in P.attr.allowed_actions
+
+    - actions: [DELETE]
+      effect: EFFECT_ALLOW
+      roles: [user]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: >
+                  has(P.attr.allowed_actions) &&
+                  'space_user:DELETE' in P.attr.allowed_actions &&
+                  has(R.attr.is_creator) &&
+                  R.attr.is_creator != true

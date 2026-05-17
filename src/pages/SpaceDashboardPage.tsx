@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDeleteSpace, usePatchSpace, useSpaces } from "@/hooks/useSpaces";
+import { useUser } from "@/hooks/useUser";
+import { useGetUserRoles, useGetRole } from "@/hooks/useRoles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,11 +11,41 @@ import { Label } from "@/components/ui/label";
 import { Trash2, Box, Save } from "lucide-react";
 import SpaceMembersPage from "@/pages/SpaceMembersPage";
 import { ChatTab } from "@/components/chat/ChatTab";
+import { StorageTab } from "@/components/storage/StorageTab";
+import RolesTab from "@/components/role/RolesTab";
 import { useToast } from "@/hooks/use-toast";
+import { getGrantableActionIds, getPermissionKey, SPACE_PERMISSIONS } from "@/lib/permissions";
 
 export default function SpaceDashboardPage() {
   const { spaceId } = useParams();
   const id = Number(spaceId);
+  const { user } = useUser();
+  const userId = user?.id;
+  const { data: userRolesResponse } = useGetUserRoles(id, userId ? [userId] : []);
+  const assignedRoleId = userRolesResponse?.roles && userRolesResponse.roles.length > 0 ? userRolesResponse.roles[0].id : undefined;
+  const { data: assignedRole } = useGetRole(id, assignedRoleId as number | undefined);
+
+  // If any of the returned user role entries marks the user as creator, grant full access
+  const isCreator = !!userRolesResponse?.roles?.some((r: any) => r.isCreator === true);
+
+  // compute allowed permissions set (unless creator)
+  const allowedPermissions = isCreator ? new Set<string>() : new Set<string>((assignedRole?.actions || []).map(getPermissionKey));
+  const canReadRoles = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.rolesRead);
+  const canCreateRoles = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.rolesCreate);
+  const canAssignRoles = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.rolesAssign);
+  const canEditRoles = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.rolesEdit);
+  const canDeleteSpace = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.spaceDelete);
+  const canWriteSpace = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.spaceWrite);
+  const canAddMember = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.spaceUserAdd);
+  const canDeleteMember = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.spaceUserDelete);
+  const canReadChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatRead);
+  const canWriteChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatWrite);
+  const createGrantableActionIds = isCreator
+    ? null
+    : getGrantableActionIds(assignedRole?.actions, SPACE_PERMISSIONS.rolesCreate);
+  const editGrantableActionIds = isCreator
+    ? null
+    : getGrantableActionIds(assignedRole?.actions, SPACE_PERMISSIONS.rolesEdit);
   const deleteSpaceMutation = useDeleteSpace();
   const patchSpaceMutation = usePatchSpace();
   const { data: spacesData } = useSpaces();
@@ -78,6 +110,8 @@ export default function SpaceDashboardPage() {
                     <TabsTrigger
                         value="chat"
                         className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base"
+                        disabled={!canReadChat}
+                        title={!canReadChat ? "You don't have permission to view chat" : undefined}
                     >
                         Chat
                     </TabsTrigger>
@@ -94,9 +128,16 @@ export default function SpaceDashboardPage() {
                         Members
                     </TabsTrigger>
                     <TabsTrigger
+                        value="roles"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base"
+                        disabled={!canReadRoles}
+                        title={!canReadRoles ? "You don't have permission to view roles" : undefined}
+                    >
+                        Роли
+                    </TabsTrigger>
+                    <TabsTrigger
                         value="storage"
                         className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base whitespace-nowrap"
-                        disabled
                     >
                         Storage
                     </TabsTrigger>
@@ -112,7 +153,7 @@ export default function SpaceDashboardPage() {
                             </CardHeader>
                             <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                                 <div className="space-y-4">
-                                     <div className="grid w-full items-center gap-1.5">
+                                         <div className="grid w-full items-center gap-1.5">
                                         <Label htmlFor="spaceName">Space Name</Label>
                                         <div className="flex flex-col sm:flex-row gap-2">
                                             <Input
@@ -120,10 +161,17 @@ export default function SpaceDashboardPage() {
                                                 value={spaceName}
                                                 onChange={(e) => setSpaceName(e.target.value)}
                                                 className="flex-1"
+                                                disabled={!canWriteSpace}
                                             />
-                                            <Button onClick={handleUpdateSpace} disabled={patchSpaceMutation.isPending} className="w-full sm:w-auto">
+                                            {canWriteSpace ? (
+                                              <Button onClick={handleUpdateSpace} disabled={patchSpaceMutation.isPending} className="w-full sm:w-auto">
                                                 {patchSpaceMutation.isPending ? "Saving..." : <><Save className="mr-2 h-4 w-4" /> Save</>}
-                                            </Button>
+                                              </Button>
+                                            ) : (
+                                              <Button className="w-full sm:w-auto opacity-50" onClick={() => toast({ title: "Нет прав", description: "У вас нет прав на изменение пространства", variant: 'destructive' })}>
+                                                <Save className="mr-2 h-4 w-4" /> Save
+                                              </Button>
+                                            )}
                                         </div>
                                     </div>
 
@@ -132,9 +180,15 @@ export default function SpaceDashboardPage() {
                                             <h3 className="font-medium text-destructive">Delete Space</h3>
                                             <p className="text-sm text-muted-foreground">Permanently remove this space and all its data.</p>
                                         </div>
-                                        <Button variant="destructive" onClick={handleDeleteSpace} className="w-full sm:w-auto">
-                                            <Trash2 className="mr-2 h-4 w-4" /> Delete Space
-                                        </Button>
+                                        {canDeleteSpace ? (
+                                          <Button variant="destructive" onClick={handleDeleteSpace} className="w-full sm:w-auto">
+                                              <Trash2 className="mr-2 h-4 w-4" /> Delete Space
+                                          </Button>
+                                        ) : (
+                                          <Button variant="destructive" className="w-full sm:w-auto opacity-50" onClick={() => toast({ title: "Нет прав", description: "У вас нет прав на удаление пространства", variant: 'destructive' })}>
+                                              <Trash2 className="mr-2 h-4 w-4" /> Delete Space
+                                          </Button>
+                                        )}
                                     </div>
                                 </div>
                             </CardContent>
@@ -149,12 +203,29 @@ export default function SpaceDashboardPage() {
                             SpaceMembersPage expects params to be present, which they are.
                         */}
                          <div className="border rounded-lg p-4 bg-background">
-                            <SpaceMembersPage />
+                            <SpaceMembersPage canAssign={canAssignRoles} canAdd={canAddMember} canDelete={canDeleteMember} />
+                         </div>
+                    </TabsContent>
+
+                    <TabsContent value="roles" className="mt-0">
+                         <div className="border rounded-lg p-4 bg-background">
+                            <RolesTab
+                              spaceId={id}
+                              canCreate={canCreateRoles}
+                              canEdit={canEditRoles}
+                              canRead={canReadRoles}
+                              createGrantableActionIds={createGrantableActionIds}
+                              editGrantableActionIds={editGrantableActionIds}
+                            />
                          </div>
                     </TabsContent>
 
                     <TabsContent value="chat" className="mt-0">
-                         <ChatTab spaceId={id} />
+                         <ChatTab spaceId={id} canWrite={canWriteChat} />
+                    </TabsContent>
+
+                    <TabsContent value="storage" className="mt-0">
+                         <StorageTab spaceId={id} />
                     </TabsContent>
                 </div>
             </Tabs>

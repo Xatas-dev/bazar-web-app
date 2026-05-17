@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo, useState } from "react";
+import { useRef, useLayoutEffect, useMemo, useState } from "react";
 import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChat";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
@@ -13,6 +13,8 @@ interface MessageListProps {
   onReply?: (message: MessageResponse) => void;
   onEdit?: (message: MessageResponse) => void;
 }
+
+const EDGE_THRESHOLD = 16;
 
 export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   // Connect to WebSocket
@@ -29,6 +31,7 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
 
   const { user: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const pendingScrollAdjustmentRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const { toast } = useToast();
   const deleteMessagesMutation = useDeleteMessages();
@@ -81,31 +84,51 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
 
   // Scroll handling
   // When new messages arrive (at the bottom), if we were at the bottom, auto-scroll to new bottom.
-  // When loading older messages (at the top), maintain scroll position?
-  // Simple approach: Auto scroll to bottom if we are near bottom.
+  // When loading older messages (at the top), maintain scroll position.
 
-  useEffect(() => {
-    if (shouldAutoScroll && scrollRef.current) {
+  useLayoutEffect(() => {
+    const container = scrollRef.current;
+    const pending = pendingScrollAdjustmentRef.current;
+
+    if (!container || !pending || isFetchingNextPage) {
+      return;
+    }
+
+    const scrollHeightDelta = container.scrollHeight - pending.scrollHeight;
+    container.scrollTop = pending.scrollTop + scrollHeightDelta;
+    pendingScrollAdjustmentRef.current = null;
+  }, [allMessages, isFetchingNextPage]);
+
+  useLayoutEffect(() => {
+    if (shouldAutoScroll && scrollRef.current && !pendingScrollAdjustmentRef.current) {
          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [allMessages, shouldAutoScroll]);
 
+  const loadOlderMessages = () => {
+    const container = scrollRef.current;
+
+    if (!container || !hasNextPage || isFetchingNextPage) {
+      return;
+    }
+
+    pendingScrollAdjustmentRef.current = {
+      scrollHeight: container.scrollHeight,
+      scrollTop: container.scrollTop,
+    };
+
+    fetchNextPage();
+  };
+
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
      // Check if we are at the top to load more
      const target = event.currentTarget;
-     if (target.scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
-         // Save scroll height to restore position
-         // const oldScrollHeight = target.scrollHeight;
-         fetchNextPage().then(() => {
-             // After render, we'd want to adjust scroll position so we don't jump to top
-             // But React Query async update makes this tricky without useLayoutEffect or similar.
-             // For now, let's just fetch.
-             // To prevent jumping, we might need a more complex ScrollArea wrapper or manual logic.
-         });
+     if (target.scrollTop <= EDGE_THRESHOLD && hasNextPage && !isFetchingNextPage) {
+         loadOlderMessages();
      }
 
      // Check if we are at bottom
-     const isAtBottom = target.scrollHeight - target.scrollTop === target.clientHeight;
+     const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= EDGE_THRESHOLD;
      setShouldAutoScroll(isAtBottom);
   };
 
@@ -135,7 +158,7 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => fetchNextPage()}
+                    onClick={loadOlderMessages}
                     disabled={isFetchingNextPage}
                 >
                     {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
