@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/context-menu";
 import { ChatReactionResponse, MessageResponse, AllowedMessageAction } from "@/types/chat";
 import { Trash2, Reply, Edit2, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MessageContextMenuProps {
   message: MessageResponse;
@@ -78,7 +79,10 @@ export const MessageContextMenu = ({
                     key={reaction.reactionId}
                     disabled={isBlockedByLimit}
                     onSelect={() => handleReact(reaction.reactionId)}
-                    className="h-9 w-9 justify-center rounded-md px-0 text-lg data-[disabled]:opacity-30"
+                    className={cn(
+                      "h-9 w-9 justify-center rounded-md px-0 text-lg transition-transform hover:scale-110 active:scale-75 data-[disabled]:opacity-30",
+                      isAlreadyReacted && "animate-reaction-blink bg-primary/10"
+                    )}
                   >
                     {reaction.value}
                   </ContextMenuItem>

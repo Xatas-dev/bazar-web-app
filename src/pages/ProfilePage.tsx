@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfilePageSkeleton } from "@/pages/ProfilePageSkeleton";
 import { Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -47,7 +48,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-      return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
+      return <ProfilePageSkeleton />;
   }
 
   if (!user) {

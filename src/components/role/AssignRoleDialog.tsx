@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notifications";
 
 interface AssignRoleDialogProps {
   spaceId: number;
@@ -33,17 +34,12 @@ export default function AssignRoleDialog({
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const { data: rolesResponse, isLoading } = useGetRoles(spaceId, isOpen);
   const assignRoleMutation = useAssignRoleToUser();
-  const { toast } = useToast();
 
   const roles = rolesResponse?.roles || [];
 
   const handleSubmit = async () => {
     if (!selectedRoleId) {
-      toast({
-        title: "Ошибка",
-        description: "Выберите роль",
-        variant: "destructive",
-      });
+      notify.error.validation("Select a role to assign.");
       return;
     }
 
@@ -55,19 +51,9 @@ export default function AssignRoleDialog({
       },
       {
         onSuccess: () => {
-          toast({
-            title: "Успешно",
-            description: `Роль назначена пользователю ${userName}`,
-          });
+          notify.success(`Role assigned to ${userName}.`);
           setSelectedRoleId("");
           onOpenChange(false);
-        },
-        onError: () => {
-          toast({
-            title: "Ошибка",
-            description: "Не удалось назначить роль",
-            variant: "destructive",
-          });
         },
       }
     );
@@ -85,8 +71,11 @@ export default function AssignRoleDialog({
 
         <div className="space-y-4">
           {isLoading ? (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <div className="space-y-3 py-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-12 w-full rounded-md" />
+              <Skeleton className="h-12 w-full rounded-md" />
+              <Skeleton className="h-12 w-full rounded-md" />
             </div>
           ) : !roles || roles.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">

@@ -1,20 +1,25 @@
-import { useState } from "react";
-import { useGetRoles, useGetActions } from "@/hooks/useRoles";
+import { useGetRoles } from "@/hooks/useRoles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Plus, Shield } from "lucide-react";
-import CreateRoleDialog from "./CreateRoleDialog";
-import EditRoleDialog from "./EditRoleDialog";
-import ViewRoleDialog from "./ViewRoleDialog";
-import { useToast } from "@/hooks/use-toast";
+import { Plus, Shield, Info, Pencil } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { motion } from "framer-motion";
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
+import { RolesTabSkeleton } from "./RolesTabSkeleton";
+import { notify } from "@/lib/notifications";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface RolesTabProps {
   spaceId: number;
   canCreate?: boolean;
   canEdit?: boolean;
   canRead?: boolean;
-  createGrantableActionIds?: number[] | null;
-  editGrantableActionIds?: number[] | null;
 }
 
 export default function RolesTab({
@@ -22,27 +27,14 @@ export default function RolesTab({
   canCreate = false,
   canEdit = false,
   canRead = false,
-  createGrantableActionIds = null,
-  editGrantableActionIds = null,
 }: RolesTabProps) {
   const { data: rolesResponse, isLoading: isLoadingRoles } = useGetRoles(spaceId);
-  const { data: actionsData } = useGetActions(spaceId);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editRoleId, setEditRoleId] = useState<number | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [viewRoleId, setViewRoleId] = useState<number | null>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const { toast } = useToast();
+  const setPanel = useSidebarStore((s) => s.setPanel);
 
   const roles = rolesResponse?.roles || [];
-  const actions = actionsData?.actions || [];
 
   if (isLoadingRoles) {
-    return (
-      <div className="flex justify-center items-center p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <RolesTabSkeleton />;
   }
 
   if (!canRead) {
@@ -55,17 +47,6 @@ export default function RolesTab({
     );
   }
 
-  const handleEditRole = (roleId: number) => {
-    if (canEdit) {
-      setEditRoleId(roleId);
-      setIsEditDialogOpen(true);
-    } else {
-      // open view-only dialog
-      setViewRoleId(roleId);
-      setIsViewDialogOpen(true);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Header with Create Button */}
@@ -73,26 +54,28 @@ export default function RolesTab({
         <div className="flex items-center gap-3">
           <Shield className="h-6 w-6 text-primary" />
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold">Роли</h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">Управляйте ролями и разрешениями для вашего пространства</p>
+            <h2 className="text-xl sm:text-2xl font-bold">Roles</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Manage roles and pemissions in your space</p>
           </div>
         </div>
         {canCreate ? (
-          <CreateRoleDialog
-            spaceId={spaceId}
-            actions={actions}
-            allowedActionIds={createGrantableActionIds}
-            onOpenChange={setIsCreateDialogOpen}
-            isOpen={isCreateDialogOpen}
-          >
-            <Button className="w-full sm:w-auto">
-              <Plus className="mr-2 h-4 w-4" /> Создать роль
-            </Button>
-          </CreateRoleDialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" onClick={() => setPanel('create-role')}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Create role</TooltipContent>
+          </Tooltip>
         ) : (
-          <Button className="w-full sm:w-auto opacity-50" onClick={() => toast({ title: "Нет прав", description: "У вас нет прав на создание ролей", variant: 'destructive' })}>
-            <Plus className="mr-2 h-4 w-4" /> Создать роль
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" className="opacity-50" onClick={() => notify.error.forbidden()}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Create role</TooltipContent>
+          </Tooltip>
         )}
       </div>
 
@@ -103,46 +86,50 @@ export default function RolesTab({
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Shield className="h-12 w-12 text-muted-foreground/50 mb-4" />
               <p className="text-center text-muted-foreground">
-                Ролей еще нет. Создайте первую роль, чтобы начать управление разрешениями.
+                No roles. Create one
               </p>
             </CardContent>
           </Card>
         ) : (
-          roles.map((role) => (
-            <Card
+          roles.map((role, i) => (
+            <motion.div
               key={role.id}
-              className={`hover:shadow-md transition-shadow ${canEdit ? 'cursor-pointer' : 'cursor-pointer'}`}
-              style={{opacity: role.isVisible ? 1 : 0.5}}
-              onClick={() => handleEditRole(role.id)}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: i * 0.05 }}
+              className="w-full"
             >
-              <CardContent className="p-4">
-                <h3 className="font-medium">{role.name}</h3>
-              </CardContent>
-            </Card>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Card
+                  className={cn(
+                    "cursor-pointer transition-colors hover:bg-accent/50",
+                    role.isVisible ? "opacity-100" : "opacity-[var(--panel-disabled-opacity)]"
+                  )}
+                >
+                  <CardContent className="p-4">
+                    <h3 className="font-medium">{role.name}</h3>
+                  </CardContent>
+                </Card>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-40">
+                <DropdownMenuItem onSelect={() => setPanel('role-info', { roleId: role.id })}>
+                  <Info className="mr-2 h-4 w-4" />
+                  Role info
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={!canEdit}
+                  onSelect={() => setPanel('edit-role', { roleId: role.id })}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit role
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            </motion.div>
           ))
         )}
       </div>
-
-      {/* Edit Role Dialog */}
-      {editRoleId && (
-        <EditRoleDialog
-          spaceId={spaceId}
-          roleId={editRoleId}
-          isOpen={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          allowedActionIds={editGrantableActionIds}
-        />
-      )}
-      {viewRoleId && (
-        <ViewRoleDialog
-          spaceId={spaceId}
-          roleId={viewRoleId}
-          isOpen={isViewDialogOpen}
-          onOpenChange={setIsViewDialogOpen}
-          hideMeta
-        />
-      )}
     </div>
   );
 }
-

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { CardContent } from "@/components/ui/card";
 import RoleCard from "./RoleCard";
-import { Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ViewRoleDialogProps {
   spaceId: number;
@@ -28,8 +28,17 @@ export default function ViewRoleDialog({ spaceId, roleId, isOpen, onOpenChange, 
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex justify-center items-center p-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
+          <div className="space-y-4 p-4">
+            <Skeleton className="h-6 w-48" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-16 rounded-full" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-14 rounded-full" />
+            </div>
           </div>
         ) : (
           <CardContent>

@@ -1,0 +1,123 @@
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 7.8%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7.8%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 7.8%;
+
+  --primary: 223.9 100% 54.7%;
+  --primary-foreground: 0 0% 100%;
+  --self-block: 223.9 100% 49%;
+  --self-block-foreground: 0 0% 100%;
+  --self-block-border: 223.9 100% 60%;
+
+  --secondary: 253.8 20% 25.5%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 229.4 100% 94%;
+  --muted-foreground: 253.8 20% 30%;
+
+  --accent: 228 100% 92%;
+  --accent-foreground: 0 0% 7.8%;
+
+  --destructive: 349.9 82.7% 52.4%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 150.8 93.3% 41%;
+  --success-foreground: 0 0% 100%;
+
+  --warning: 25.4 75.8% 62.7%;
+  --warning-foreground: 0 0% 7.8%;
+
+  --info: 223.9 100% 54.7%;
+  --info-foreground: 0 0% 100%;
+
+  --border: 229.5 100% 86%;
+  --input: 229.5 100% 86%;
+  --ring: 223.9 100% 54.7%;
+
+  --shell-surface: 0 0% 98.5%;
+  --shell-border: 229.5 100% 86%;
+
+  --panel-surface: 0 0% 100% / 0.96;
+  --panel-surface-muted: 0 0% 95% / 0.3;
+  --panel-surface-strong: 0 0% 96% / 0.7;
+  --panel-border: 223.9 60% 80% / 0.35;
+  --panel-border-strong: 223.9 70% 70% / 0.45;
+  --panel-overlay: 223.9 40% 12% / 0.45;
+  --panel-backdrop-soft: blur(8px) saturate(1.18) brightness(1.05) contrast(1.02);
+  --panel-backdrop-strong: blur(14px) saturate(1.22) brightness(1.03) contrast(1.04);
+  --panel-backdrop-overlay: blur(14px) saturate(1.15) brightness(0.98);
+  --panel-disabled-opacity: 0.5;
+  --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(223.9 100% 54.7% / 0.55), transparent 60%),
+    radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.35), transparent 55%),
+    linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(229.4 100% 91%) 55%, hsl(228 100% 88%) 100%);
+  --radius: 0.5rem;
+
+  /* Sidebar width tokens */
+  --right-sidebar-width: 40rem;
+  --left-sidebar-width: 20rem;
+}
+
+.dark {
+  --background: 225 22.2% 7.1%;
+  --foreground: 228 100% 98%;
+
+  --card: 228 29.4% 10%;
+  --card-foreground: 228 100% 98%;
+
+  --popover: 228 29.4% 10%;
+  --popover-foreground: 228 100% 98%;
+
+  --primary: 223.9 100% 54.7%;
+  --primary-foreground: 0 0% 100%;
+  --self-block: 223.9 100% 46%;
+  --self-block-foreground: 0 0% 100%;
+  --self-block-border: 223.9 100% 65%;
+
+  --secondary: 253.8 20% 25.5%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 224.3 29.9% 15.1%;
+  --muted-foreground: 223.4 24.8% 77.1%;
+
+  --accent: 226.2 28.9% 17.6%;
+  --accent-foreground: 228 100% 98%;
+
+  --destructive: 349.9 82.7% 52.4%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 150.8 93.3% 41%;
+  --success-foreground: 155.5 61.1% 7.1%;
+
+  --warning: 25.4 75.8% 62.7%;
+  --warning-foreground: 22.2 45.8% 11.6%;
+
+  --info: 225.6 100% 62.4%;
+  --info-foreground: 0 0% 100%;
+
+  --border: 225 24.6% 22.4%;
+  --input: 225 24.6% 22.4%;
+  --ring: 225.6 100% 62.4%;
+
+  --shell-surface: 228 29.4% 11.5%;
+  --shell-border: 225 24.6% 22.4%;
+
+  --panel-surface: 228 29.4% 10% / 0.94;
+  --panel-surface-muted: 228 29.4% 11.5% / 0.4;
+  --panel-surface-strong: 228 29.4% 11.5% / 0.72;
+  --panel-border: 223.9 30% 40% / 0.3;
+  --panel-border-strong: 223.9 30% 55% / 0.45;
+  --panel-overlay: 223.9 40% 4% / 0.6;
+  --panel-backdrop-soft: blur(10px) saturate(1.08) brightness(0.97) contrast(1.03);
+  --panel-backdrop-strong: blur(14px) saturate(1.12) brightness(0.94) contrast(1.05);
+  --panel-backdrop-overlay: blur(16px) saturate(1.08) brightness(0.9);
+  --panel-disabled-opacity: 0.5;
+
+  --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(223.9 100% 54.7% / 0.55), transparent 60%),
+    radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.45), transparent 55%),
+    linear-gradient(135deg, hsl(225 22.2% 10%) 0%, hsl(228 29.4% 14%) 55%, hsl(224.3 29.9% 20%) 100%);
+}

@@ -1,63 +1,56 @@
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCreateSpace } from "@/hooks/useSpaces";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Box } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { notify } from "@/lib/notifications";
 
 export default function HomePage() {
   const createSpaceMutation = useCreateSpace();
   const [newSpaceName, setNewSpaceName] = useState("");
-  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleCreateSpace = () => {
+  const handleCreateSpace = (event?: FormEvent) => {
+    event?.preventDefault();
+
     if (!newSpaceName.trim()) {
-        toast({
-            title: "Error",
-            description: "Space name is required",
-            variant: "destructive"
-        });
-        return;
+      notify.error.validation("Space name is required.");
+      return;
     }
     createSpaceMutation.mutate(newSpaceName, {
-        onSuccess: () => {
-            setNewSpaceName("");
-            toast({
-                title: "Success",
-                description: "Space created successfully",
-            });
-        },
-        onError: () => {
-             toast({
-                title: "Error",
-                description: "Failed to create space",
-                variant: "destructive"
-            });
-        }
+      onSuccess: (newSpace) => {
+        setNewSpaceName("");
+        navigate(`/spaces/${newSpace.id}`);
+        notify.success("Space created successfully.");
+      },
     });
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-      <div className="max-w-md space-y-4 w-full">
-        <div className="bg-primary/10 p-6 rounded-full inline-block mb-4">
-             <Box className="h-12 w-12 text-primary" />
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome to Bazar Space</h1>
-        <p className="text-muted-foreground">
-          Select a space from the sidebar to view details, or create a new space to get started.
-        </p>
-        <div className="pt-4 flex flex-col gap-2">
+      <Card className="max-w-md w-full">
+        <CardContent className="p-6 sm:p-8 space-y-4">
+          <div className="surface-panel-muted inline-flex rounded-full p-6 mb-2">
+            <Box className="h-12 w-12 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome to Bazar Space</h1>
+          <p className="text-muted-foreground">
+            Select a space from the sidebar to view details, or create a new space to get started.
+          </p>
+        <form className="pt-4 flex flex-col gap-2" onSubmit={handleCreateSpace}>
             <Input
-                placeholder="Enter space name"
-                value={newSpaceName}
-                onChange={(e) => setNewSpaceName(e.target.value)}
+              placeholder="Enter space name"
+              value={newSpaceName}
+              onChange={(e) => setNewSpaceName(e.target.value)}
             />
-            <Button onClick={handleCreateSpace} disabled={createSpaceMutation.isPending} size="lg" className="w-full">
+          <Button type="submit" disabled={createSpaceMutation.isPending} size="lg" className="w-full">
               {createSpaceMutation.isPending ? "Creating..." : <><Plus className="mr-2 h-4 w-4" /> Create New Space</>}
             </Button>
-        </div>
-      </div>
+        </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

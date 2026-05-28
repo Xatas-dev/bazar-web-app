@@ -14,7 +14,7 @@ export default function GuestPage() {
 
       {/* Hero Section */}
       <section className="text-center space-y-6 max-w-3xl">
-        <h1 className="text-5xl font-extrabold tracking-tight lg:text-6xl bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent pb-2">
+        <h1 className="text-5xl font-extrabold tracking-tight lg:text-6xl text-primary pb-2">
           Welcome to Bazar Space
         </h1>
         <p className="text-xl text-muted-foreground">
@@ -32,9 +32,9 @@ export default function GuestPage() {
 
       {/* Features Grid */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
-        <Card className="border-0 shadow-lg bg-card/50 backdrop-blur">
+        <Card className="transition-colors">
           <CardHeader>
-            <Zap className="h-10 w-10 text-yellow-500 mb-2" />
+            <Zap className="h-10 w-10 text-warning mb-2" />
             <CardTitle>Lightning Fast</CardTitle>
           </CardHeader>
           <CardContent>
@@ -42,9 +42,9 @@ export default function GuestPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-card/50 backdrop-blur">
+        <Card className="transition-colors">
           <CardHeader>
-            <ShieldCheck className="h-10 w-10 text-green-500 mb-2" />
+            <ShieldCheck className="h-10 w-10 text-success mb-2" />
             <CardTitle>Secure by Design</CardTitle>
           </CardHeader>
           <CardContent>
@@ -52,9 +52,9 @@ export default function GuestPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg bg-card/50 backdrop-blur">
+        <Card className="transition-colors">
           <CardHeader>
-            <Globe className="h-10 w-10 text-blue-500 mb-2" />
+            <Globe className="h-10 w-10 text-info mb-2" />
             <CardTitle>Global Spaces</CardTitle>
           </CardHeader>
           <CardContent>

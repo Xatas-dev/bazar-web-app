@@ -1,6 +1,6 @@
 import axios from 'axios';
 import config from '@/config';
-import { toast } from '@/hooks/use-toast';
+import { notify } from '@/lib/notifications';
 
 
 const getBaseURL = (apiConfig: { baseUrl: string; targetLocal: string }) => {
@@ -85,18 +85,45 @@ const addAuthorizationHeader = (requestConfig: any) => {
   return requestConfig;
 };
 
-// Interceptor to handle 403 errors globally
-const handleForbiddenError = (error: any) => {
-  if (error.response && error.response.status === 403) {
-    toast({
-        variant: "destructive",
-        title: "Access Denied",
-        description: "You do not have permission to perform this action."
-    });
-  }
+// Global response error interceptor
+const handleResponseError = (error: any) => {
+  if (error.response) {
+    const status = error.response.status;
 
-  if (error.response && error.response.status === 401) {
-    console.error('[API Error] 401 Unauthorized:', error.config?.url);
+    switch (status) {
+      case 400:
+        notify.error.validation("The request could not be processed.");
+        break;
+      case 401:
+        notify.error.unauthorized();
+        break;
+      case 403:
+        notify.error.forbidden();
+        break;
+      case 404:
+        notify.error.notFound();
+        break;
+      case 409:
+        notify.error.validation("This operation conflicts with the current state.");
+        break;
+      case 422:
+        notify.error.validation("The provided data is invalid.");
+        break;
+      case 500:
+      case 502:
+      case 503:
+        notify.error.serverError();
+        break;
+      default:
+        if (status >= 500) {
+          notify.error.serverError();
+        }
+        break;
+    }
+  } else if (error.code === 'ECONNABORTED') {
+    notify.error.timeout();
+  } else if (!error.response) {
+    notify.error.networkError();
   }
 
   return Promise.reject(error);
@@ -110,11 +137,11 @@ chatAxiosInstance.interceptors.request.use(addAuthorizationHeader);
 storageAxiosInstance.interceptors.request.use(addAuthorizationHeader);
 authorizationAxiosInstance.interceptors.request.use(addAuthorizationHeader);
 
-axiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
-gatewayAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
-personaAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
-chatAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
-storageAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
-authorizationAxiosInstance.interceptors.response.use((response) => response, handleForbiddenError);
+axiosInstance.interceptors.response.use((response) => response, handleResponseError);
+gatewayAxiosInstance.interceptors.response.use((response) => response, handleResponseError);
+personaAxiosInstance.interceptors.response.use((response) => response, handleResponseError);
+chatAxiosInstance.interceptors.response.use((response) => response, handleResponseError);
+storageAxiosInstance.interceptors.response.use((response) => response, handleResponseError);
+authorizationAxiosInstance.interceptors.response.use((response) => response, handleResponseError);
 
 
