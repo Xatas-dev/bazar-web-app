@@ -1,20 +1,36 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { MessageResponse, AuthorStatus } from "@/types/chat";
+import { MessageResponse, AuthorStatus, ChatReactionResponse } from "@/types/chat";
 import { motion } from "framer-motion";
 import { MessageContextMenu } from "./MessageContextMenu";
+import { MessageReactions } from "./MessageReactions";
 import { Reply } from "lucide-react";
 
 interface MessageItemProps {
   message: MessageResponse;
   isCurrentUser: boolean;
   showAvatar?: boolean;
+  availableReactions?: ChatReactionResponse[];
+  reactionLabelById: Record<string, string>;
   onDelete?: (messageId: number) => void;
   onReply?: (message: MessageResponse) => void;
   onEdit?: (message: MessageResponse) => void;
+  onReact?: (messageId: number, reactionId: string) => void;
+  onOpenReactionUsers?: (message: MessageResponse) => void;
 }
 
-export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelete, onReply, onEdit }: MessageItemProps) => {
+export const MessageItem = ({
+  message,
+  isCurrentUser,
+  showAvatar = true,
+  availableReactions = [],
+  reactionLabelById,
+  onDelete,
+  onReply,
+  onEdit,
+  onReact,
+  onOpenReactionUsers,
+}: MessageItemProps) => {
   const formattedTime = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const handleDelete = (messageId: number) => {
@@ -32,6 +48,12 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
   const handleEdit = (message: MessageResponse) => {
     if (onEdit) {
       onEdit(message);
+    }
+  };
+
+  const handleReact = (messageId: number, reactionId: string) => {
+    if (onReact) {
+      onReact(messageId, reactionId);
     }
   };
 
@@ -93,7 +115,7 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
 
       <div
         className={cn(
-          "flex flex-col max-w-[70%]",
+          "flex flex-col max-w-[70%] min-w-0",
           isCurrentUser ? "items-end" : "items-start"
         )}
       >
@@ -103,10 +125,18 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
              </span>
          )}
 
-        <MessageContextMenu message={message} onDelete={handleDelete} onReply={handleReply} onEdit={handleEdit}>
+        <MessageContextMenu
+          message={message}
+          availableReactions={availableReactions}
+          onDelete={handleDelete}
+          onReply={handleReply}
+          onEdit={handleEdit}
+          onReact={handleReact}
+          onOpenReactionUsers={onOpenReactionUsers}
+        >
           <div
             className={cn(
-              "rounded-lg px-4 py-2 text-sm cursor-text select-text",
+              "w-full rounded-lg px-4 py-2 text-sm cursor-text select-text whitespace-pre-wrap break-words leading-relaxed",
               isCurrentUser
                 ? "bg-primary text-primary-foreground rounded-tr-none"
                 : "bg-muted text-foreground rounded-tl-none"
@@ -129,6 +159,14 @@ export const MessageItem = ({ message, isCurrentUser, showAvatar = true, onDelet
             {message.content}
           </div>
         </MessageContextMenu>
+
+        {message.reactions && message.reactions.length > 0 && (
+          <MessageReactions
+            message={message}
+            reactionLabelById={reactionLabelById}
+            onReact={handleReact}
+          />
+        )}
         <span className="text-[10px] text-muted-foreground mt-1 px-1">
             {formattedTime}
         </span>

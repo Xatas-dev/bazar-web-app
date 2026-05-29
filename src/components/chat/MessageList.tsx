@@ -1,5 +1,5 @@
-import { useRef, useLayoutEffect, useMemo, useState } from "react";
-import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChat";
+import { useRef, useLayoutEffect, useMemo, useState, useEffect } from "react";
+import { useGetChatMessages, useDeleteMessages, useGetChatReactions, useChangeMessageReaction } from "@/hooks/useChat";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
 import { Loader2 } from "lucide-react";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {useChatWebSocket} from "@/hooks/useChatWebSocket.ts";
 import { useToast } from "@/hooks/use-toast";
 import { MessageResponse } from "@/types/chat";
+import { MessageReactionUsersDialog } from "./MessageReactionUsersDialog";
 
 interface MessageListProps {
   chatId: number;
@@ -28,13 +29,27 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
     isLoading,
     isError
   } = useGetChatMessages(chatId);
+  const { data: availableReactions = [] } = useGetChatReactions(chatId);
+  const changeReactionMutation = useChangeMessageReaction();
 
   const { user: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
   const pendingScrollAdjustmentRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [selectedReactionMessage, setSelectedReactionMessage] = useState<MessageResponse | null>(null);
   const { toast } = useToast();
   const deleteMessagesMutation = useDeleteMessages();
+
+  useEffect(() => {
+    setSelectedReactionMessage(null);
+  }, [chatId]);
+
+  const reactionLabelById = useMemo(() => {
+    return availableReactions.reduce<Record<string, string>>((acc, reaction) => {
+      acc[reaction.reactionId] = reaction.value;
+      return acc;
+    }, {});
+  }, [availableReactions]);
 
   const handleDeleteMessage = (messageId: number) => {
     deleteMessagesMutation.mutate(
@@ -60,6 +75,34 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   const handleEditMessage = (message: MessageResponse) => {
     if (onEdit) {
       onEdit(message);
+    }
+  };
+
+  const handleReact = (messageId: number, reactionId: string) => {
+    if (!chatId) return;
+
+    const targetMessage = allMessages.find((message) => message.id === messageId);
+    if (!targetMessage) return;
+
+    const isAlreadyReacted = targetMessage.reactions?.some(
+      (reaction) => reaction.reactionId === reactionId && reaction.reactedByMe
+    ) ?? false;
+    const userReactionCount = targetMessage.reactions?.filter((reaction) => reaction.reactedByMe).length ?? 0;
+
+    if (!isAlreadyReacted && userReactionCount >= 3) {
+      return;
+    }
+
+    changeReactionMutation.mutate({ chatId, messageId, reactionId });
+  };
+
+  const handleOpenReactionUsers = (message: MessageResponse) => {
+    setSelectedReactionMessage(message);
+  };
+
+  const handleReactionUsersDialogChange = (open: boolean) => {
+    if (!open) {
+      setSelectedReactionMessage(null);
     }
   };
 
@@ -147,53 +190,67 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   }
 
   return (
-    <div
-        className="flex-1 overflow-y-auto p-4 space-y-4"
-        onScroll={handleScroll}
-        ref={scrollRef} // This ref won't work on the custom ScrollArea easily if we don't access viewport
-        // So I'm using a plain div for the scroll container inside the tab content
-    >
-        {hasNextPage && (
-            <div className="flex justify-center py-2">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={loadOlderMessages}
-                    disabled={isFetchingNextPage}
-                >
-                    {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Load Older Messages
-                </Button>
-            </div>
-        )}
+    <>
+      <div
+          className="flex-1 overflow-y-auto p-4 space-y-4"
+          onScroll={handleScroll}
+          ref={scrollRef} // This ref won't work on the custom ScrollArea easily if we don't access viewport
+          // So I'm using a plain div for the scroll container inside the tab content
+      >
+          {hasNextPage && (
+              <div className="flex justify-center py-2">
+                  <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={loadOlderMessages}
+                      disabled={isFetchingNextPage}
+                  >
+                      {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      Load Older Messages
+                  </Button>
+              </div>
+          )}
 
-        {allMessages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-50">
-                <p>No messages yet. Start the conversation!</p>
-            </div>
-        ) : (
-            allMessages.map((msg, index) => {
-                const isCurrentUser = msg.author.userId === currentUser?.id;
+          {allMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-50">
+                  <p>No messages yet. Start the conversation!</p>
+              </div>
+          ) : (
+              allMessages.map((msg, index) => {
+                  const isCurrentUser = msg.author.userId === currentUser?.id;
 
-                // Grouping logic: Show avatar only if previous message was from a different user
-                // or if it's the first message
-                const prevMsg = allMessages[index - 1];
-                const showAvatar = !prevMsg || prevMsg.author.userId !== msg.author.userId;
+                  // Grouping logic: Show avatar only if previous message was from a different user
+                  // or if it's the first message
+                  const prevMsg = allMessages[index - 1];
+                  const showAvatar = !prevMsg || prevMsg.author.userId !== msg.author.userId;
 
-                return (
-                    <MessageItem
-                        key={msg.id}
-                        message={msg}
-                        isCurrentUser={isCurrentUser}
-                        showAvatar={showAvatar}
-                        onDelete={handleDeleteMessage}
-                        onReply={onReply}
-                        onEdit={handleEditMessage}
-                    />
-                );
-            })
-        )}
-        <div id="scroll-anchor" />
-      </div>
+                  return (
+                      <MessageItem
+                          key={msg.id}
+                          message={msg}
+                          isCurrentUser={isCurrentUser}
+                          showAvatar={showAvatar}
+                          availableReactions={availableReactions}
+                          reactionLabelById={reactionLabelById}
+                          onDelete={handleDeleteMessage}
+                          onReply={onReply}
+                          onEdit={handleEditMessage}
+                          onReact={handleReact}
+                          onOpenReactionUsers={handleOpenReactionUsers}
+                      />
+                  );
+              })
+          )}
+          <div id="scroll-anchor" />
+        </div>
+
+      <MessageReactionUsersDialog
+        chatId={chatId}
+        message={selectedReactionMessage}
+        isOpen={!!selectedReactionMessage}
+        onOpenChange={handleReactionUsersDialogChange}
+        reactionLabelById={reactionLabelById}
+      />
+    </>
   );
 }

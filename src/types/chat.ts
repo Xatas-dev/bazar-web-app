@@ -36,6 +36,34 @@ export enum AllowedMessageAction {
   EDIT = 'EDIT'
 }
 
+export interface MessageReactionResponse {
+  reactionId: string;
+  count: number;
+  reactedByMe: boolean;
+}
+
+export interface ChatReactionResponse {
+  reactionId: string;
+  value: string;
+  type: string;
+}
+
+export interface MessageReactionUserResponse {
+  userId: string;
+  firstName: string | null;
+  lastName: string | null;
+  status: AuthorStatus;
+}
+
+export interface MessageReactionUsersReactionResponse {
+  reactionId: string;
+  users: MessageReactionUserResponse[];
+}
+
+export interface MessageReactionUsersResponse {
+  reactions: MessageReactionUsersReactionResponse[];
+}
+
 export interface MessageResponse {
   id: number;
   chatId: number;
@@ -44,6 +72,7 @@ export interface MessageResponse {
   createdAt: string;
   allowedActions?: AllowedMessageAction[];
   reply?: ReplyMessage;
+  reactions?: MessageReactionResponse[];
 }
 
 export interface MessagePageResponse {
@@ -68,7 +97,8 @@ export interface DeleteMessagesRequest {
 export enum ChatEventType {
   CREATED = 'CREATED',
   DELETED = 'DELETED',
-  EDITED = 'EDITED'
+  EDITED = 'EDITED',
+  REACTION_CHANGED = 'REACTION_CHANGED'
 }
 
 export interface MessageCreatedPayload {
@@ -78,6 +108,7 @@ export interface MessageCreatedPayload {
   createdAt: string;
   allowedActions?: AllowedMessageAction[];
   reply?: ReplyMessage;
+  reactions?: MessageReactionResponse[];
 }
 
 export interface MessageDeletedPayload {
@@ -89,8 +120,22 @@ export interface MessageEditedPayload {
   newContent: string;
 }
 
+export interface MessageReactionChangedPayload {
+  messageId: string;
+  reactionId: string;
+  count: number;
+  added: boolean;
+  author: MessageAuthor;
+}
+
 export interface WebSocketChatEvent {
   type: ChatEventType;
   chatId: number;
-  payload: MessageCreatedPayload | MessageDeletedPayload | MessageEditedPayload;
+  payload: MessageCreatedPayload | MessageDeletedPayload | MessageEditedPayload | MessageReactionChangedPayload;
+}
+
+export interface MessageReactionChangeResponse {
+  messageId: string;
+  reactionId: string;
+  count: number;
 }
