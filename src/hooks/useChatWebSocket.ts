@@ -1,8 +1,20 @@
 import {useEffect, useRef} from 'react';
 import {Client} from '@stomp/stompjs';
 import {useQueryClient} from '@tanstack/react-query';
-import {MessageResponse, WebSocketChatEvent, ChatEventType, MessageCreatedPayload, MessageDeletedPayload, MessageEditedPayload} from '@/types/chat';
+import {
+    ChatEventType,
+    MessageCreatedPayload,
+    MessageDeletedPayload,
+    MessageEditedPayload,
+    MessageReactionChangedPayload,
+    MessageResponse,
+    WebSocketChatEvent,
+} from '@/types/chat';
 import config from "@/config.ts";
+import {
+    updateChatMessagesCache,
+    updateMessageReactionCountInMessage,
+} from '@/lib/chat-reactions';
 
 // Helper function to process WebSocket events (extracted for testing)
 const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryClient: any) => {
@@ -19,7 +31,8 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
             content: payload.content,
             createdAt: payload.createdAt,
             allowedActions: payload.allowedActions,
-            reply: payload.reply
+            reply: payload.reply,
+            reactions: payload.reactions,
         };
 
         // Update React Query Cache - add new message
@@ -112,6 +125,19 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
                 pages: newPages
             };
         });
+    } else if (event.type === ChatEventType.REACTION_CHANGED) {
+        const payload = event.payload as MessageReactionChangedPayload;
+
+        queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) => {
+            if (!oldData) return oldData;
+
+            return updateChatMessagesCache(oldData, (message) => {
+                if (message.id !== Number(payload.messageId)) return message;
+                return updateMessageReactionCountInMessage(message, payload.reactionId, payload.count);
+            });
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['chat', chatId, 'messages', Number(payload.messageId), 'reaction-users'] });
     }
 };
 
