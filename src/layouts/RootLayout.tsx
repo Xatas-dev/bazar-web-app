@@ -1,10 +1,13 @@
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
+import { useWebPush } from "@/hooks/useWebPush";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const RootLayout = () => {
   const { user, isLoading } = useUser();
   const location = useLocation();
+
+  useWebPush(user);
 
   if (isLoading) {
     return (

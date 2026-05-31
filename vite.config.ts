@@ -22,6 +22,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false, // For self-signed certs if needed, though localhost usually http
         },
+        '/push': {
+          target: target,
+          changeOrigin: true,
+          secure: false,
+        },
         '/bazar-space': {
           target: mode === 'development' ? localMockTarget : target,
           changeOrigin: true,
