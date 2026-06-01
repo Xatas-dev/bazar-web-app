@@ -1,6 +1,7 @@
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
 import { useWebPush } from "@/hooks/useWebPush";
+import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const RootLayout = () => {
@@ -8,6 +9,7 @@ export const RootLayout = () => {
   const location = useLocation();
 
   useWebPush(user);
+  useServiceWorkerUpdate();
 
   if (isLoading) {
     return (

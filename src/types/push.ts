@@ -15,7 +15,8 @@ export interface PushSubscriptionPayload {
 export interface PushNotificationPayload {
   title: string;
   body: string;
-  chatId?: number;
+  avatar?: string; // инициалы или заглушка (например "ПК")
+  spaceId?: number;
   messageId?: number;
 }
 
@@ -23,7 +24,7 @@ export interface PushNotificationPayload {
 export interface PushNotificationRawOld {
   title: string;
   body: string;
-  chatId: number;
+  spaceId: number;
   messageId: number;
 }
 
@@ -31,11 +32,11 @@ export interface PushNotificationRawNew {
   author: MessageAuthor;
   content: string;
   // опционально бекенд может добавить навигационные метаданные
-  chatId?: number;
+  spaceId?: number;
   messageId?: number;
 }
 
 export interface PushClickData {
-  chatId: number;
-  messageId: number;
+  spaceId: number;
+  messageId?: number;
 }

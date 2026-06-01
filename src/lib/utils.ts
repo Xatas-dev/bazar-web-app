@@ -35,3 +35,13 @@ export function formatDate(dateString: string): string {
     year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
   });
 }
+
+export function getInitials(
+  firstName: string | null | undefined,
+  lastName: string | null | undefined
+): string {
+  const first = (firstName || "").trim();
+  const last = (lastName || "").trim();
+  const initials = `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
+  return initials.length === 2 ? initials : "??";
+}
