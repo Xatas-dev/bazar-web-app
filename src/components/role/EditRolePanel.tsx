@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
-import { useUpdateRole, useGetRole, useGetActions, useGetRoles } from "@/hooks/useRoles";
+import { useEffect } from "react";
+import { useUpdateRole, useGetRole } from "@/hooks/useRoles";
+import { useRoleEditor } from "@/hooks/useRoleEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CircleToggle } from "@/components/ui/circle-toggle";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import AttributeManagePanel, { ActiveAttribute } from "@/components/role/AttributeManagePanel";
-import { UpdateRoleRequest, SimpleActionDto, ActionDto } from "@/types/api";
+import AttributeManagePanel from "@/components/role/AttributeManagePanel";
+import { UpdateRoleRequest, SimpleActionDto } from "@/types/api";
 import { ArrowLeft, Settings2, Loader2, Save, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { buildSimpleActionPayload, getRoleAttributeKey, parseRoleAttributeSelections, RoleAttributeSelections } from "@/lib/role-attributes";
+import { buildSimpleActionPayload, getRoleAttributeKey, parseRoleAttributeSelections } from "@/lib/role-attributes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { notify } from "@/lib/notifications";
 
@@ -26,34 +27,20 @@ export default function EditRolePanel({
   allowedActionIds = null,
   onBack,
 }: EditRolePanelProps) {
-  const [roleName, setRoleName] = useState("");
-  const [isVisible, setIsVisible] = useState(true);
-  const [selectedActions, setSelectedActions] = useState<Set<number>>(new Set());
-  const [attributeValues, setAttributeValues] = useState<RoleAttributeSelections>({});
-  const [gearPopupActionId, setGearPopupActionId] = useState<number | null>(null);
-  const [popupPos, setPopupPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [activeAttribute, setActiveAttribute] = useState<ActiveAttribute | null>(null);
+  const editor = useRoleEditor({ spaceId, allowedActionIds });
+  const {
+    roleName, setRoleName, isVisible, setIsVisible,
+    selectedActions, setSelectedActions,
+    attributeValues, setAttributeValues,
+    gearPopupActionId, setGearPopupActionId,
+    popupPos, setPopupPos,
+    activeAttribute, setActiveAttribute,
+    actions, roles, groupedActions, isActionAllowed,
+    handleActionToggle, handleAttributeToggle, handleAttributeToggleAll,
+  } = editor;
 
   const { data: role, isLoading: isLoadingRole } = useGetRole(spaceId, roleId);
-  const { data: actionsData } = useGetActions(spaceId);
-  const { data: rolesResponse } = useGetRoles(spaceId);
   const updateRoleMutation = useUpdateRole();
-
-  const actions = actionsData?.actions || [];
-  const roles = rolesResponse?.roles || [];
-  const isActionAllowed = (actionId: number) => !allowedActionIds || allowedActionIds.includes(actionId);
-
-  const groupedActions = useMemo(() => {
-    const map = new Map<string, ActionDto[]>();
-    for (const action of actions) {
-      const group = action.resourceName || "other";
-      if (!map.has(group)) {
-        map.set(group, []);
-      }
-      map.get(group)!.push(action);
-    }
-    return Array.from(map.entries());
-  }, [actions]);
 
   useEffect(() => {
     if (role) {
@@ -64,7 +51,7 @@ export default function EditRolePanel({
       setSelectedActions(actionIds);
       setAttributeValues(parseRoleAttributeSelections(role));
     }
-  }, [role]);
+  }, [role, setRoleName, setIsVisible, setSelectedActions, setAttributeValues]);
 
   const handleSubmit = async () => {
     if (!roleName.trim()) {
@@ -85,41 +72,12 @@ export default function EditRolePanel({
       { spaceId, roleId, payload },
       {
         onSuccess: () => {
-          notify.success("Role updated successfully.");
           onBack();
         },
       }
     );
   };
 
-  const handleActionToggle = (actionId: number) => {
-    if (!isActionAllowed(actionId)) return;
-    const next = new Set(selectedActions);
-    next.has(actionId) ? next.delete(actionId) : next.add(actionId);
-    setSelectedActions(next);
-  };
-
-  const handleAttributeToggle = (actionId: number, attrName: string, value: number) => {
-    const attrKey = getRoleAttributeKey(actionId, attrName);
-    const updated = new Set(attributeValues[attrKey] || []);
-    updated.has(value) ? updated.delete(value) : updated.add(value);
-    setAttributeValues({ ...attributeValues, [attrKey]: updated });
-  };
-
-  const handleAttributeToggleAll = (actionId: number, attrName: string, itemIds: number[]) => {
-    const attrKey = getRoleAttributeKey(actionId, attrName);
-    const currentSet = attributeValues[attrKey] || new Set<number>();
-    const allSelected = itemIds.every((id) => currentSet.has(id));
-    const updated = new Set(currentSet);
-    if (allSelected) {
-      for (const id of itemIds) updated.delete(id);
-    } else {
-      for (const id of itemIds) updated.add(id);
-    }
-    setAttributeValues({ ...attributeValues, [attrKey]: updated });
-  };
-
-  // Active attribute panel
   if (activeAttribute) {
     return (
       <div className="flex h-full flex-col">
@@ -156,7 +114,6 @@ export default function EditRolePanel({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
       <div className="surface-shell flex items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -176,10 +133,8 @@ export default function EditRolePanel({
         </div>
       </div>
 
-      {/* Form */}
       <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-6 p-4 sm:p-6">
-          {/* Role Name */}
           <div className="space-y-2">
             <Label htmlFor="editRoleName">Название роли</Label>
             <Input
@@ -189,19 +144,17 @@ export default function EditRolePanel({
             />
           </div>
 
-          {/* Visibility */}
           <div className="flex items-center gap-3">
-            <CircleToggle
+            <Checkbox
               id="editIsVisible"
               checked={isVisible}
-              onCheckedChange={setIsVisible}
+              onCheckedChange={(v) => setIsVisible(v === true)}
             />
             <Label htmlFor="editIsVisible" className="cursor-pointer text-sm">
               Сделать роль видимой для пользователей
             </Label>
           </div>
 
-          {/* Actions — grouped by resourceName */}
           <div className="space-y-4">
             <Label className="text-base font-semibold">Разрешения</Label>
 
@@ -215,13 +168,13 @@ export default function EditRolePanel({
                     {resourceActions.map((action) => (
                       <div
                         key={action.id}
-                        className={`flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${
                           isActionAllowed(action.id)
                             ? "hover:bg-accent/40"
                             : "opacity-[var(--panel-disabled-opacity)]"
                         }`}
                       >
-                        <CircleToggle
+                        <Checkbox
                           id={`edit-action-${action.id}`}
                           checked={selectedActions.has(action.id)}
                           disabled={!isActionAllowed(action.id)}
@@ -238,6 +191,7 @@ export default function EditRolePanel({
                             {action.attributes.length > 0 && (
                               <button
                                 type="button"
+                                disabled={!selectedActions.has(action.id)}
                                 onClick={(e) => {
                                   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                                   const popupWidth = 288;
@@ -249,7 +203,7 @@ export default function EditRolePanel({
                                   setPopupPos({ x, y: rect.top });
                                   setGearPopupActionId(gearPopupActionId === action.id ? null : action.id);
                                 }}
-                                className="ml-auto flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                                className="ml-auto flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
                               >
                                 <Settings2 className="h-3.5 w-3.5" />
                               </button>
@@ -273,7 +227,6 @@ export default function EditRolePanel({
         </div>
       </ScrollArea>
 
-      {/* Gear popup */}
       {gearPopupActionId !== null && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setGearPopupActionId(null)} />
@@ -312,7 +265,6 @@ export default function EditRolePanel({
         </>
       )}
 
-      {/* Footer */}
       <div className="surface-panel-strong flex items-center justify-end gap-3 border-t border-border px-4 py-4 sm:px-6">
         <Tooltip>
           <TooltipTrigger asChild>

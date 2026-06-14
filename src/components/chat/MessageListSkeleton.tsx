@@ -6,7 +6,7 @@ const MessageBubbleSkeleton = ({ alignRight = false }: { alignRight?: boolean })
     {alignRight && <div className="w-8 flex-shrink-0" />}
     <div className={`flex flex-col ${alignRight ? "items-end" : "items-start"}`}>
       <Skeleton
-        className={`h-14 rounded-[22px] ${alignRight ? "w-52" : "w-64"}`}
+        className={`h-14 rounded-lg ${alignRight ? "w-52" : "w-64"}`}
       />
     </div>
   </div>

@@ -8,11 +8,11 @@
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 7.8%;
 
-  --primary: 223.9 100% 54.7%;
+  --primary: 222 55% 42%;
   --primary-foreground: 0 0% 100%;
-  --self-block: 223.9 100% 49%;
+  --self-block: 222 55% 35%;
   --self-block-foreground: 0 0% 100%;
-  --self-block-border: 223.9 100% 60%;
+  --self-block-border: 222 55% 50%;
 
   --secondary: 253.8 20% 25.5%;
   --secondary-foreground: 0 0% 100%;
@@ -32,12 +32,12 @@
   --warning: 25.4 75.8% 62.7%;
   --warning-foreground: 0 0% 7.8%;
 
-  --info: 223.9 100% 54.7%;
+  --info: 222 55% 42%;
   --info-foreground: 0 0% 100%;
 
   --border: 229.5 100% 86%;
   --input: 229.5 100% 86%;
-  --ring: 223.9 100% 54.7%;
+  --ring: 222 55% 42%;
 
   --shell-surface: 0 0% 98.5%;
   --shell-border: 229.5 100% 86%;
@@ -45,17 +45,17 @@
   --panel-surface: 0 0% 100% / 0.96;
   --panel-surface-muted: 0 0% 95% / 0.3;
   --panel-surface-strong: 0 0% 96% / 0.7;
-  --panel-border: 223.9 60% 80% / 0.35;
-  --panel-border-strong: 223.9 70% 70% / 0.45;
-  --panel-overlay: 223.9 40% 12% / 0.45;
+  --panel-border: 222 45% 80% / 0.35;
+  --panel-border-strong: 222 45% 70% / 0.45;
+  --panel-overlay: 222 55% 12% / 0.45;
   --panel-backdrop-soft: blur(8px) saturate(1.18) brightness(1.05) contrast(1.02);
   --panel-backdrop-strong: blur(14px) saturate(1.22) brightness(1.03) contrast(1.04);
   --panel-backdrop-overlay: blur(14px) saturate(1.15) brightness(0.98);
   --panel-disabled-opacity: 0.5;
-  --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(223.9 100% 54.7% / 0.55), transparent 60%),
+  --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(222 55% 42% / 0.55), transparent 60%),
     radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.35), transparent 55%),
     linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(229.4 100% 91%) 55%, hsl(228 100% 88%) 100%);
-  --radius: 0.5rem;
+  --radius: 1.375rem;
 
   /* Sidebar width tokens */
   --right-sidebar-width: 40rem;
@@ -72,11 +72,11 @@
   --popover: 228 29.4% 10%;
   --popover-foreground: 228 100% 98%;
 
-  --primary: 223.9 100% 54.7%;
+  --primary: 222 55% 42%;
   --primary-foreground: 0 0% 100%;
-  --self-block: 223.9 100% 46%;
+  --self-block: 222 55% 33%;
   --self-block-foreground: 0 0% 100%;
-  --self-block-border: 223.9 100% 65%;
+  --self-block-border: 222 55% 46%;
 
   --secondary: 253.8 20% 25.5%;
   --secondary-foreground: 0 0% 100%;
@@ -96,12 +96,12 @@
   --warning: 25.4 75.8% 62.7%;
   --warning-foreground: 22.2 45.8% 11.6%;
 
-  --info: 225.6 100% 62.4%;
+  --info: 222 55% 48%;
   --info-foreground: 0 0% 100%;
 
   --border: 225 24.6% 22.4%;
   --input: 225 24.6% 22.4%;
-  --ring: 225.6 100% 62.4%;
+  --ring: 222 55% 48%;
 
   --shell-surface: 228 29.4% 11.5%;
   --shell-border: 225 24.6% 22.4%;
@@ -117,7 +117,7 @@
   --panel-backdrop-overlay: blur(16px) saturate(1.08) brightness(0.9);
   --panel-disabled-opacity: 0.5;
 
-  --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(223.9 100% 54.7% / 0.55), transparent 60%),
+  --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(222 55% 42% / 0.55), transparent 60%),
     radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.45), transparent 55%),
     linear-gradient(135deg, hsl(225 22.2% 10%) 0%, hsl(228 29.4% 14%) 55%, hsl(224.3 29.9% 20%) 100%);
 }

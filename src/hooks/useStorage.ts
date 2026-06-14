@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storageAxiosInstance } from '@/lib/axios';
 import { V1GetNodesPaginationResponse, V1GetDownloadUrlResponse, V1GetUploadUrlResponse, V1GetFileStatusResponse } from '@/types/storage';
 
@@ -69,8 +69,39 @@ export const useDownloadUrl = () => {
 };
 
 export function useDeleteNode() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ spaceId, nodeId }: { spaceId: number; nodeId: string }) => deleteNode({ spaceId, nodeId }),
+    onMutate: async ({ spaceId, nodeId }) => {
+      await queryClient.cancelQueries({ queryKey: ['nodes', spaceId] });
+
+      const previousData = queryClient.getQueriesData<V1GetNodesPaginationResponse>({ queryKey: ['nodes', spaceId] });
+
+      queryClient.setQueriesData<V1GetNodesPaginationResponse>(
+        { queryKey: ['nodes', spaceId] },
+        (old: V1GetNodesPaginationResponse | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            content: old.content.filter((file) => file.nodeId !== nodeId),
+            totalElements: Math.max(0, old.totalElements - 1),
+          };
+        }
+      );
+
+      return { previousData };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousData) {
+        for (const [queryKey, data] of context.previousData) {
+          queryClient.setQueryData(queryKey, data);
+        }
+      }
+    },
+    onSettled: (_data, _err, { spaceId }) => {
+      queryClient.invalidateQueries({ queryKey: ['nodes', spaceId] });
+    },
   });
 };
 

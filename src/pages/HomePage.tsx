@@ -23,7 +23,6 @@ export default function HomePage() {
       onSuccess: (newSpace) => {
         setNewSpaceName("");
         navigate(`/spaces/${newSpace.id}`);
-        notify.success("Space created successfully.");
       },
     });
   };

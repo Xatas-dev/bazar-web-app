@@ -1,9 +1,9 @@
 ---
 name: ShellPanel
 colors:
-  primary: "#1856FF"
+  primary: "#2E4CAA"
   secondary: "#3A344E"
-  info: "#1856FF"
+  info: "#2E4CAA"
   success: "#07CA6B"
   warning: "#E89558"
   danger: "#EA2143"
@@ -37,9 +37,9 @@ themes:
     card-foreground: "#141414"
     popover: "#FFFFFF"
     popover-foreground: "#141414"
-    primary: "#1856FF"
+    primary: "#2E4CAA"
     primary-foreground: "#FFFFFF"
-    self-block: "#0F49D6"
+    self-block: "#26418F"
     self-block-foreground: "#FFFFFF"
     secondary: "#3A344E"
     secondary-foreground: "#FFFFFF"
@@ -49,14 +49,14 @@ themes:
     accent-foreground: "#141414"
     border: "#D7DEFF"
     input: "#D7DEFF"
-    ring: "#1856FF"
+    ring: "#2E4CAA"
     success: "#07CA6B"
     success-foreground: "#FFFFFF"
     warning: "#E89558"
     warning-foreground: "#141414"
     danger: "#EA2143"
     danger-foreground: "#FFFFFF"
-    info: "#1856FF"
+    info: "#2E4CAA"
     info-foreground: "#FFFFFF"
     right-sidebar-width: "40rem"
   dark:
@@ -66,9 +66,9 @@ themes:
     card-foreground: "#F5F7FF"
     popover: "#121521"
     popover-foreground: "#F5F7FF"
-    primary: "#1856FF"
+    primary: "#2E4CAA"
     primary-foreground: "#FFFFFF"
-    self-block: "#0B43C2"
+    self-block: "#253C86"
     self-block-foreground: "#FFFFFF"
     secondary: "#3A344E"
     secondary-foreground: "#FFFFFF"
@@ -78,25 +78,25 @@ themes:
     accent-foreground: "#F5F7FF"
     border: "#2B3247"
     input: "#2B3247"
-    ring: "#3F6DFF"
+    ring: "#3A5CBA"
     success: "#07CA6B"
     success-foreground: "#071D14"
     warning: "#E89558"
     warning-foreground: "#2B1A10"
     danger: "#EA2143"
     danger-foreground: "#FFFFFF"
-    info: "#3F6DFF"
+    info: "#3A5CBA"
     info-foreground: "#FFFFFF"
 gradients:
   light:
-    app: "radial-gradient(900px circle at 15% -10%, hsl(223.9 100% 54.7% / 0.55), transparent 60%), radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.35), transparent 55%), linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(229.4 100% 91%) 55%, hsl(228 100% 88%) 100%)"
+    app: "radial-gradient(900px circle at 15% -10%, hsl(222 55% 42% / 0.55), transparent 60%), radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.35), transparent 55%), linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(229.4 100% 91%) 55%, hsl(228 100% 88%) 100%)"
   dark:
-    app: "radial-gradient(900px circle at 15% -10%, hsl(223.9 100% 54.7% / 0.55), transparent 60%), radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.45), transparent 55%), linear-gradient(135deg, hsl(225 22.2% 6%) 0%, hsl(228 29.4% 9%) 55%, hsl(224.3 29.9% 13%) 100%)"
+    app: "radial-gradient(900px circle at 15% -10%, hsl(222 55% 42% / 0.55), transparent 60%), radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.45), transparent 55%), linear-gradient(135deg, hsl(225 22.2% 6%) 0%, hsl(228 29.4% 9%) 55%, hsl(224.3 29.9% 13%) 100%)"
 particles:
   light:
-    app: "radial-gradient(circle, hsla(223.9, 100%, 54.7%, 0.28) 1px, transparent 1.6px)"
+    app: "radial-gradient(circle, hsla(222, 55%, 42%, 0.28) 1px, transparent 1.6px)"
   dark:
-    app: "radial-gradient(circle, hsla(223.9, 100%, 54.7%, 0.32) 1px, transparent 1.6px)"
+    app: "radial-gradient(circle, hsla(222, 55%, 42%, 0.32) 1px, transparent 1.6px)"
 typography:
   h1:
     fontFamily: "Plus Jakarta Sans"
@@ -138,7 +138,7 @@ Balanced shell and panel system with opaque app chrome and selectively frosted c
 
 ## Colors
 
-- **Primary (#1856FF):** Token from style foundations.
+- **Primary (#2E4CAA):** Token from style foundations.
 - **Self block:** Slightly darker primary-derived token used for owned messages and files.
 - **Secondary (#3A344E):** Token from style foundations.
 - **Success (#07CA6B):** Token from style foundations.

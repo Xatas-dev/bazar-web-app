@@ -53,7 +53,7 @@
     pointer-events: none;
     z-index: -1;
     background:
-      radial-gradient(circle at 20% 18%, hsl(223.9 100% 54.7% / 0.32), transparent 24%);
+      radial-gradient(circle at 20% 18%, hsl(222 55% 42% / 0.32), transparent 24%);
     filter: blur(70px);
     opacity: 0.9;
   }

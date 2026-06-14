@@ -1,13 +1,12 @@
-import { useRef, useLayoutEffect, useMemo, useState, useEffect } from "react";
-import { useGetChatMessages, useDeleteMessages, useGetChatReactions, useChangeMessageReaction } from "@/hooks/useChat";
+import { useRef, useLayoutEffect, useMemo, useState } from "react";
+import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChatMessages";
+import { useGetChatReactions, useChangeMessageReaction } from "@/hooks/useChatReactions";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useChatWebSocket } from "@/hooks/useChatWebSocket.ts";
-import { notify } from "@/lib/notifications";
 import { MessageResponse, MessageAuthor } from "@/types/chat";
-import { MessageReactionUsersDialog } from "./MessageReactionUsersDialog";
 import { MessageListSkeleton } from "./MessageListSkeleton";
 
 interface MessageListProps {
@@ -37,13 +36,8 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   const pendingScrollAdjustmentRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
   const didInitialAutoScrollRef = useRef(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const [selectedReactionMessage, setSelectedReactionMessage] = useState<MessageResponse | null>(null);
   const deleteMessagesMutation = useDeleteMessages();
   const changeReactionMutation = useChangeMessageReaction();
-
-  useEffect(() => {
-    setSelectedReactionMessage(null);
-  }, [chatId]);
 
   const reactionLabelById = useMemo(() => {
     if (!availableReactions) return {};
@@ -87,7 +81,6 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
       { chatId, data: { messageIds: [messageId] } },
       {
         onSuccess: () => {
-          notify.success("Message deleted successfully.");
         },
       }
     );
@@ -101,16 +94,6 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
 
   const handleReact = (messageId: number, reactionId: string) => {
     changeReactionMutation.mutate({ chatId, messageId, reactionId });
-  };
-
-  const handleOpenReactionUsers = (message: MessageResponse) => {
-    setSelectedReactionMessage(message);
-  };
-
-  const handleReactionUsersDialogChange = (open: boolean) => {
-    if (!open) {
-      setSelectedReactionMessage(null);
-    }
   };
 
   const handleScroll = () => {
@@ -210,6 +193,7 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
                   return (
                       <MessageItem
                           key={msg.id}
+                          chatId={chatId}
                           message={msg}
                           isCurrentUser={isCurrentUser}
                           showAvatar={showAvatar}
@@ -220,7 +204,6 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
                           onReply={onReply}
                           onEdit={handleEditMessage}
                           onReact={handleReact}
-                          onOpenReactionUsers={handleOpenReactionUsers}
                       />
                   );
               })
@@ -228,14 +211,6 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
           <div id="scroll-anchor" />
         </div>
       </div>
-
-      <MessageReactionUsersDialog
-        chatId={chatId}
-        message={selectedReactionMessage}
-        isOpen={!!selectedReactionMessage}
-        onOpenChange={handleReactionUsersDialogChange}
-        reactionLabelById={reactionLabelById}
-      />
     </>
   );
 };

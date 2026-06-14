@@ -1,7 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { CircleToggle } from "@/components/ui/circle-toggle";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, CheckCheck } from "lucide-react";
 import { ActionDto, ActionAttributeDto } from "@/types/api";
 import { getRoleAttributeKey, RoleAttributeSelections } from "@/lib/role-attributes";
@@ -79,7 +79,7 @@ export default function AttributeManagePanel({
                 key={item.id}
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-accent/40"
               >
-                <CircleToggle
+                <Checkbox
                   id={`attr-${actionId}-${attr.name}-${item.id}`}
                   checked={attributeValues[getRoleAttributeKey(actionId, attr.name)]?.has(item.id) || false}
                   onCheckedChange={() => onToggle(actionId, attr.name, item.id)}

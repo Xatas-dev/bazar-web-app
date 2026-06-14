@@ -5,10 +5,6 @@ interface Config {
         baseUrl: string;
         targetLocal: string;
     };
-    gatewayApi: {
-        baseUrl: string;
-        targetLocal: string;
-    };
     personaApi: {
         baseUrl: string;
         targetLocal: string;
@@ -47,10 +43,6 @@ const config: Config = {
     personaApi: {
         baseUrl: '/api/bazar-persona',
         targetLocal: '/bazar-persona' // локальный json-server через vite proxy
-    },
-    gatewayApi: {
-        baseUrl: '/api',
-        targetLocal: '/' // локальный json-server через vite proxy
     },
     chatApi: {
         baseUrl: '/api/bazar-chat',

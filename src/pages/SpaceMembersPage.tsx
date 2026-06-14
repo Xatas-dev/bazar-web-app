@@ -61,10 +61,11 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
     }
   };
 
-  const handleAssignRole = (userId: string, roleId: number, roleName: string, userName: string | null) => {
+  const handleAssignRole = (userId: string, roleId: number, _roleName: string, _userName: string | null) => {
+    void _roleName;
+    void _userName;
     assignRoleMutation.mutate({ spaceId: id, userId, roleId }, {
       onSuccess: () => {
-        notify.success(`Role "${roleName}" assigned to ${userName}.`);
         setRoleMenuUserId(null);
       },
     });

@@ -3,8 +3,9 @@ import { useNodes, useDownloadUrl, useInitiateUpload, useDeleteNode } from '@/ho
 import { Button } from '@/components/ui/button';
 import { Download, FileIcon, ChevronLeft, ChevronRight, Loader2, Upload, Trash2 } from 'lucide-react';
 import { cn, formatBytes } from '@/lib/utils';
+import { getDisplayName } from '@/lib/user-display';
 import { notify } from '@/lib/notifications';
-import { V1GetNodesAuthorResponse, V1GetNodesPaginationResponse } from '@/types/storage';
+import { V1GetNodesAuthorResponse } from '@/types/storage';
 import { getFileStatus } from '@/hooks/useStorage';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@/hooks/useUser';
@@ -106,12 +107,9 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
         return;
       }
 
-      notify.success(`File "${name}" uploaded.`);
-
       const result = await pollFileStatus(spaceId, init.nodeId);
       if (result.status === 'UPLOADED') {
         await queryClient.invalidateQueries({ queryKey: ['nodes', spaceId] });
-        notify.success(`File "${name}" processed successfully.`);
         return;
       }
 
@@ -149,7 +147,6 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   const pageSize = 20;
   const [pendingDeleteNodeIds, setPendingDeleteNodeIds] = useState<Set<string>>(new Set());
   const { user: currentUser } = useUser();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     setCurrentPage(0);
@@ -176,7 +173,6 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
      link.click();
      document.body.removeChild(link);
 
-      notify.success(`File "${fileName || 'unnamed'}" downloaded successfully.`);
     } catch (err) {
       notify.error.generic("Failed to download file. Please try again.");
     }
@@ -199,20 +195,6 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
 
     try {
       await deleteNodeMutation.mutateAsync({ spaceId, nodeId });
-      queryClient.setQueriesData<V1GetNodesPaginationResponse>(
-        { queryKey: ['nodes', spaceId] },
-        (old: V1GetNodesPaginationResponse | undefined) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            content: old.content.filter((file: V1GetNodesPaginationResponse['content'][number]) => file.nodeId !== nodeId),
-            totalElements: Math.max(0, old.totalElements - 1),
-          };
-        }
-      );
-      await queryClient.invalidateQueries({ queryKey: ['nodes', spaceId] });
-      notify.success(`File "${fileName || 'unnamed'}" deleted successfully.`);
     } catch (err) {
       notify.error.generic("Failed to delete file. Please try again.");
     } finally {
@@ -225,11 +207,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   };
 
   const getAuthorName = (author: V1GetNodesAuthorResponse | null) => {
-    if (!author) return 'Unknown';
-    const parts: string[] = [];
-    if (author.firstName) parts.push(author.firstName);
-    if (author.lastName) parts.push(author.lastName);
-    return parts.length > 0 ? parts.join(' ') : 'Unknown';
+    return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Unknown');
   };
 
   const normalizeName = (value: string | null | undefined) => value?.trim().toLowerCase() ?? '';
@@ -287,8 +265,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                     className={cn(
                       "group relative w-full max-w-3xl overflow-hidden transition-colors",
                       isCurrentUserFile
-                        ? "rounded-[22px] rounded-bl-[8px] bg-[hsl(var(--self-block))] text-[hsl(var(--self-block-foreground))]"
-                        : "rounded-lg bg-[hsl(var(--panel-surface-muted))] text-foreground",
+                        ? "rounded-lg bg-[hsl(var(--self-block))] text-[hsl(var(--self-block-foreground))]"
+                        : "rounded-lg !bg-[hsl(var(--card))] text-foreground",
                     )}
                   >
                     <div className="relative flex items-center justify-between gap-3 p-3">

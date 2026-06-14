@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -7,48 +6,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Save, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AnimatePresence, motion } from "framer-motion";
-import { useUser, useUpdateProfile } from "@/hooks/useUser";
 import { useSidebarStore } from "@/store/sidebarStore";
+import { useProfileForm } from "@/hooks/useProfileForm";
 import { ProfileRailSkeleton } from "@/components/ProfileRailSkeleton";
-import { notify } from "@/lib/notifications";
 
 export function ProfileRail() {
   const active = useSidebarStore((s) => s.active);
   const setActive = useSidebarStore((s) => s.setActive);
   const open = active === "profile";
 
-  const { user, isLoading } = useUser();
-  const updateProfileMutation = useUpdateProfile();
-  const [formData, setFormData] = useState({
-    userName: "",
-    firstName: "",
-    lastName: "",
-  });
-
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    setFormData({
-      userName: user.userName || "",
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
-    });
-  }, [user]);
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value });
-  };
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    updateProfileMutation.mutate(formData, {
-      onSuccess: () => {
-        notify.success("Your profile has been updated.");
-      },
-    });
-  };
+  const { user, isLoading, formData, handleChange, handleSubmit, isPending } = useProfileForm();
 
   return (
     <AnimatePresence mode="wait">
@@ -129,7 +96,7 @@ export function ProfileRail() {
               </div>
 
               <div className="flex justify-end">
-                {updateProfileMutation.isPending ? (
+                {isPending ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span tabIndex={0}>

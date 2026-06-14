@@ -6,8 +6,10 @@ import { motion } from "framer-motion";
 import { MessageContextMenu } from "./MessageContextMenu";
 import { MessageReactions } from "./MessageReactions";
 import { Reply } from "lucide-react";
+import { getDisplayName, getInitials } from "@/lib/user-display";
 
 interface MessageItemProps {
+  chatId: number;
   message: MessageResponse;
   isCurrentUser: boolean;
   showAvatar?: boolean;
@@ -18,10 +20,10 @@ interface MessageItemProps {
   onReply?: (message: MessageResponse) => void;
   onEdit?: (message: MessageResponse) => void;
   onReact?: (messageId: number, reactionId: string) => void;
-  onOpenReactionUsers?: (message: MessageResponse) => void;
 }
 
 export const MessageItem = ({
+  chatId,
   message,
   isCurrentUser,
   showAvatar = true,
@@ -32,7 +34,6 @@ export const MessageItem = ({
   onReply,
   onEdit,
   onReact,
-  onOpenReactionUsers,
 }: MessageItemProps) => {
   const formattedTime = new Date(message.createdAt).toLocaleTimeString([], {
     hour: '2-digit',
@@ -64,40 +65,38 @@ export const MessageItem = ({
     }
   };
 
-  const getAuthorDisplayName = () => {
-    if (!message.author) return "Unknown";
-    const { firstName, lastName, userName } = message.author as any;
-    if (firstName || lastName) return `${firstName || ""} ${lastName || ""}`.trim();
-    return userName || "Unknown";
-  };
+  const authorDisplayName = getDisplayName(
+    (message.author as any)?.firstName,
+    (message.author as any)?.lastName,
+    (message.author as any)?.userName || "Unknown"
+  );
 
-  const getAuthorInitials = () => {
-    if (!message.author) return "??";
-    const { firstName, lastName, userName } = message.author as any;
-    const fullName = [firstName, lastName].filter(Boolean).join(" ");
-    if (fullName) {
-      const parts = fullName.trim().split(/\s+/);
-      if (parts.length >= 2) {
-        return (parts[0][0] + parts[1][0]).toUpperCase();
-      }
-      return fullName.substring(0, 2).toUpperCase();
-    }
-    return (userName || "??").substring(0, 2).toUpperCase();
-  };
+  const authorInitials = !message.author
+    ? "??"
+    : (() => {
+        const { firstName, lastName, userName } = message.author as any;
+        const fullName = [firstName, lastName].filter(Boolean).join(" ");
+        if (fullName) {
+          const parts = fullName.trim().split(/\s+/);
+          if (parts.length >= 2) return getInitials(parts[0], parts[1], "??");
+          return fullName.substring(0, 2).toUpperCase();
+        }
+        return (userName || "??").substring(0, 2).toUpperCase();
+      })();
 
-  const getReplyAuthorDisplayName = () => {
-    if (!message.reply || !message.reply.author) return "Unknown";
-    const { firstName, lastName, userName } = message.reply.author as any;
-    if (firstName || lastName) return `${firstName || ""} ${lastName || ""}`.trim();
-    return userName || "Unknown";
-  };
-
-  const showCornerCut = !isCurrentUser && showAvatar;
+  const replyAuthorDisplayName = message.reply?.author
+    ? getDisplayName(
+        (message.reply.author as any).firstName,
+        (message.reply.author as any).lastName,
+        (message.reply.author as any).userName || "Unknown"
+      )
+    : "Unknown";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
       className={cn(
         "flex w-full items-end gap-2",
         isCurrentUser ? "flex-row-reverse" : "flex-row"
@@ -107,7 +106,7 @@ export const MessageItem = ({
         <div className="flex w-8 flex-shrink-0 items-end">
           {showAvatar ? (
             <Avatar className="h-8 w-8 ring-1 ring-[hsl(var(--panel-border))]">
-              <AvatarFallback>{getAuthorInitials()}</AvatarFallback>
+              <AvatarFallback>{authorInitials}</AvatarFallback>
             </Avatar>
           ) : <div className="w-8" />}
         </div>
@@ -120,19 +119,20 @@ export const MessageItem = ({
         )}
       >
         <MessageContextMenu
+          chatId={chatId}
           message={message}
           availableReactions={availableReactions}
+          reactionLabelById={reactionLabelById}
           onDelete={handleDelete}
           onReply={handleReply}
           onEdit={handleEdit}
           onReact={handleReact}
-          onOpenReactionUsers={onOpenReactionUsers}
         >
           <div className="w-fit max-w-full">
             <Card
               className={cn(
-                "relative w-fit max-w-full overflow-hidden rounded-[22px] text-sm cursor-text select-text backdrop-blur-none",
-                showCornerCut ? "rounded-bl-[8px]" : null,
+                "relative w-fit max-w-full overflow-hidden rounded-lg text-sm cursor-text select-text backdrop-blur-none",
+                showAvatar ? (!isCurrentUser ? "rounded-bl-none" : "rounded-br-none") : null,
                 isCurrentUser
                   ? "!bg-[hsl(var(--self-block))] text-[hsl(var(--self-block-foreground))]"
                   : "!bg-[hsl(var(--card))] text-foreground"
@@ -141,13 +141,13 @@ export const MessageItem = ({
               <CardContent className="relative z-10 px-3.5 py-2.5">
                 {!isCurrentUser && showAuthorName ? (
                   <div className="mb-1 text-xs font-medium text-muted-foreground">
-                    {getAuthorDisplayName()}
+                    {authorDisplayName}
                   </div>
                 ) : null}
                 {message.reply && (
                   <div
                     className={cn(
-                      "mb-2 rounded-[18px] pl-3 pr-2 py-2 text-xs backdrop-blur-none",
+                      "mb-2 rounded-lg pl-3 pr-2 py-2 text-xs backdrop-blur-none",
                       isCurrentUser
                         ? "border-[hsl(var(--self-block-foreground)/0.6)] bg-[hsl(var(--self-block-foreground)/0.1)]"
                         : "border-[hsl(var(--panel-border))] bg-muted"
@@ -155,7 +155,7 @@ export const MessageItem = ({
                   >
                     <div className="mb-0.5 flex items-center gap-1">
                       <Reply className="h-3 w-3" />
-                      <span className="font-medium">{getReplyAuthorDisplayName()}</span>
+                      <span className="font-medium">{replyAuthorDisplayName}</span>
                     </div>
                     <p className="truncate">{message.reply.contentPreview}</p>
                   </div>

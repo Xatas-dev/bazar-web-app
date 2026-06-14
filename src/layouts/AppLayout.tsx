@@ -22,8 +22,6 @@ import {
   Box,
   Menu,
   Search,
-  Moon,
-  Sun,
   Plus,
   PanelLeftClose,
   PanelLeft,
@@ -34,6 +32,7 @@ import { useUser } from "@/hooks/useUser";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { ProfileRail } from "@/components/ProfileRail";
+import { ThemeToggleMenuItem } from "@/components/ThemeToggle";
 
 
 type SidebarTopBarProps = {
@@ -88,10 +87,7 @@ function SidebarTopBar({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={onToggleTheme} className="flex items-center gap-2">
-              {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              {theme === "light" ? "Dark theme" : "Light theme"}
-            </DropdownMenuItem>
+            <ThemeToggleMenuItem theme={theme} onToggleTheme={onToggleTheme} />
             <DropdownMenuItem
               onSelect={onLogout}
               className="flex items-center gap-2 text-destructive focus:text-destructive"
@@ -143,10 +139,7 @@ function SidebarTopBar({
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={onToggleTheme} className="flex items-center gap-2">
-            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            {theme === "light" ? "Dark theme" : "Light theme"}
-          </DropdownMenuItem>
+          <ThemeToggleMenuItem theme={theme} onToggleTheme={onToggleTheme} />
           <DropdownMenuItem
             onSelect={onLogout}
             className="flex items-center gap-2 text-destructive focus:text-destructive"
@@ -243,6 +236,8 @@ export const AppLayout = () => {
   const setProfileOpen = (val: boolean) => setActive(val ? 'profile' : null);
   const location = useLocation();
   const isSpaceRoute = location.pathname.startsWith('/spaces/');
+  const isSpaceDetailRoute = /^\/spaces\/\d+/.test(location.pathname);
+  const contentKey = isSpaceDetailRoute ? 'space-detail' : location.pathname;
   const { user } = useUser();
   const { theme, toggleTheme } = useThemeStore();
   const { data: spacesData } = useSpaces();
@@ -338,7 +333,7 @@ export const AppLayout = () => {
         <main className="min-h-0 flex-1 overflow-clip bg-transparent">
           <AnimatePresence mode="sync">
             <motion.div
-              key={location.pathname}
+              key={contentKey}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.1, ease: "easeInOut" }}

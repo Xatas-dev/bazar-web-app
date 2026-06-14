@@ -4,6 +4,7 @@ import {Textarea} from "@/components/ui/textarea";
 import {Edit2, Reply, SendHorizontal, X} from "lucide-react";
 import {AuthorStatus, MessageResponse} from "@/types/chat";
 import {cn} from "@/lib/utils";
+import { getDisplayName } from "@/lib/user-display";
 
 interface ChatInputProps {
     onSendMessage: (content: string, replyMessageId?: number) => void;
@@ -67,10 +68,7 @@ export const ChatInput = ({
         if (message.author.status === AuthorStatus.UNKNOWN) {
             return "Неизвестный пользователь";
         }
-
-        const firstName = message.author.firstName || '';
-        const lastName = message.author.lastName || '';
-        return `${firstName} ${lastName}`.trim() || "Неизвестный пользователь";
+        return getDisplayName(message.author.firstName, message.author.lastName, "Неизвестный пользователь");
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -94,9 +92,8 @@ export const ChatInput = ({
     return (
         <div
             className={cn(
-                "relative overflow-hidden rounded-[24px]",
+                "relative overflow-hidden rounded-lg",
                 "surface-panel-muted",
-                "ring-1 ring-[hsl(var(--panel-border))]",
                 className
             )}
         >

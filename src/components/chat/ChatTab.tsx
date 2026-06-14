@@ -1,4 +1,5 @@
-import {useCreateChat, useCreateMessage, useGetChatBySpace, useEditMessage} from "@/hooks/useChat";
+import {useCreateChat, useGetChatBySpace} from "@/hooks/useChat";
+import {useCreateMessage, useEditMessage} from "@/hooks/useChatMessages";
 import {MessageList} from "./MessageList";
 import {ChatInput} from "./ChatInput";
 import {MessageSquarePlus} from "lucide-react";
@@ -57,7 +58,6 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
                 {chatId: chat.id, messageId, data: {newContent}},
                 {
                     onSuccess: () => {
-                        notify.success("Message updated successfully.");
                         setEditingMessage(null);
                     },
                 }

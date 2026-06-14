@@ -1,10 +1,6 @@
 import { toast } from "@/hooks/use-toast";
 
 export const notify = {
-  // ── Success ──
-  success: (description: string) =>
-    toast({ title: "Success", description }),
-
   // ── Errors by HTTP status ──
   error: {
     forbidden: () =>
@@ -21,12 +17,6 @@ export const notify = {
         description: "Please log in again to continue.",
       }),
 
-    notFound: () =>
-      toast({
-        variant: "destructive",
-        title: "Not found",
-        description: "The requested resource could not be found.",
-      }),
 
     serverError: () =>
       toast({
