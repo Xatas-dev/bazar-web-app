@@ -14,6 +14,7 @@ import config from "@/config.ts";
 import {
     updateChatMessagesCache,
     updateMessageReactionCountInMessage,
+    removeMessagesFromCache,
 } from '@/lib/chat-reactions';
 
 // Helper function to process WebSocket events (extracted for testing)
@@ -59,23 +60,10 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
         });
     } else if (event.type === ChatEventType.DELETED) {
         const payload = event.payload as MessageDeletedPayload;
-        const deletedIds = new Set(payload.ids);
 
-        // Update React Query Cache - remove deleted messages
-        queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) => {
-            if (!oldData) return oldData;
-
-            // Filter out deleted messages from all pages
-            const newPages = oldData.pages.map((page: any) => ({
-                ...page,
-                content: page.content.filter((msg: MessageResponse) => !deletedIds.has(msg.id))
-            }));
-
-            return {
-                ...oldData,
-                pages: newPages
-            };
-        });
+        queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) =>
+            removeMessagesFromCache(oldData, payload.ids)
+        );
     } else if (event.type === ChatEventType.EDITED) {
         const payload = event.payload as MessageEditedPayload;
 

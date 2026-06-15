@@ -17,3 +17,5 @@ db.json
 dist
 
 /devSandbox/space-policy.yaml
+/devSandbox/data
+/devSandbox/cerbos-audit

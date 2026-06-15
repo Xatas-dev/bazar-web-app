@@ -1,53 +1,17 @@
-import { useState, useEffect } from "react";
-import { useUser, useUpdateProfile } from "@/hooks/useUser";
+import { useProfileForm } from "@/hooks/useProfileForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfilePageSkeleton } from "@/pages/ProfilePageSkeleton";
 import { Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, isLoading } = useUser();
-  const updateProfileMutation = useUpdateProfile();
-
-  const [formData, setFormData] = useState({
-    userName: "",
-    firstName: "",
-    lastName: ""
-  });
-
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        userName: user.userName || "",
-        firstName: user.firstName || "",
-        lastName: user.lastName || ""
-      });
-    }
-  }, [user]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate(formData, {
-        onSuccess: () => {
-             // Toast or feedback
-             console.log("Profile updated");
-             // If you have a toast component installed:
-             // toast({ title: "Profile updated successfully" });
-        },
-        onError: (err) => {
-            console.error("Failed to update profile", err);
-        }
-    });
-  };
+  const { user, isLoading, formData, handleChange, handleSubmit, isPending } = useProfileForm();
 
   if (isLoading) {
-      return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
+      return <ProfilePageSkeleton />;
   }
 
   if (!user) {
@@ -105,8 +69,8 @@ export default function ProfilePage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={updateProfileMutation.isPending}>
-              {updateProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </CardFooter>

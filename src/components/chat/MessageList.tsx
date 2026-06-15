@@ -1,13 +1,13 @@
-import { useRef, useLayoutEffect, useMemo, useState, useEffect } from "react";
-import { useGetChatMessages, useDeleteMessages, useGetChatReactions, useChangeMessageReaction } from "@/hooks/useChat";
+import { useRef, useLayoutEffect, useMemo, useState } from "react";
+import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChatMessages";
+import { useGetChatReactions, useChangeMessageReaction } from "@/hooks/useChatReactions";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {useChatWebSocket} from "@/hooks/useChatWebSocket.ts";
-import { useToast } from "@/hooks/use-toast";
-import { MessageResponse } from "@/types/chat";
-import { MessageReactionUsersDialog } from "./MessageReactionUsersDialog";
+import { useChatWebSocket } from "@/hooks/useChatWebSocket.ts";
+import { MessageResponse, MessageAuthor } from "@/types/chat";
+import { MessageListSkeleton } from "./MessageListSkeleton";
 
 interface MessageListProps {
   chatId: number;
@@ -18,7 +18,6 @@ interface MessageListProps {
 const EDGE_THRESHOLD = 16;
 
 export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
-  // Connect to WebSocket
   useChatWebSocket(chatId);
 
   const {
@@ -29,44 +28,59 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
     isLoading,
     isError
   } = useGetChatMessages(chatId);
-  const { data: availableReactions = [] } = useGetChatReactions(chatId);
-  const changeReactionMutation = useChangeMessageReaction();
+
+  const { data: availableReactions } = useGetChatReactions(chatId);
 
   const { user: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
   const pendingScrollAdjustmentRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
+  const didInitialAutoScrollRef = useRef(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const [selectedReactionMessage, setSelectedReactionMessage] = useState<MessageResponse | null>(null);
-  const { toast } = useToast();
   const deleteMessagesMutation = useDeleteMessages();
-
-  useEffect(() => {
-    setSelectedReactionMessage(null);
-  }, [chatId]);
+  const changeReactionMutation = useChangeMessageReaction();
 
   const reactionLabelById = useMemo(() => {
-    return availableReactions.reduce<Record<string, string>>((acc, reaction) => {
-      acc[reaction.reactionId] = reaction.value;
-      return acc;
-    }, {});
+    if (!availableReactions) return {};
+    const map: Record<string, string> = {};
+    for (const r of availableReactions) {
+      map[r.reactionId] = r.value;
+    }
+    return map;
   }, [availableReactions]);
+
+  const contactInfoMap = useMemo(() => {
+    const map = new Map<string, MessageAuthor>();
+    const pages = data?.pages || [];
+    for (const page of pages) {
+      for (const msg of page.content) {
+        if (msg.author && !map.has(String(msg.author.userId))) {
+          map.set(String(msg.author.userId), msg.author);
+        }
+      }
+    }
+    return map;
+  }, [data]);
+
+  const messages = useMemo(() => {
+    const pages = data?.pages || [];
+    const all = pages.flatMap((page) => page.content || []);
+    contactInfoMap.forEach((_, userId) => {
+      if (!all.find((m) => String(m.author.userId) === userId)) {
+        contactInfoMap.delete(userId);
+      }
+    });
+    return all;
+  }, [data, contactInfoMap]);
+
+  const reversedMessages = useMemo(() => {
+    return [...messages].reverse();
+  }, [messages]);
 
   const handleDeleteMessage = (messageId: number) => {
     deleteMessagesMutation.mutate(
       { chatId, data: { messageIds: [messageId] } },
       {
         onSuccess: () => {
-          toast({
-            title: "Сообщение удалено",
-            description: "Сообщение успешно удалено",
-          });
-        },
-        onError: () => {
-          toast({
-            variant: "destructive",
-            title: "Ошибка",
-            description: "Не удалось удалить сообщение",
-          });
         },
       }
     );
@@ -79,178 +93,124 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   };
 
   const handleReact = (messageId: number, reactionId: string) => {
-    if (!chatId) return;
-
-    const targetMessage = allMessages.find((message) => message.id === messageId);
-    if (!targetMessage) return;
-
-    const isAlreadyReacted = targetMessage.reactions?.some(
-      (reaction) => reaction.reactionId === reactionId && reaction.reactedByMe
-    ) ?? false;
-    const userReactionCount = targetMessage.reactions?.filter((reaction) => reaction.reactedByMe).length ?? 0;
-
-    if (!isAlreadyReacted && userReactionCount >= 3) {
-      return;
-    }
-
     changeReactionMutation.mutate({ chatId, messageId, reactionId });
   };
 
-  const handleOpenReactionUsers = (message: MessageResponse) => {
-    setSelectedReactionMessage(message);
-  };
+  const handleScroll = () => {
+    const container = scrollRef.current;
+    if (!container) return;
 
-  const handleReactionUsersDialogChange = (open: boolean) => {
-    if (!open) {
-      setSelectedReactionMessage(null);
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < EDGE_THRESHOLD;
+
+    setShouldAutoScroll(isAtBottom);
+
+    if (hasNextPage && !isFetchingNextPage && scrollTop < EDGE_THRESHOLD) {
+      pendingScrollAdjustmentRef.current = { scrollHeight, scrollTop };
+      fetchNextPage();
     }
   };
-
-  // Flatten messages
-  // The backend sorts by createdAt DESC (newest first).
-  // Infinite query pages: Page 0 (Newest), Page 1 (Older), etc.
-  // We want to display them Chronologically (Oldest -> Newest) in the UI.
-  // So we need to reverse the order of pages and messages within pages?
-  // Actually, if we get [Newest...Oldest], and we want [Oldest...Newest], we can just reverse the whole flattened array.
-
-  const allMessages = useMemo(() => {
-    if (!data) return [];
-    // Data is pages of messages. Each page has content: MessageResponse[]
-    // If backend returns DESC, then:
-    // Page 0: [Msg100, Msg99, Msg98]
-    // Page 1: [Msg97, Msg96, Msg95]
-    // Flattened: [Msg100...Msg95]
-    // Reversed: [Msg95...Msg100] -> Correct chronological order
-    const flat = data.pages.flatMap(page => page.content);
-    return flat.reverse(); // Now oldest at index 0, newest at last index
-  }, [data]);
-
-  // Scroll handling
-  // When new messages arrive (at the bottom), if we were at the bottom, auto-scroll to new bottom.
-  // When loading older messages (at the top), maintain scroll position.
 
   useLayoutEffect(() => {
     const container = scrollRef.current;
-    const pending = pendingScrollAdjustmentRef.current;
+    if (!container) return;
 
-    if (!container || !pending || isFetchingNextPage) {
+    const saved = pendingScrollAdjustmentRef.current;
+    if (saved) {
+      const newScrollHeight = container.scrollHeight;
+      const heightDiff = newScrollHeight - saved.scrollHeight;
+      container.scrollTop = saved.scrollTop + heightDiff;
+      pendingScrollAdjustmentRef.current = null;
       return;
     }
 
-    const scrollHeightDelta = container.scrollHeight - pending.scrollHeight;
-    container.scrollTop = pending.scrollTop + scrollHeightDelta;
-    pendingScrollAdjustmentRef.current = null;
-  }, [allMessages, isFetchingNextPage]);
-
-  useLayoutEffect(() => {
-    if (shouldAutoScroll && scrollRef.current && !pendingScrollAdjustmentRef.current) {
-         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (!didInitialAutoScrollRef.current) {
+      container.scrollTop = container.scrollHeight;
+      didInitialAutoScrollRef.current = true;
+      return;
     }
-  }, [allMessages, shouldAutoScroll]);
+
+    if (shouldAutoScroll) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
 
   const loadOlderMessages = () => {
-    const container = scrollRef.current;
-
-    if (!container || !hasNextPage || isFetchingNextPage) {
-      return;
+    if (!isFetchingNextPage && hasNextPage) {
+      const container = scrollRef.current;
+      if (container) {
+        pendingScrollAdjustmentRef.current = {
+          scrollHeight: container.scrollHeight,
+          scrollTop: container.scrollTop,
+        };
+      }
+      fetchNextPage();
     }
-
-    pendingScrollAdjustmentRef.current = {
-      scrollHeight: container.scrollHeight,
-      scrollTop: container.scrollTop,
-    };
-
-    fetchNextPage();
   };
-
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-     // Check if we are at the top to load more
-     const target = event.currentTarget;
-     if (target.scrollTop <= EDGE_THRESHOLD && hasNextPage && !isFetchingNextPage) {
-         loadOlderMessages();
-     }
-
-     // Check if we are at bottom
-     const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= EDGE_THRESHOLD;
-     setShouldAutoScroll(isAtBottom);
-  };
-
-  // Actually, Radix ScrollArea is a bit weird with onScroll directly on the component.
-  // We might need to access the viewport ref.
-  // Let's rely on a "Load More" button at the top for simplicity if infinite scroll is jumpy,
-  // OR we use a standard div with overflow-y-auto instead of ScrollArea for the list container to have better control.
-  // I will use a standard div for the list to ensure onScroll works predictably.
 
   if (isLoading) {
-    return <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>;
+    return <MessageListSkeleton />;
   }
 
   if (isError) {
-      return <div className="text-center text-red-500 p-4">Failed to load messages</div>;
+    return <div className="text-center text-destructive p-4">Failed to load messages</div>;
   }
 
   return (
     <>
       <div
-          className="flex-1 overflow-y-auto p-4 space-y-4"
+          className="relative z-0 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 message-fade-mask sm:-mt-16 sm:pt-16"
           onScroll={handleScroll}
-          ref={scrollRef} // This ref won't work on the custom ScrollArea easily if we don't access viewport
-          // So I'm using a plain div for the scroll container inside the tab content
+          ref={scrollRef}
       >
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 px-3 pb-24 scroll-pb-72 sm:px-6">
           {hasNextPage && (
               <div className="flex justify-center py-2">
                   <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={loadOlderMessages}
-                      disabled={isFetchingNextPage}
-                  >
-                      {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      Load Older Messages
-                  </Button>
-              </div>
-          )}
+                    variant="ghost"
+                    size="sm"
+                    onClick={loadOlderMessages}
+                    disabled={isFetchingNextPage}
+                >
+                    {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Load Older Messages
+                </Button>
+            </div>
+        )}
 
-          {allMessages.length === 0 ? (
+          {reversedMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-50">
                   <p>No messages yet. Start the conversation!</p>
               </div>
           ) : (
-              allMessages.map((msg, index) => {
+              reversedMessages.map((msg, index) => {
                   const isCurrentUser = msg.author.userId === currentUser?.id;
-
-                  // Grouping logic: Show avatar only if previous message was from a different user
-                  // or if it's the first message
-                  const prevMsg = allMessages[index - 1];
-                  const showAvatar = !prevMsg || prevMsg.author.userId !== msg.author.userId;
+                  const nextMsg = reversedMessages[index + 1];
+                  const showAvatar = !nextMsg || nextMsg.author.userId !== msg.author.userId;
+                  const prevMsg = reversedMessages[index - 1];
+                  const showAuthorName = !prevMsg || prevMsg.author.userId !== msg.author.userId;
 
                   return (
                       <MessageItem
                           key={msg.id}
+                          chatId={chatId}
                           message={msg}
                           isCurrentUser={isCurrentUser}
                           showAvatar={showAvatar}
-                          availableReactions={availableReactions}
+                          showAuthorName={showAuthorName}
+                          availableReactions={availableReactions || []}
                           reactionLabelById={reactionLabelById}
                           onDelete={handleDeleteMessage}
                           onReply={onReply}
                           onEdit={handleEditMessage}
                           onReact={handleReact}
-                          onOpenReactionUsers={handleOpenReactionUsers}
                       />
                   );
               })
           )}
           <div id="scroll-anchor" />
         </div>
-
-      <MessageReactionUsersDialog
-        chatId={chatId}
-        message={selectedReactionMessage}
-        isOpen={!!selectedReactionMessage}
-        onOpenChange={handleReactionUsersDialogChange}
-        reactionLabelById={reactionLabelById}
-      />
+      </div>
     </>
   );
-}
+};
