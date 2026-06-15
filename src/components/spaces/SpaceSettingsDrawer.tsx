@@ -145,7 +145,7 @@ export function SpaceSettingsDrawer({
 
     return (
       <>
-        <div className="surface-shell flex items-start justify-between gap-4 px-4 py-4 sm:px-6">
+        <div className="surface-shell flex items-start justify-between gap-4 px-4 pb-2 pt-4 sm:px-6">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Space settings
@@ -165,9 +165,9 @@ export function SpaceSettingsDrawer({
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="space-y-4 p-4 sm:p-6">
+          <div className="space-y-2 pb-4 pl-4 pr-4 pt-0 sm:px-6 sm:pb-6">
             <Tabs value={settingsTab} onValueChange={(value) => setSettingsTab(value as SettingsTab)} className="flex min-h-0 flex-col">
-              <div className="flex justify-center px-1 pb-2">
+              <div className="flex justify-center px-1 pb-6">
                 <TabsList className={sharedTabsListClass}>
                   <WorkspaceTabsTrigger value="overview" icon={LayoutGrid} label="Overview" />
                   <WorkspaceTabsTrigger value="members" icon={Users} label="Members" />
@@ -184,11 +184,6 @@ export function SpaceSettingsDrawer({
               <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 <TabsContent value="overview" className="mt-0 flex-1 min-h-0 overflow-y-auto space-y-4">
                   <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <h3 className="text-lg font-semibold sm:text-xl">Space Settings</h3>
-                      <p className="text-sm text-muted-foreground">Manage your space configuration.</p>
-                    </div>
-
                     <div className="grid w-full items-center gap-1.5">
                       <Label htmlFor="spaceName">Space Name</Label>
                       <div className="flex flex-col gap-2 sm:flex-row px-1">
