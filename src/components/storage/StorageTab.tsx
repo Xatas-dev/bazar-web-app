@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNodes, useDownloadUrl, useInitiateUpload, useDeleteNode } from '@/hooks/useStorage';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, FileIcon, ChevronLeft, ChevronRight, Loader2, Upload, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { formatBytes } from '@/lib/utils';
+import { cn, formatBytes } from '@/lib/utils';
+import { getDisplayName } from '@/lib/user-display';
+import { notify } from '@/lib/notifications';
 import { V1GetNodesAuthorResponse } from '@/types/storage';
 import { getFileStatus } from '@/hooks/useStorage';
 import { useQueryClient } from '@tanstack/react-query';
+import { useUser } from '@/hooks/useUser';
+import { motion } from 'framer-motion';
+import { StorageTabSkeleton } from './StorageTabSkeleton';
 
 interface StorageTabProps {
   spaceId: number;
@@ -31,58 +34,152 @@ const formatUploadedAt = (dateString: string | null) => {
     .replace(' в 0', ' в ');
 };
 
+export function StorageUploadButton({ spaceId }: StorageTabProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const initiateUploadMutation = useInitiateUpload();
+  const queryClient = useQueryClient();
+
+  const onUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const pollFileStatus = async (spaceIdParam: number, nodeId: string): Promise<{ status: string }> => {
+    const interval = 2000;
+    const maxAttempts = 60;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const res = await getFileStatus({ spaceId: spaceIdParam, nodeId });
+        if (res?.status === 'UPLOADED') {
+          return { status: 'UPLOADED' };
+        }
+        if (res?.status === 'ERROR') {
+          return { status: 'ERROR' };
+        }
+      } catch (e) {
+        // ignore transient errors, continue polling
+      }
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+
+    return { status: 'TIMEOUT' };
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    e.currentTarget.value = '';
+
+    if (file.size > 50 * 1024 * 1024) {
+      notify.error.validation("File size cannot exceed 50 MB.");
+      return;
+    }
+
+    const name = file.name || '';
+    if (name.length > 100) {
+      notify.error.validation("File name cannot exceed 100 characters.");
+      return;
+    }
+
+    const parts = name.split('.');
+    const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+    if (ext && ['exe', 'sh', 'bat', 'msi', 'bin', 'ps1', 'hta'].includes(ext)) {
+      notify.error.validation("File type is not allowed.");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const init = await initiateUploadMutation.mutateAsync({ spaceId, fileName: name, size: file.size });
+      const putRes = await fetch(init.uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      });
+
+      if (!putRes.ok) {
+        notify.error.generic("Upload failed. Please try again.");
+        return;
+      }
+
+      const result = await pollFileStatus(spaceId, init.nodeId);
+      if (result.status === 'UPLOADED') {
+        await queryClient.invalidateQueries({ queryKey: ['nodes', spaceId] });
+        return;
+      }
+
+      if (result.status === 'ERROR') {
+        notify.error.generic("File processing failed. Please try again.");
+        return;
+      }
+
+      notify.error.timeout();
+    } catch (err: any) {
+      notify.error.generic();
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <>
+      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
+      <button
+        type="button"
+        onClick={onUploadClick}
+        disabled={isUploading}
+        className="surface-panel-muted inline-flex min-w-32 items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-medium leading-none text-foreground transition-colors hover:bg-[hsl(var(--panel-surface-strong))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+        <span>Upload</span>
+      </button>
+    </>
+  );
+}
+
 export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 20;
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [deletedNodeIds, setDeletedNodeIds] = useState<Set<string>>(new Set());
   const [pendingDeleteNodeIds, setPendingDeleteNodeIds] = useState<Set<string>>(new Set());
+  const { user: currentUser } = useUser();
 
   useEffect(() => {
     setCurrentPage(0);
-    setDeletedNodeIds(new Set());
     setPendingDeleteNodeIds(new Set());
   }, [spaceId]);
 
   const { data: nodesData, isLoading, error } = useNodes({
-    spaceId,
-    page: currentPage,
-    pageSize
+   spaceId,
+   page: currentPage,
+   pageSize
   });
 
   const downloadUrlMutation = useDownloadUrl();
   const deleteNodeMutation = useDeleteNode();
-  const initiateUploadMutation = useInitiateUpload();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const handleDownload = async (nodeId: string, fileName: string | null) => {
-    try {
-      const response = await downloadUrlMutation.mutateAsync({ spaceId, nodeId });
+   try {
+     const response = await downloadUrlMutation.mutateAsync({ spaceId, nodeId });
 
-      const link = document.createElement('a');
-      link.href = response.downloadUrl;
-      link.download = fileName || 'file';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+     const link = document.createElement('a');
+     link.href = response.downloadUrl;
+     link.download = fileName || 'file';
+     document.body.appendChild(link);
+     link.click();
+     document.body.removeChild(link);
 
-      toast({
-        title: 'Success',
-        description: `File "${fileName || 'unnamed'}" downloaded successfully`,
-      });
     } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Failed to download file',
-        variant: 'destructive',
-      });
+      notify.error.generic("Failed to download file. Please try again.");
     }
   };
 
   const handleDeleteFile = async (nodeId: string, fileName: string | null) => {
-    if (deletedNodeIds.has(nodeId) || pendingDeleteNodeIds.has(nodeId)) {
+    if (pendingDeleteNodeIds.has(nodeId)) {
       return;
     }
 
@@ -98,21 +195,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
 
     try {
       await deleteNodeMutation.mutateAsync({ spaceId, nodeId });
-      setDeletedNodeIds((prev) => {
-        const next = new Set(prev);
-        next.add(nodeId);
-        return next;
-      });
-      toast({
-        title: 'Success',
-        description: `File "${fileName || 'unnamed'}" deleted successfully`,
-      });
     } catch (err) {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete file',
-        variant: 'destructive',
-      });
+      notify.error.generic("Failed to delete file. Please try again.");
     } finally {
       setPendingDeleteNodeIds((prev) => {
         const next = new Set(prev);
@@ -123,219 +207,79 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   };
 
   const getAuthorName = (author: V1GetNodesAuthorResponse | null) => {
-    if (!author) return 'Unknown';
-    const parts: string[] = [];
-    if (author.firstName) parts.push(author.firstName);
-    if (author.lastName) parts.push(author.lastName);
-    return parts.length > 0 ? parts.join(' ') : 'Unknown';
+    return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Unknown');
   };
 
-  // Validation rules
-  const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
-  const FORBIDDEN_EXT = ['exe', 'sh', 'bat', 'msi', 'bin', 'ps1', 'hta'];
-  const MAX_NAME_LENGTH = 100;
+  const normalizeName = (value: string | null | undefined) => value?.trim().toLowerCase() ?? '';
 
-  const onUploadClick = () => {
-    fileInputRef.current?.click();
-  };
+  const isOwnedByCurrentUser = (author: V1GetNodesAuthorResponse | null) => {
+    if (!author || !currentUser) return false;
 
-  // Poll возвращает объект с полями status и author (если есть)
-  const pollFileStatus = async (spaceIdParam: number, nodeId: string): Promise<{ status: string; author?: V1GetNodesAuthorResponse | null }> => {
-    const interval = 2000; // ms
-    const maxAttempts = 60; // ~2 minutes
-
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const res = await getFileStatus({ spaceId: spaceIdParam, nodeId });
-        if (res?.status === 'UPLOADED') {
-          return { status: 'UPLOADED', author: res.author ?? null };
-        }
-        if (res?.status === 'ERROR') {
-          return { status: 'ERROR' };
-        }
-      } catch (e) {
-        // ignore transient errors, continue polling
-      }
-      await new Promise((r) => setTimeout(r, interval));
-    }
-    return { status: 'TIMEOUT' };
-  };
-
-  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Reset input for next selection
-    e.currentTarget.value = '';
-
-    // Validations
-    if (file.size > MAX_SIZE) {
-      toast({ title: 'Error', description: 'Размер файла не может превышать 50 МБ', variant: 'destructive' });
-      return;
-    }
-
-    const name = file.name || '';
-    if (name.length > MAX_NAME_LENGTH) {
-      toast({ title: 'Error', description: 'Длина имени файла не может превышать 100 символов', variant: 'destructive' });
-      return;
-    }
-
-    const parts = name.split('.');
-    const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
-    if (ext && FORBIDDEN_EXT.includes(ext)) {
-      toast({ title: 'Error', description: 'Невозможно загрузить файл с таким расширением', variant: 'destructive' });
-      return;
-    }
-
-    setIsUploading(true);
-
-    try {
-      const init = await initiateUploadMutation.mutateAsync({ spaceId, fileName: name, size: file.size });
-      const uploadUrl = init.uploadUrl;
-      const nodeId = init.nodeId;
-
-      // PUT to S3 using fetch to avoid axios interceptors
-      const contentType = file.type || 'application/octet-stream';
-      const putRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': contentType,
-        },
-        body: file,
-      });
-
-      if (!putRes.ok) {
-        toast({
-          title: 'Upload failed',
-          description: 'Загрузка файла не удалась по техническим причинам',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      toast({ title: 'Upload started', description: `File "${name}" uploaded to storage. Waiting for processing...` });
-
-      // Poll status
-      const result = await pollFileStatus(spaceId, nodeId);
-
-      if (result.status === 'UPLOADED') {
-        toast({ title: 'Success', description: `File "${name}" uploaded successfully` });
-
-        // Insert temporary entry into cache to avoid full refresh
-        const queryKey = ['nodes', spaceId, currentPage, pageSize];
-        try {
-          queryClient.setQueryData(queryKey, (old: any) => {
-            if (!old) return old;
-            const newNode = {
-              nodeId: nodeId,
-              fileName: name,
-              size: file.size,
-              type: 'FILE',
-              uploadedAt: new Date().toISOString(),
-              author: result.author ?? null,
-            };
-            const newContent = [newNode, ...old.content];
-            return {
-              ...old,
-              content: newContent,
-              totalElements: (old.totalElements || 0) + 1,
-            };
-          });
-        } catch (e) {
-          // ignore cache update errors
-        }
-      } else if (result.status === 'ERROR') {
-        toast({ title: 'Upload failed', description: 'Загрузка файла не удалась по техническим причинам', variant: 'destructive' });
-      } else {
-        toast({ title: 'Upload timeout', description: 'Не удалось получить статус загрузки. Попробуйте позже.', variant: 'destructive' });
-      }
-    } catch (err: any) {
-      const message = err?.response?.data || err?.message || 'Failed to upload file';
-      toast({ title: 'Error', description: String(message), variant: 'destructive' });
-    } finally {
-      setIsUploading(false);
-    }
+    return (
+      normalizeName(author.firstName) === normalizeName(currentUser.firstName) &&
+      normalizeName(author.lastName) === normalizeName(currentUser.lastName)
+    );
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <StorageTabSkeleton />;
   }
 
   if (error) {
     return (
-      <Card className="border-destructive/50 bg-destructive/10">
-        <CardHeader>
-          <CardTitle className="text-destructive">Error Loading Files</CardTitle>
-          <CardDescription>
-            Failed to load files from storage. Please try again later.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="rounded-lg border border-destructive bg-[hsl(var(--panel-surface-muted))] p-6 text-destructive">
+        <h3 className="text-lg font-semibold">Error Loading Files</h3>
+        <p className="text-sm text-muted-foreground">Failed to load files from storage. Please try again later.</p>
+      </div>
     );
   }
 
   const files = nodesData?.content || [];
   const totalPages = nodesData?.totalPages || 0;
-  const totalElements = nodesData?.totalElements || 0;
 
   return (
-    <div className="space-y-4">
-      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
-      <div className="flex justify-end">
-        <Button onClick={onUploadClick} disabled={isUploading} className="mr-2">
-          {isUploading ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-          ) : (
-            <Upload className="h-4 w-4 mr-2" />
-          )}
-          Upload
-        </Button>
-      </div>
-
+    <div className="relative z-0 flex h-full min-h-0 flex-col bg-transparent">
       {files.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <FileIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">No files uploaded yet</p>
-          </CardContent>
-        </Card>
+        <div className="relative z-10 flex min-h-0 flex-1 items-center justify-center text-muted-foreground">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <FileIcon className="h-12 w-12 opacity-50" />
+            <p>No files uploaded yet</p>
+          </div>
+        </div>
       ) : (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Files ({totalElements})</CardTitle>
-              <CardDescription>
-                Download files from this space
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {files.map((file) => {
-                  const fileName = file.fileName?.trim() || 'Unnamed file';
-                  const isDeleted = deletedNodeIds.has(file.nodeId);
-                  const isPendingDelete = pendingDeleteNodeIds.has(file.nodeId);
+        <div className="relative z-10 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 message-fade-mask sm:-mt-16 sm:pt-16">
+          <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-2 px-3 pb-24 scroll-pb-72 sm:px-6">
+            {files.map((file) => {
+                const fileName = file.fileName?.trim() || 'Unnamed file';
+                const isPendingDelete = pendingDeleteNodeIds.has(file.nodeId);
+                const isCurrentUserFile = isOwnedByCurrentUser(file.author);
 
-                  return (
-                    <div
-                      key={file.nodeId}
-                      className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${isDeleted ? 'border-dashed bg-muted/40 opacity-60' : 'hover:bg-muted/50'}`}
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <FileIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <p className="font-medium truncate">{fileName}</p>
-                            {isDeleted && (
-                              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                Удалён
-                              </span>
-                            )}
+                return (
+                  <motion.div
+                    key={file.nodeId}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full"
+                  >
+                  <div
+                    className={cn(
+                      "group relative w-full max-w-3xl overflow-hidden transition-colors",
+                      isCurrentUserFile
+                        ? "rounded-lg bg-[hsl(var(--self-block))] text-[hsl(var(--self-block-foreground))]"
+                        : "rounded-lg !bg-[hsl(var(--card))] text-foreground",
+                    )}
+                  >
+                    <div className="relative flex items-center justify-between gap-3 p-3">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <FileIcon className={cn("h-5 w-5 flex-shrink-0", isCurrentUserFile ? "text-[hsl(var(--self-block-foreground)/0.8)]" : "text-muted-foreground")} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <p className="truncate font-medium">{fileName}</p>
                           </div>
-                          <div className="flex gap-2 text-xs text-muted-foreground flex-wrap">
+                          <div className={cn(
+                            "flex flex-wrap gap-2 text-xs",
+                            isCurrentUserFile ? "text-[hsl(var(--self-block-foreground)/0.8)]" : "text-muted-foreground"
+                          )}>
                             <span>{formatBytes(file.size)}</span>
                             {file.uploadedAt && (
                               <>
@@ -348,74 +292,76 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                           </div>
                         </div>
                       </div>
-                      {!isDeleted && (
-                        <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownload(file.nodeId, file.fileName)}
-                            disabled={downloadUrlMutation.isPending || isPendingDelete}
-                          >
-                            {downloadUrlMutation.isPending ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                              </>
-                            )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
-                            disabled={isPendingDelete}
-                          >
-                            {isPendingDelete ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      )}
+                      <div className="ml-2 flex flex-shrink-0 items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className={cn(
+                            "h-10 w-10 rounded-md border-0 p-0 transition-colors hover:bg-[hsl(var(--panel-surface-strong))] hover:ring-1 hover:ring-[hsl(var(--panel-border-strong))]",
+                            isCurrentUserFile &&
+                              "text-[hsl(var(--self-block-foreground))] hover:bg-[hsl(var(--self-block-foreground)/0.2)] hover:ring-[hsl(var(--self-block-foreground)/0.3)] hover:text-[hsl(var(--self-block-foreground))]"
+                          )}
+                          onClick={() => handleDownload(file.nodeId, file.fileName)}
+                          disabled={downloadUrlMutation.isPending || isPendingDelete}
+                          aria-label={`Download ${fileName}`}
+                          title={`Download ${fileName}`}
+                        >
+                          {downloadUrlMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive"
+                          onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
+                          disabled={isPendingDelete}
+                          aria-label={`Delete ${fileName}`}
+                          title={`Delete ${fileName}`}
+                        >
+                          {isPendingDelete ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                  </motion.div>
+                );
+            })}
+          </div>
+        </div>
+      )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Page {currentPage + 1} of {totalPages}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                  disabled={currentPage === 0}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                  disabled={currentPage === totalPages - 1}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage + 1} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage === totalPages - 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

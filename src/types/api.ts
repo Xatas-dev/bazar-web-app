@@ -40,6 +40,7 @@ export interface ActionDto {
   code: string;
   name: string;
   resource: string;
+  resourceName: string;
   attributes: ActionAttributeDto[];
 }
 

@@ -65,11 +65,13 @@ services:
       - ./policies:/policies
       - ./configs/cerbos.yaml:/configs/cerbos.yaml
     command: server --set=storage.driver=disk --set=storage.disk.directory=/policies --config=/configs/cerbos.yaml
+    ports:
+      - "3593:3593"
     networks:
       - app-network
 
   bazar-api-gateway:
-    image: basegod/bazar-api-gateway:1.0.2-SNAPSHOT
+    image: basegod/bazar-api-gateway:latest
     container_name: bazar-api-gateway
     environment:
       - KC_URL=http://host.docker.internal:9999
@@ -100,7 +102,7 @@ services:
     restart: unless-stopped
 
   bazar-authorization:
-    image: basegod/bazar-authorization:1.0.2-SNAPSHOT
+    image: basegod/bazar-authorization:1.0.3-SNAPSHOT
     container_name: bazar-authorization
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrauthz
@@ -122,7 +124,7 @@ services:
     restart: unless-stopped
 
   bazar-space:
-    image: basegod/bazar-space:1.0.2-SNAPSHOT
+    image: basegod/bazar-space:latest
     container_name: bazar-space
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrspace
@@ -145,7 +147,7 @@ services:
     restart: unless-stopped
 
   bazar-chat:
-    image: basegod/bazar-chat:latest-SNAPSHOT
+    image: basegod/bazar-chat:latest
     container_name: bazar-chat
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrchat

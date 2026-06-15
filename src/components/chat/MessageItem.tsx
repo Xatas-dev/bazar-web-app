@@ -1,37 +1,45 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { MessageResponse, AuthorStatus, ChatReactionResponse } from "@/types/chat";
+import { MessageResponse, ChatReactionResponse } from "@/types/chat";
 import { motion } from "framer-motion";
 import { MessageContextMenu } from "./MessageContextMenu";
 import { MessageReactions } from "./MessageReactions";
 import { Reply } from "lucide-react";
+import { getDisplayName, getInitials } from "@/lib/user-display";
 
 interface MessageItemProps {
+  chatId: number;
   message: MessageResponse;
   isCurrentUser: boolean;
   showAvatar?: boolean;
+  showAuthorName?: boolean;
   availableReactions?: ChatReactionResponse[];
   reactionLabelById: Record<string, string>;
   onDelete?: (messageId: number) => void;
   onReply?: (message: MessageResponse) => void;
   onEdit?: (message: MessageResponse) => void;
   onReact?: (messageId: number, reactionId: string) => void;
-  onOpenReactionUsers?: (message: MessageResponse) => void;
 }
 
 export const MessageItem = ({
+  chatId,
   message,
   isCurrentUser,
   showAvatar = true,
+  showAuthorName = false,
   availableReactions = [],
   reactionLabelById,
   onDelete,
   onReply,
   onEdit,
   onReact,
-  onOpenReactionUsers,
 }: MessageItemProps) => {
-  const formattedTime = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formattedTime = new Date(message.createdAt).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
 
   const handleDelete = (messageId: number) => {
     if (onDelete) {
@@ -39,13 +47,13 @@ export const MessageItem = ({
     }
   };
 
-  const handleReply = (message: MessageResponse) => {
+  const handleReply = () => {
     if (onReply) {
       onReply(message);
     }
   };
 
-  const handleEdit = (message: MessageResponse) => {
+  const handleEdit = () => {
     if (onEdit) {
       onEdit(message);
     }
@@ -57,120 +65,124 @@ export const MessageItem = ({
     }
   };
 
-  // Determine display name based on author status
-  const getAuthorDisplayName = () => {
-    if (message.author.status === AuthorStatus.UNKNOWN) {
-      return "Неизвестный пользователь";
-    }
+  const authorDisplayName = getDisplayName(
+    (message.author as any)?.firstName,
+    (message.author as any)?.lastName,
+    (message.author as any)?.userName || "Unknown"
+  );
 
-    const firstName = message.author.firstName || '';
-    const lastName = message.author.lastName || '';
-    return `${firstName} ${lastName}`.trim() || "Неизвестный пользователь";
-  };
+  const authorInitials = !message.author
+    ? "??"
+    : (() => {
+        const { firstName, lastName, userName } = message.author as any;
+        const fullName = [firstName, lastName].filter(Boolean).join(" ");
+        if (fullName) {
+          const parts = fullName.trim().split(/\s+/);
+          if (parts.length >= 2) return getInitials(parts[0], parts[1], "??");
+          return fullName.substring(0, 2).toUpperCase();
+        }
+        return (userName || "??").substring(0, 2).toUpperCase();
+      })();
 
-  // Get initials for avatar fallback
-  const getAuthorInitials = () => {
-    if (message.author.status === AuthorStatus.UNKNOWN) {
-      return "??";
-    }
-
-    const firstName = message.author.firstName || '';
-    const lastName = message.author.lastName || '';
-    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    return initials || "??";
-  };
-
-  // Get display name for reply author
-  const getReplyAuthorDisplayName = () => {
-    if (!message.reply) return "";
-
-    if (message.reply.author.status === AuthorStatus.UNKNOWN) {
-      return "Неизвестный пользователь";
-    }
-
-    const firstName = message.reply.author.firstName || '';
-    const lastName = message.reply.author.lastName || '';
-    return `${firstName} ${lastName}`.trim() || "Неизвестный пользователь";
-  };
+  const replyAuthorDisplayName = message.reply?.author
+    ? getDisplayName(
+        (message.reply.author as any).firstName,
+        (message.reply.author as any).lastName,
+        (message.reply.author as any).userName || "Unknown"
+      )
+    : "Unknown";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
       className={cn(
-        "flex w-full gap-2 mb-4",
+        "flex w-full items-end gap-2",
         isCurrentUser ? "flex-row-reverse" : "flex-row"
       )}
     >
-      {/* Avatar (only for others) */}
       {!isCurrentUser && (
-         <div className="flex-shrink-0 w-8">
-            {showAvatar ? (
-                 <Avatar className="h-8 w-8">
-                    <AvatarFallback>{getAuthorInitials()}</AvatarFallback>
-                </Avatar>
-            ) : <div className="w-8" />}
-         </div>
+        <div className="flex w-8 flex-shrink-0 items-end">
+          {showAvatar ? (
+            <Avatar className="h-8 w-8 ring-1 ring-[hsl(var(--panel-border))]">
+              <AvatarFallback>{authorInitials}</AvatarFallback>
+            </Avatar>
+          ) : <div className="w-8" />}
+        </div>
       )}
 
       <div
         className={cn(
-          "flex flex-col max-w-[70%] min-w-0",
+          "flex flex-col max-w-[78%] sm:max-w-[72%]",
           isCurrentUser ? "items-end" : "items-start"
         )}
       >
-         {!isCurrentUser && showAvatar && (
-             <span className="text-xs text-muted-foreground mb-1 ml-1">
-                 {getAuthorDisplayName()}
-             </span>
-         )}
-
         <MessageContextMenu
+          chatId={chatId}
           message={message}
           availableReactions={availableReactions}
+          reactionLabelById={reactionLabelById}
           onDelete={handleDelete}
           onReply={handleReply}
           onEdit={handleEdit}
           onReact={handleReact}
-          onOpenReactionUsers={onOpenReactionUsers}
         >
-          <div
-            className={cn(
-              "w-full rounded-lg px-4 py-2 text-sm cursor-text select-text whitespace-pre-wrap break-words leading-relaxed",
-              isCurrentUser
-                ? "bg-primary text-primary-foreground rounded-tr-none"
-                : "bg-muted text-foreground rounded-tl-none"
-            )}
-          >
-            {message.reply && (
-              <div className={cn(
-                "mb-2 pb-2 border-l-2 pl-2 text-xs opacity-80",
+          <div className="w-fit max-w-full">
+            <Card
+              className={cn(
+                "relative w-fit max-w-full overflow-hidden rounded-lg text-sm cursor-text select-text backdrop-blur-none",
+                showAvatar ? (!isCurrentUser ? "rounded-bl-none" : "rounded-br-none") : null,
                 isCurrentUser
-                  ? "border-primary-foreground/30"
-                  : "border-muted-foreground/30"
-              )}>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <Reply className="h-3 w-3" />
-                  <span className="font-medium">{getReplyAuthorDisplayName()}</span>
+                  ? "!bg-[hsl(var(--self-block))] text-[hsl(var(--self-block-foreground))]"
+                  : "!bg-[hsl(var(--card))] text-foreground"
+              )}
+            >
+              <CardContent className="relative z-10 px-3.5 py-2.5">
+                {!isCurrentUser && showAuthorName ? (
+                  <div className="mb-1 text-xs font-medium text-muted-foreground">
+                    {authorDisplayName}
+                  </div>
+                ) : null}
+                {message.reply && (
+                  <div
+                    className={cn(
+                      "mb-2 rounded-lg pl-3 pr-2 py-2 text-xs backdrop-blur-none",
+                      isCurrentUser
+                        ? "border-[hsl(var(--self-block-foreground)/0.6)] bg-[hsl(var(--self-block-foreground)/0.1)]"
+                        : "border-[hsl(var(--panel-border))] bg-muted"
+                    )}
+                  >
+                    <div className="mb-0.5 flex items-center gap-1">
+                      <Reply className="h-3 w-3" />
+                      <span className="font-medium">{replyAuthorDisplayName}</span>
+                    </div>
+                    <p className="truncate">{message.reply.contentPreview}</p>
+                  </div>
+                )}
+
+                <div className="flex items-end justify-between gap-2">
+                  <p className="whitespace-pre-wrap break-words leading-5 min-w-0">
+                    {message.content}
+                  </p>
+                  <span className={cn(
+                    "shrink-0 text-[10px] font-medium translate-y-0.5 select-none",
+                    isCurrentUser ? "text-[hsl(var(--self-block-foreground)/0.8)]" : "text-muted-foreground/80"
+                  )}>
+                    {formattedTime}
+                  </span>
                 </div>
-                <p className="truncate">{message.reply.contentPreview}</p>
-              </div>
-            )}
-            {message.content}
+              </CardContent>
+            </Card>
           </div>
         </MessageContextMenu>
 
-        {message.reactions && message.reactions.length > 0 && (
-          <MessageReactions
-            message={message}
-            reactionLabelById={reactionLabelById}
-            onReact={handleReact}
-          />
-        )}
-        <span className="text-[10px] text-muted-foreground mt-1 px-1">
-            {formattedTime}
-        </span>
+        <MessageReactions
+          message={message}
+          reactionLabelById={reactionLabelById}
+          onReact={handleReact}
+        />
       </div>
     </motion.div>
   );
-}
+};

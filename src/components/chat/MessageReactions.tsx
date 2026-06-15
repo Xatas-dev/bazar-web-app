@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { MessageResponse } from "@/types/chat";
+import { motion } from "framer-motion";
 
 interface MessageReactionsProps {
   message: MessageResponse;
@@ -24,9 +25,14 @@ export const MessageReactions = ({ message, reactionLabelById, onReact }: Messag
         const label = getReactionLabel(reaction.reactionId, reactionLabelById);
 
         return (
-          <button
+          <motion.button
             key={reaction.reactionId}
             type="button"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{
+              scale: reaction.reactedByMe ? 0.82 : 1.3,
+              transition: { type: "spring", stiffness: 400, damping: 12 },
+            }}
             onClick={() => onReact(message.id, reaction.reactionId)}
             className={cn(
               "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs transition-colors",
@@ -37,8 +43,10 @@ export const MessageReactions = ({ message, reactionLabelById, onReact }: Messag
             title="Нажмите, чтобы поставить или убрать реакцию"
           >
             <span className="text-sm leading-none">{label}</span>
-            <span className="text-[11px] font-medium">{reaction.count}</span>
-          </button>
+            <span className="text-[11px] font-medium">
+              {reaction.count}
+            </span>
+          </motion.button>
         );
       })}
     </div>

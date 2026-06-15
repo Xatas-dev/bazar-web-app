@@ -122,3 +122,20 @@ export const updateMessageReactionCountInMessage = (
   });
 };
 
+export function removeMessagesFromCache(
+  oldData: InfiniteChatMessagesData | undefined,
+  messageIds: number[]
+): InfiniteChatMessagesData | undefined {
+  if (!oldData?.pages) return oldData;
+
+  const deletedIds = new Set(messageIds);
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page) => ({
+      ...page,
+      content: page.content.filter((msg) => !deletedIds.has(msg.id)),
+    })),
+  };
+}
+
