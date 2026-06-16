@@ -7,12 +7,12 @@ export interface EditMessageRequest {
   newContent: string;
 }
 
-export const useGetChatMessages = (chatId: number | undefined, pageSize = 20) => {
+export const useGetChatMessages = (spaceId: number | undefined, chatId: number | undefined, pageSize = 20) => {
   return useInfiniteQuery<MessagePageResponse, Error>({
     queryKey: ['chat', chatId, 'messages'],
     queryFn: async ({ pageParam = 0 }) => {
-      if (!chatId) throw new Error("Chat ID is required");
-      const response = await chatAxiosInstance.get<MessagePageResponse>(`/chats/${chatId}/messages`, {
+      if (!spaceId || !chatId) throw new Error("Space ID and Chat ID are required");
+      const response = await chatAxiosInstance.get<MessagePageResponse>(`/spaces/${spaceId}/chats/${chatId}/messages`, {
         params: {
           page: pageParam,
           size: pageSize,
@@ -28,23 +28,25 @@ export const useGetChatMessages = (chatId: number | undefined, pageSize = 20) =>
       }
       return undefined;
     },
-    enabled: !!chatId,
+    enabled: !!spaceId && !!chatId,
   });
 };
 
 export const useCreateMessage = () => {
-  return useMutation<void, Error, { chatId: number; data: CreateMessageRequest }>({
-    mutationFn: async ({ chatId, data }) => {
-      await chatAxiosInstance.post(`/chats/${chatId}/messages`, data);
+  return useMutation<void, Error, { spaceId: number; chatId: number; data: CreateMessageRequest }>({
+    mutationFn: async ({ spaceId, chatId, data }) => {
+      if (!spaceId || !chatId) throw new Error("Space ID and Chat ID are required");
+      await chatAxiosInstance.post(`/spaces/${spaceId}/chats/${chatId}/messages`, data);
     },
   });
 };
 
 export const useDeleteMessages = () => {
   const queryClient = useQueryClient();
-  return useMutation<void, Error, { chatId: number; data: DeleteMessagesRequest }>({
-    mutationFn: async ({ chatId, data }) => {
-      await chatAxiosInstance.delete(`/chats/${chatId}/messages`, { data });
+  return useMutation<void, Error, { spaceId: number; chatId: number; data: DeleteMessagesRequest }>({
+    mutationFn: async ({ spaceId, chatId, data }) => {
+      if (!spaceId || !chatId) throw new Error("Space ID and Chat ID are required");
+      await chatAxiosInstance.delete(`/spaces/${spaceId}/chats/${chatId}/messages`, { data });
     },
     onSuccess: (_, { chatId, data }) => {
       queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) =>
@@ -55,9 +57,10 @@ export const useDeleteMessages = () => {
 };
 
 export const useEditMessage = () => {
-  return useMutation<void, Error, { chatId: number; messageId: number; data: EditMessageRequest }>({
-    mutationFn: async ({ chatId, messageId, data }) => {
-      await chatAxiosInstance.patch(`/chats/${chatId}/messages/${messageId}`, data);
+  return useMutation<void, Error, { spaceId: number; chatId: number; messageId: number; data: EditMessageRequest }>({
+    mutationFn: async ({ spaceId, chatId, messageId, data }) => {
+      if (!spaceId || !chatId || !messageId) throw new Error("Space ID, Chat ID and Message ID are required");
+      await chatAxiosInstance.patch(`/spaces/${spaceId}/chats/${chatId}/messages/${messageId}`, data);
     },
   });
 };

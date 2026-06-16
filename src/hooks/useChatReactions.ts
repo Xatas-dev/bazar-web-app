@@ -6,9 +6,9 @@ import {
   MessageReactionUsersResponse,
 } from '@/types/chat';
 import {
-  toggleMessageReactionInMessage,
+  optimisticToggleMessageReaction,
   updateChatMessagesCache,
-  updateMessageReactionCountInMessage,
+  updateMessageReactionInMessage,
   InfiniteChatMessagesData,
 } from '@/lib/chat-reactions';
 
@@ -29,30 +29,30 @@ const normalizeChatReactionsResponse = (response: ChatReactionsApiResponse): Cha
   return [];
 };
 
-export const useGetChatReactions = (chatId: number | undefined) => {
+export const useGetChatReactions = (spaceId: number | undefined, chatId: number | undefined) => {
   return useQuery<ChatReactionResponse[], Error>({
     queryKey: ['chat', chatId, 'reactions'],
     queryFn: async () => {
-      if (!chatId) throw new Error('Chat ID is required');
-      const response = await chatAxiosInstance.get<ChatReactionsApiResponse>(`/chats/${chatId}/reactions`);
+      if (!spaceId || !chatId) throw new Error('Space ID and Chat ID are required');
+      const response = await chatAxiosInstance.get<ChatReactionsApiResponse>(`/spaces/${spaceId}/chats/${chatId}/reactions`);
       return normalizeChatReactionsResponse(response.data);
     },
-    enabled: !!chatId,
+    enabled: !!spaceId && !!chatId,
     staleTime: 1000 * 60 * 5,
   });
 };
 
-export const useGetMessageReactionUsers = (chatId: number | undefined, messageId: number | undefined, enabled = true) => {
+export const useGetMessageReactionUsers = (spaceId: number | undefined, chatId: number | undefined, messageId: number | undefined, enabled = true) => {
   return useQuery<MessageReactionUsersResponse, Error>({
     queryKey: ['chat', chatId, 'messages', messageId, 'reaction-users'],
     queryFn: async () => {
-      if (!chatId || !messageId) throw new Error('Chat ID and message ID are required');
+      if (!spaceId || !chatId || !messageId) throw new Error('Space ID, Chat ID and message ID are required');
       const response = await chatAxiosInstance.get<MessageReactionUsersResponse>(
-        `/chats/${chatId}/messages/${messageId}/reactions/users`
+        `/spaces/${spaceId}/chats/${chatId}/messages/${messageId}/reactions/users`
       );
       return response.data;
     },
-    enabled: enabled && !!chatId && !!messageId,
+    enabled: enabled && !!spaceId && !!chatId && !!messageId,
     staleTime: 1000 * 30,
   });
 };
@@ -63,12 +63,13 @@ export const useChangeMessageReaction = () => {
   return useMutation<
     MessageReactionChangeResponse,
     Error,
-    { chatId: number; messageId: number; reactionId: string },
-    { previousMessages?: InfiniteChatMessagesData }
+    { spaceId: number; chatId: number; messageId: number; reactionId: string },
+    { previousMessages?: InfiniteChatMessagesData; didOptimisticToggle: boolean }
   >({
-    mutationFn: async ({ chatId, messageId, reactionId }) => {
+    mutationFn: async ({ spaceId, chatId, messageId, reactionId }) => {
+      if (!spaceId || !chatId || !messageId) throw new Error("Space ID, Chat ID and Message ID are required");
       const response = await chatAxiosInstance.put<MessageReactionChangeResponse>(
-        `/chats/${chatId}/messages/${messageId}/reactions/${reactionId}`
+        `/spaces/${spaceId}/chats/${chatId}/messages/${messageId}/reactions/${reactionId}`
       );
       return response.data;
     },
@@ -77,27 +78,45 @@ export const useChangeMessageReaction = () => {
 
       const previousMessages = queryClient.getQueryData<InfiniteChatMessagesData>(['chat', chatId, 'messages']);
 
+      let didOptimisticToggle = false;
+
       queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) => {
         if (!oldData) return oldData;
         return updateChatMessagesCache(oldData, (message) => {
           if (message.id !== messageId) return message;
-          return toggleMessageReactionInMessage(message, reactionId).message;
+
+          const myReactionsCount = (message.reactions ?? []).filter(r => r.reactedByMe).length;
+          const alreadyReactedWithThis = (message.reactions ?? []).some(
+            r => r.reactionId === reactionId && r.reactedByMe
+          );
+
+          if (myReactionsCount >= 3 && !alreadyReactedWithThis) {
+            return message;
+          }
+
+          didOptimisticToggle = true;
+          return optimisticToggleMessageReaction(message, reactionId).message;
         });
       });
 
-      return { previousMessages };
+      return { previousMessages, didOptimisticToggle };
     },
     onError: (_, { chatId }, context) => {
       if (context?.previousMessages) {
         queryClient.setQueryData(['chat', chatId, 'messages'], context.previousMessages);
       }
     },
-    onSuccess: (data, { chatId, messageId, reactionId }) => {
+    onSuccess: (data, { chatId, messageId }, context) => {
       queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) => {
         if (!oldData) return oldData;
         return updateChatMessagesCache(oldData, (message) => {
           if (message.id !== messageId) return message;
-          return updateMessageReactionCountInMessage(message, reactionId, data.count);
+          const shouldToggle = !context.didOptimisticToggle;
+          let updated = message;
+          for (const r of data.reactions) {
+            updated = updateMessageReactionInMessage(updated, r.reactionId, r.count, shouldToggle);
+          }
+          return updated;
         });
       });
 

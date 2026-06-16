@@ -64,7 +64,7 @@ export const updateChatMessagesCache = (
   };
 };
 
-export const toggleMessageReactionInMessage = (message: MessageResponse, reactionId: string | number) => {
+export const optimisticToggleMessageReaction = (message: MessageResponse, reactionId: string | number) => {
   let nextCount = 0;
   let nextReactedByMe = false;
 
@@ -104,20 +104,20 @@ export const toggleMessageReactionInMessage = (message: MessageResponse, reactio
   };
 };
 
-export const updateMessageReactionCountInMessage = (
+export const updateMessageReactionInMessage = (
   message: MessageResponse,
   reactionId: string | number,
-  count: number
-) => {
+  count: number,
+  toggleReactedByMe?: boolean
+): MessageResponse => {
   return replaceReaction(message, reactionId, (currentReaction) => {
-    if (count <= 0) {
-      return null;
-    }
-
+    if (count <= 0) return null;
     return {
       reactionId: normalizeReactionId(reactionId),
       count,
-      reactedByMe: currentReaction?.reactedByMe ?? false,
+      reactedByMe: toggleReactedByMe
+        ? !(currentReaction?.reactedByMe ?? false)
+        : (currentReaction?.reactedByMe ?? false),
     };
   });
 };
