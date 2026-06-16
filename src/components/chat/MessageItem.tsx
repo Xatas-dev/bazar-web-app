@@ -160,7 +160,7 @@ export const MessageItem = ({
                       <Reply className="h-3 w-3" />
                       <span className="font-medium">{replyAuthorDisplayName}</span>
                     </div>
-                    <p>
+                    <p className="truncate">
                         {message.reply.contentPreview}
                         {message.reply.contentPreview.length >= 30 ? '...' : ''}
                     </p>
