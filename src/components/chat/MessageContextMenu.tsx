@@ -41,7 +41,6 @@ export const MessageContextMenu = ({
   const [showReactionUsers, setShowReactionUsers] = useState(false);
   const canDelete = message.allowedActions?.includes(AllowedMessageAction.DELETE) ?? false;
   const canEdit = message.allowedActions?.includes(AllowedMessageAction.EDIT) ?? false;
-  // const userReactionCount = message.reactions?.filter((reaction) => reaction.reactedByMe).length ?? 0;
   const hasReactions = message.reactions && message.reactions.length > 0;
 
   const { data: reactionUsersData, isLoading: isReactionUsersLoading } = useGetMessageReactionUsers(
