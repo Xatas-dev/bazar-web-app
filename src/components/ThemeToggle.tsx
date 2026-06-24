@@ -10,7 +10,7 @@ export function ThemeToggleMenuItem({ theme, onToggleTheme }: ThemeToggleMenuIte
   return (
     <DropdownMenuItem onSelect={onToggleTheme} className="flex items-center gap-2">
       {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-      {theme === "light" ? "Dark theme" : "Light theme"}
+      {theme === "light" ? "Тёмная тема" : "Светлая тема"}
     </DropdownMenuItem>
   );
 }

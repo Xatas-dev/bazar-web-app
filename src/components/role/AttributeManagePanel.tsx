@@ -46,7 +46,7 @@ export default function AttributeManagePanel({
   return (
     <>
       <div className="surface-shell flex items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
-        <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back">
+        <Button variant="ghost" size="icon" onClick={onBack} aria-label="Назад">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="min-w-0">

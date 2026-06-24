@@ -17,12 +17,12 @@ export default function RoleInfoPanel({ spaceId, roleId, onBack }: RoleInfoPanel
   return (
     <div className="flex h-full flex-col">
       <div className="surface-shell flex items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
-        <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back to roles">
+        <Button variant="ghost" size="icon" onClick={onBack} aria-label="Назад к ролям">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Role info
+            Информация о роли
           </p>
           <h2 className="truncate text-lg font-semibold sm:text-xl">
             {role?.name || "Role"}
@@ -48,7 +48,7 @@ export default function RoleInfoPanel({ spaceId, roleId, onBack }: RoleInfoPanel
           ) : role ? (
             <RoleCard role={role} spaceId={spaceId} availableActions={role.actions || []} hideMeta />
           ) : (
-            <p className="text-sm text-muted-foreground">Role not found.</p>
+            <p className="text-sm text-muted-foreground">Роль не найдена.</p>
           )}
         </div>
       </ScrollArea>

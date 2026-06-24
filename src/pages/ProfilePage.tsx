@@ -15,7 +15,7 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-      return <div className="p-8">Please log in.</div>;
+      return <div className="p-8">Пожалуйста, войдите в систему.</div>;
   }
 
   return (
@@ -28,42 +28,42 @@ export default function ProfilePage() {
                   <AvatarFallback>{user.userName?.substring(0,2).toUpperCase() || "??"}</AvatarFallback>
               </Avatar>
               <div>
-                  <CardTitle>Edit Profile</CardTitle>
-                  <CardDescription>Update your personal information.</CardDescription>
+                  <CardTitle>Редактировать профиль</CardTitle>
+                  <CardDescription>Обновите вашу личную информацию.</CardDescription>
               </div>
           </div>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="userName">Username</Label>
+              <Label htmlFor="userName">Имя пользователя</Label>
               <Input
                 id="userName"
                 name="userName"
                 value={formData.userName}
                 onChange={handleChange}
-                placeholder="Username"
+                placeholder="Имя пользователя"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">Имя</Label>
                   <Input
                     id="firstName"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    placeholder="First Name"
+                    placeholder="Имя"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">Фамилия</Label>
                   <Input
                     id="lastName"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Last Name"
+                    placeholder="Фамилия"
                   />
                 </div>
             </div>
@@ -71,7 +71,7 @@ export default function ProfilePage() {
           <CardFooter>
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              Сохранить
             </Button>
           </CardFooter>
         </form>
