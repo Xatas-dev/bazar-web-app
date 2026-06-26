@@ -15,16 +15,16 @@ export default function GuestPage() {
       {/* Hero Section */}
       <section className="text-center space-y-6 max-w-3xl">
         <h1 className="text-5xl font-extrabold tracking-tight lg:text-6xl text-primary pb-2">
-          Welcome to Bazar Space
+          Добро пожаловать в Bazar Space
         </h1>
         <p className="text-xl text-muted-foreground">
-          The flexible, modern, and secure platform for managing your digital spaces.
-          Connect, collaborate, and grow with a system designed for the future.
+          Гибкая, современная и безопасная платформа для управления вашими цифровыми пространствами.
+          Общайтесь, сотрудничайте и развивайтесь с системой, созданной для будущего.
         </p>
         <div className="pt-4">
           <a href={loginUrl}>
              <Button size="lg" className="h-12 px-8 text-lg gap-2">
-                Get Started <ArrowRight className="h-5 w-5" />
+                Начать <ArrowRight className="h-5 w-5" />
              </Button>
           </a>
         </div>
@@ -35,30 +35,30 @@ export default function GuestPage() {
         <Card className="transition-colors">
           <CardHeader>
             <Zap className="h-10 w-10 text-warning mb-2" />
-            <CardTitle>Lightning Fast</CardTitle>
+            <CardTitle>Молниеносная скорость</CardTitle>
           </CardHeader>
           <CardContent>
-             Built with the latest tech stack including React, Vite, and Spring Cloud Gateway for optimal performance.
+             Создан на современном стеке технологий: React, Vite и Spring Cloud Gateway для максимальной производительности.
           </CardContent>
         </Card>
 
         <Card className="transition-colors">
           <CardHeader>
             <ShieldCheck className="h-10 w-10 text-success mb-2" />
-            <CardTitle>Secure by Design</CardTitle>
+            <CardTitle>Безопасность по дизайну</CardTitle>
           </CardHeader>
           <CardContent>
-             Enterprise-grade security using OAuth2/OIDC handled seamlessly by our Gateway. Your data is safe.
+             Безопасность корпоративного уровня с использованием OAuth2/OIDC, обрабатываемая нашим шлюзом. Ваши данные в безопасности.
           </CardContent>
         </Card>
 
         <Card className="transition-colors">
           <CardHeader>
             <Globe className="h-10 w-10 text-info mb-2" />
-            <CardTitle>Global Spaces</CardTitle>
+            <CardTitle>Глобальные спейсы</CardTitle>
           </CardHeader>
           <CardContent>
-             Create and manage spaces that can scale. Future-proof architecture ready for new modules.
+             Создавайте и управляйте масштабируемыми спейсами. Архитектура готова к новым модулям.
           </CardContent>
         </Card>
       </section>

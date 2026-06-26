@@ -55,11 +55,11 @@ export default function EditRolePanel({
 
   const handleSubmit = async () => {
     if (!roleName.trim()) {
-      notify.error.validation("Role name is required.");
+      notify.error.validation("Название роли обязательно.");
       return;
     }
     if (selectedActions.size === 0) {
-      notify.error.validation("Select at least one permission.");
+      notify.error.validation("Выберите хотя бы одно разрешение.");
       return;
     }
     const simpleActions: SimpleActionDto[] = buildSimpleActionPayload({
@@ -117,15 +117,15 @@ export default function EditRolePanel({
       <div className="surface-shell flex items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back to roles">
+            <Button variant="ghost" size="icon" onClick={onBack} aria-label="Назад к ролям">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">Back</TooltipContent>
+          <TooltipContent side="left">Назад</TooltipContent>
         </Tooltip>
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Edit role
+            Редактирование роли
           </p>
           <h2 className="truncate text-lg font-semibold sm:text-xl">
             {role?.name || "Role"}
@@ -272,7 +272,7 @@ export default function EditRolePanel({
               <X className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">Cancel</TooltipContent>
+          <TooltipContent side="left">Отмена</TooltipContent>
         </Tooltip>
         {updateRoleMutation.isPending ? (
           <Tooltip>
@@ -283,7 +283,7 @@ export default function EditRolePanel({
                 </Button>
               </span>
             </TooltipTrigger>
-            <TooltipContent side="left">Updating...</TooltipContent>
+            <TooltipContent side="left">Обновление...</TooltipContent>
           </Tooltip>
         ) : (
           <Tooltip>
@@ -292,7 +292,7 @@ export default function EditRolePanel({
                 <Save className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="left">Update role</TooltipContent>
+            <TooltipContent side="left">Обновить роль</TooltipContent>
           </Tooltip>
         )}
       </div>

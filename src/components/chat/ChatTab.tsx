@@ -77,13 +77,13 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
                     <MessageSquarePlus className="h-8 w-8 text-muted-foreground"/>
                 </div>
                 <div>
-                    <h3 className="text-lg font-medium">No chat initialized</h3>
+                    <h3 className="text-lg font-medium">Чат не найден</h3>
                     <p className="text-sm text-muted-foreground max-w-xs">
-                        Start a new conversation in this space.
+                        Начните новый разговор в этом спейса.
                     </p>
                 </div>
                 <Button onClick={handleCreateChat} disabled={createChatMutation.isPending}>
-                    Create Chat
+                    Создать чат
                 </Button>
             </div>
         );

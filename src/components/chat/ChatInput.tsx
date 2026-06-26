@@ -160,7 +160,7 @@ export const ChatInput = ({
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
+                    placeholder="Введите сообщение..."
                     className="
           min-h-[2rem] max-h-24 resize-none
           !border-0 !bg-transparent !shadow-none !ring-0
@@ -172,7 +172,7 @@ export const ChatInput = ({
         "
                     rows={1}
                     readOnly={readOnly}
-                    title={readOnly ? "У вас нет прав на отправку сообщений в этом пространстве" : undefined}
+                    title={readOnly ? "У вас нет прав на отправку сообщений в этом спейсе" : undefined}
                 />
                 <Button
                     variant="ghost"

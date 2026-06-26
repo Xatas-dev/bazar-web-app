@@ -56,7 +56,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
         notify.error.forbidden();
         return;
     }
-    if (confirm("Remove user from space?")) {
+    if (confirm("Удалить пользователя из спейса?")) {
         removeUserMutation.mutate({ spaceId: id, userId });
     }
   };
@@ -78,21 +78,21 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Add Member</h3>
+        <h3 className="text-lg font-medium">Добавить участника</h3>
         <div className="space-y-4">
           <div className="px-1">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="pl-9"
-                placeholder="Search users by username (min 3 chars)..."
+                placeholder="Поиск пользователей по имени (мин. 3 символа)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
 
-          {isSearching && <div className="text-sm text-muted-foreground">Searching...</div>}
+          {isSearching && <div className="text-sm text-muted-foreground">Поиск...</div>}
 
           {searchResults && searchResults.length > 0 && (
             <div className="surface-panel-muted max-h-60 overflow-y-auto rounded-md p-1 space-y-2 animate-in fade-in-0 slide-in-from-top-1 duration-150">
@@ -119,7 +119,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                       disabled={isMember || addUserMutation.isPending || !canAdd}
                       onClick={() => handleAddUser(user.id)}
                     >
-                      {isMember ? "Joined" : <><UserPlus className="mr-2 h-3 w-3" /> Add</>}
+                      {isMember ? "Участник" : <><UserPlus className="mr-2 h-3 w-3" /> Добавить</>}
                     </Button>
                   </div>
                 );
@@ -127,13 +127,13 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
             </div>
           )}
           {searchTerm.length >= 3 && searchResults?.length === 0 && !isSearching && (
-            <p className="text-sm text-muted-foreground">No users found.</p>
+            <p className="text-sm text-muted-foreground">Пользователи не найдены.</p>
           )}
         </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Members ({users.length})</h3>
+        <h3 className="text-lg font-medium">Участники ({users.length})</h3>
         <div className="space-y-2">
             {users.length > 0 ? (
               users.map((user, i) => {
@@ -156,7 +156,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                     <button
                       type="button"
                       className="surface-panel flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      aria-label={`Open actions for ${user.userName}`}
+                      aria-label={`Открыть действия для ${user.userName}`}
                     >
                       <Avatar className="h-9 w-9 shrink-0">
                         <AvatarFallback>{user.userName?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
@@ -184,17 +184,17 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                     <DropdownMenuContent align="start" className="min-w-48">
                       <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setRoleMenuUserId(null); }}>
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back
+                        Назад
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {isLoadingRoles ? (
                         <DropdownMenuItem disabled>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Loading...
+                          Загрузка...
                         </DropdownMenuItem>
                       ) : roles.length === 0 ? (
                         <DropdownMenuItem disabled>
-                          No roles available
+                          Нет доступных ролей
                         </DropdownMenuItem>
                       ) : (
                         roles.map((role) => (
@@ -215,7 +215,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                         onSelect={(e) => { e.preventDefault(); setRoleMenuUserId(user.userId); }}
                       >
                         <Shield className="mr-2 h-4 w-4" />
-                        Assign role
+                        Назначить роль
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
@@ -223,7 +223,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                         onSelect={() => handleRemoveUser(user.userId)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Kick user
+                        Удалить пользователя
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   )}
@@ -232,7 +232,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                 );
               })
             ) : (
-              <p className="text-muted-foreground">No members yet.</p>
+              <p className="text-muted-foreground">Пока нет участников.</p>
             )}
         </div>
       </div>

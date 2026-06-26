@@ -70,7 +70,7 @@ export const MessageItem = ({
   const authorDisplayName = getDisplayName(
     (message.author as any)?.firstName,
     (message.author as any)?.lastName,
-    (message.author as any)?.userName || "Unknown"
+    (message.author as any)?.userName || "Неизвестно"
   );
 
   const authorInitials = !message.author
@@ -92,7 +92,7 @@ export const MessageItem = ({
         (message.reply.author as any).lastName,
         (message.reply.author as any).userName || "Unknown"
       )
-    : "Unknown";
+    : "Неизвестно";
 
   return (
     <motion.div
