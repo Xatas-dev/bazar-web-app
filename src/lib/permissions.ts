@@ -15,6 +15,9 @@ export const SPACE_PERMISSIONS = {
   chatDelete: "chat_messages:DELETE",
   spaceUserAdd: "space_user:ADD",
   spaceUserDelete: "space_user:DELETE",
+  storageUpload:   "nodes:UPLOAD",
+  storageDownload: "nodes:DOWNLOAD",
+  storageDelete:   "nodes:DELETE",
 } as const;
 
 export const getGrantableActionIds = (

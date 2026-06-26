@@ -73,6 +73,9 @@ export default function SpaceDashboardPage() {
   const canDeleteMember = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.spaceUserDelete);
   const canReadChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatRead);
   const canWriteChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatWrite);
+  const canUploadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageUpload);
+  const canDownloadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDownload);
+  const canDeleteStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDelete);
 
   const createGrantableActionIds = isCreator
       ? null
@@ -221,7 +224,7 @@ export default function SpaceDashboardPage() {
 
                      {workspaceTab === "storage" && (
                        <div className="absolute right-12 top-2 flex items-start">
-                         <StorageUploadButton spaceId={id} />
+                         <StorageUploadButton spaceId={id} canUpload={canUploadStorage} />
                        </div>
                      )}
                    </div>
@@ -233,7 +236,7 @@ export default function SpaceDashboardPage() {
                    </TabsContent>
 
                    <TabsContent value="storage" className="mt-0 flex-1 min-h-0 overflow-visible">
-                     <StorageTab spaceId={id} />
+                     <StorageTab spaceId={id} canUpload={canUploadStorage} canDownload={canDownloadStorage} canDelete={canDeleteStorage}/>
                    </TabsContent>
                  </div>
                </motion.div>
