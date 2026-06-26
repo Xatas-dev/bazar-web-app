@@ -102,7 +102,7 @@ services:
     restart: unless-stopped
 
   bazar-authorization:
-    image: basegod/bazar-authorization:1.0.3-SNAPSHOT
+    image: basegod/bazar-authorization:latest
     container_name: bazar-authorization
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrauthz
