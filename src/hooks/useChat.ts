@@ -7,7 +7,7 @@ export const useGetChatBySpace = (spaceId: number) => {
     queryKey: ['chat', 'space', spaceId],
     queryFn: async () => {
       if (!spaceId) throw new Error('Space ID is required');
-      const response = await chatAxiosInstance.get<ChatResponse>(`/spaces/${spaceId}/chats`);
+      const response = await chatAxiosInstance.get<ChatResponse>(`/v1/spaces/${spaceId}/chats`);
       return response.data;
     },
     enabled: !!spaceId,
@@ -19,7 +19,7 @@ export const useCreateChat = () => {
   return useMutation<ChatResponse, Error, CreateChatRequest>({
     mutationFn: async (data) => {
       if (!data.spaceId) throw new Error('Space ID is required');
-      const response = await chatAxiosInstance.post<ChatResponse>(`/spaces/${data.spaceId}/chats`, data);
+      const response = await chatAxiosInstance.post<ChatResponse>(`/v1/spaces/${data.spaceId}/chats`, data);
       return response.data;
     },
     onSuccess: (_, variables) => {
