@@ -174,8 +174,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = f
   const downloadUrlMutation = useDownloadUrl();
   const deleteNodeMutation = useDeleteNode();
 
-  const handleDownload = async (nodeId: string, fileName: string | null) => {
-    if (!canDownload) {
+  const handleDownload = async (nodeId: string, fileName: string | null, author: V1GetNodesAuthorResponse | null) => {
+    if (!canDownload && !isOwnedByCurrentUser(author)) {
       notify.error.forbidden();
       return;
     }
@@ -196,8 +196,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = f
     }
   };
 
-  const handleDeleteFile = async (nodeId: string, fileName: string | null) => {
-    if (!canDelete) {
+  const handleDeleteFile = async (nodeId: string, fileName: string | null, author: V1GetNodesAuthorResponse | null) => {
+    if (!canDelete && !isOwnedByCurrentUser(author)) {
       notify.error.forbidden();
       return;
     }
@@ -324,9 +324,9 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = f
                             "h-10 w-10 rounded-md border-0 p-0 transition-colors hover:bg-[hsl(var(--panel-surface-strong))] hover:ring-1 hover:ring-[hsl(var(--panel-border-strong))]",
                             isCurrentUserFile &&
                               "text-[hsl(var(--self-block-foreground))] hover:bg-[hsl(var(--self-block-foreground)/0.2)] hover:ring-[hsl(var(--self-block-foreground)/0.3)] hover:text-[hsl(var(--self-block-foreground))]",
-                            !canDownload && "opacity-50"
+                            !canDownload && !isCurrentUserFile && "opacity-50"
                           )}
-                          onClick={() => handleDownload(file.nodeId, file.fileName)}
+                          onClick={() => handleDownload(file.nodeId, file.fileName, file.author)}
                           disabled={downloadUrlMutation.isPending || isPendingDelete}
                           aria-label={`Скачать ${fileName}`}
                           title={`Скачать ${fileName}`}
@@ -342,9 +342,9 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = f
                           variant="ghost"
                           className={cn(
                             "h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive",
-                            !canDelete && "opacity-50"
+                            !canDelete && !isCurrentUserFile && "opacity-50"
                           )}
-                          onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
+                          onClick={() => handleDeleteFile(file.nodeId, file.fileName, file.author)}
                           disabled={isPendingDelete}
                           aria-label={`Удалить ${fileName}`}
                           title={`Удалить ${fileName}`}

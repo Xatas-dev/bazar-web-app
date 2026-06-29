@@ -1,8 +1,18 @@
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
   version: default
-  resource: nodes
+  resource: storage_node
   rules:
+    - actions: [READ]
+      effect: EFFECT_ALLOW
+      roles: [user]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+              - expr: has(P.attr.allowed_actions) && 'storage_node:READ' in P.attr.allowed_actions
+
     - actions: [UPLOAD]
       effect: EFFECT_ALLOW
       roles: [user]
@@ -11,7 +21,7 @@ resourcePolicy:
           any:
             of:
               - expr: has(P.attr.is_creator) && P.attr.is_creator == true
-              - expr: has(P.attr.allowed_actions) && 'nodes:UPLOAD' in P.attr.allowed_actions
+              - expr: has(P.attr.allowed_actions) && 'storage_node:UPLOAD' in P.attr.allowed_actions
 
     - actions: [DOWNLOAD]
       effect: EFFECT_ALLOW
@@ -21,7 +31,8 @@ resourcePolicy:
           any:
             of:
               - expr: has(P.attr.is_creator) && P.attr.is_creator == true
-              - expr: has(P.attr.allowed_actions) && 'nodes:DOWNLOAD' in P.attr.allowed_actions
+              - expr: has(P.attr.allowed_actions) && 'storage_node:DOWNLOAD' in P.attr.allowed_actions
+              - expr: has(R.attr.created_by) && has(P.attr.user_id) && R.attr.created_by == P.attr.user_id
 
     - actions: [DELETE]
       effect: EFFECT_ALLOW
@@ -31,4 +42,5 @@ resourcePolicy:
           any:
             of:
               - expr: has(P.attr.is_creator) && P.attr.is_creator == true
-              - expr: has(P.attr.allowed_actions) && 'nodes:DELETE' in P.attr.allowed_actions
+              - expr: has(P.attr.allowed_actions) && 'storage_node:DELETE' in P.attr.allowed_actions
+              - expr: has(R.attr.created_by) && has(P.attr.user_id) && R.attr.created_by == P.attr.user_id

@@ -76,6 +76,7 @@ export default function SpaceDashboardPage() {
   const canUploadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageUpload);
   const canDownloadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDownload);
   const canDeleteStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDelete);
+  const canReadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageRead);
 
   const createGrantableActionIds = isCreator
       ? null
@@ -117,10 +118,14 @@ export default function SpaceDashboardPage() {
 
   useEffect(() => {
     const permissionsResolved = isCreator || !!assignedRole;
-    if (userRolesResponse && permissionsResolved && !canReadChat && workspaceTab === "chat") {
-      setWorkspaceTab("storage");
+    if (userRolesResponse && permissionsResolved) {
+      if (!canReadChat && workspaceTab === "chat") {
+        setWorkspaceTab("storage");
+      } else if (!canReadStorage && workspaceTab === "storage") {
+        setWorkspaceTab("chat");
+      }
     }
-  }, [canReadChat, workspaceTab, userRolesResponse, isCreator, assignedRole]);
+  }, [canReadChat, canReadStorage, workspaceTab, userRolesResponse, isCreator, assignedRole]);
 
   useEffect(() => {
     if (active !== 'space-settings') {
@@ -219,7 +224,12 @@ export default function SpaceDashboardPage() {
                          disabled={!canReadChat}
                          title={!canReadChat ? "У вас нет прав на просмотр чата" : "Чат"}
                        />
-                       <WorkspaceTabsTrigger value="storage" icon={HardDrive} label="Сторадж" title="Сторадж" />
+                       <WorkspaceTabsTrigger
+                          value="storage"
+                          icon={HardDrive}
+                          label="Сторадж"
+                          disabled={!canReadStorage}
+                          title={!canReadStorage ? "У вас нет прав на просмотр стораджа" : "Сторадж"} />
                      </TabsList>
 
                      {workspaceTab === "storage" && (
