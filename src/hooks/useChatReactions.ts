@@ -34,7 +34,7 @@ export const useGetChatReactions = (spaceId: number | undefined, chatId: number 
     queryKey: ['chat', chatId, 'reactions'],
     queryFn: async () => {
       if (!spaceId || !chatId) throw new Error('Space ID and Chat ID are required');
-      const response = await chatAxiosInstance.get<ChatReactionsApiResponse>(`/v1/spaces/${spaceId}/chats/${chatId}/reactions`);
+      const response = await chatAxiosInstance.get<ChatReactionsApiResponse>(`/spaces/${spaceId}/chats/${chatId}/reactions`);
       return normalizeChatReactionsResponse(response.data);
     },
     enabled: !!spaceId && !!chatId,
@@ -48,7 +48,7 @@ export const useGetMessageReactionUsers = (spaceId: number | undefined, chatId: 
     queryFn: async () => {
       if (!spaceId || !chatId || !messageId) throw new Error('Space ID, Chat ID and message ID are required');
       const response = await chatAxiosInstance.get<MessageReactionUsersResponse>(
-        `/v1/spaces/${spaceId}/chats/${chatId}/messages/${messageId}/reactions/users`
+        `/spaces/${spaceId}/chats/${chatId}/messages/${messageId}/reactions/users`
       );
       return response.data;
     },
@@ -69,7 +69,7 @@ export const useChangeMessageReaction = () => {
     mutationFn: async ({ spaceId, chatId, messageId, reactionId }) => {
       if (!spaceId || !chatId || !messageId) throw new Error("Space ID, Chat ID and Message ID are required");
       const response = await chatAxiosInstance.put<MessageReactionChangeResponse>(
-        `/v1/spaces/${spaceId}/chats/${chatId}/messages/${messageId}/reactions/${reactionId}`
+        `/spaces/${spaceId}/chats/${chatId}/messages/${messageId}/reactions/${reactionId}`
       );
       return response.data;
     },

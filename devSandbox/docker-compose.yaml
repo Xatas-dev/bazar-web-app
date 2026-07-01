@@ -71,7 +71,7 @@ services:
       - app-network
 
   bazar-api-gateway:
-    image: basegod/bazar-api-gateway:latest
+    image: basegod/bazar-api-gateway:1.0.2-SNAPSHOT
     container_name: bazar-api-gateway
     environment:
       - KC_URL=http://host.docker.internal:9999
@@ -159,6 +159,8 @@ services:
       - INTEGRATION_REST_BAZAR_PERSONA_API_URL=http://bazar-persona:8080/api
       - INTEGRATION_REST_BAZAR_SPACE_API_URL=http://bazar-space:8080/api
       - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - INTEGRATION_REST_AUTHORIZATION_HOST=bazar-authorization
+      - INTEGRATION_REST_AUTHORIZATION_PORT=9090
       - SETTING_SCHEDULER_MESSAGE_DELETE_MESSAGES=0 0 3 * * *
       - SETTING_MESSAGE_REPLY_PREVIEW_LENGTH=30
       - SETTING_PUSH_SUBSCRIPTION_PUBLIC_KEY=BD7Ly3KFruY0cndkBkmJ8pjeThxCKVrD3h6krbEqRTeLjDwi0XBa9t4BLXmZ6xvjrxaR5z2u2RDUEI4ru05CXsA
