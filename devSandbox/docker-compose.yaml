@@ -146,10 +146,10 @@ services:
       - app-network
     restart: unless-stopped
 
-   bazar-chat:
+  bazar-chat:
      image: basegod/bazar-chat:latest
      container_name: bazar-chat
-    environment:
+     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrchat
       - SYSTEM_DB_USERNAME=postgres
       - SYSTEM_DB_PASSWORD=postgres
@@ -165,15 +165,15 @@ services:
       - SETTING_PUSH_SUBSCRIPTION_PRIVATE_KEY=xnLO-fKZ-3p8zO3XLFHMf_PW03Y-BjR2n2ginAJXl_M
       - SETTING_PUSH_SUBSCRIPTION_SUBJECT=mailto:bazar@bazar.mail.ru
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-    depends_on:
+     depends_on:
       postgresql:
         condition: service_healthy
-    extra_hosts:
+     extra_hosts:
       - "host.docker.internal:host-gateway"
-    networks:
+     networks:
       - app-network
-    restart: unless-stopped
-    ports:
+     restart: unless-stopped
+     ports:
       - "5005:5005"
 
   bazar-persona:

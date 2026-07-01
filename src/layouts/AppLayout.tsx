@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useUserStore } from "@/store/userStore";
-import { useSpaces, useDeleteSpace } from "@/hooks/useSpaces";
+import { useSpaces } from "@/hooks/useSpaces";
 import { useGetChatById } from "@/hooks/useChat";
 import { pushService } from "@/services/pushService";
 import { Button } from "@/components/ui/button";
