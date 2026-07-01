@@ -93,6 +93,10 @@ export interface DeleteMessagesRequest {
   messageIds: number[];
 }
 
+export interface EditMessageRequest {
+  content: string;
+}
+
 // WebSocket Event Types
 export enum ChatEventType {
   CREATED = 'CREATED',
