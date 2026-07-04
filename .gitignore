@@ -19,3 +19,4 @@ dist
 /devSandbox/space-policy.yaml
 /devSandbox/data
 /devSandbox/cerbos-audit
+/devSandbox/docker-compose-local.yaml

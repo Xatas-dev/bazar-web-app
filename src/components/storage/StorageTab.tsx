@@ -14,6 +14,9 @@ import { StorageTabSkeleton } from './StorageTabSkeleton';
 
 interface StorageTabProps {
   spaceId: number;
+  canUpload?: boolean;
+  canDownload?: boolean;
+  canDelete?: boolean;
 }
 
 const formatUploadedAt = (dateString: string | null) => {
@@ -34,13 +37,17 @@ const formatUploadedAt = (dateString: string | null) => {
     .replace(' в 0', ' в ');
 };
 
-export function StorageUploadButton({ spaceId }: StorageTabProps) {
+export function StorageUploadButton({ spaceId, canUpload = false }: StorageTabProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const initiateUploadMutation = useInitiateUpload();
   const queryClient = useQueryClient();
 
   const onUploadClick = () => {
+    if (!canUpload) {
+      notify.error.forbidden();
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -120,7 +127,9 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
 
       notify.error.timeout();
     } catch (err: any) {
-      notify.error.generic();
+      if (err?.response?.status !== 403) {
+        notify.error.generic();
+      }
     } finally {
       setIsUploading(false);
     }
@@ -133,7 +142,10 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
         type="button"
         onClick={onUploadClick}
         disabled={isUploading}
-        className="surface-panel-muted inline-flex min-w-32 items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-medium leading-none text-foreground transition-colors hover:bg-[hsl(var(--panel-surface-strong))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className={cn(
+          "surface-panel-muted inline-flex min-w-32 items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-medium leading-none text-foreground transition-colors hover:bg-[hsl(var(--panel-surface-strong))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          !canUpload && "opacity-50"
+        )}
       >
         {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
         <span>Загрузить</span>
@@ -142,7 +154,7 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
   );
 }
 
-export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
+export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = false, canDelete = false }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 20;
   const [pendingDeleteNodeIds, setPendingDeleteNodeIds] = useState<Set<string>>(new Set());
@@ -162,7 +174,11 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   const downloadUrlMutation = useDownloadUrl();
   const deleteNodeMutation = useDeleteNode();
 
-  const handleDownload = async (nodeId: string, fileName: string | null) => {
+  const handleDownload = async (nodeId: string, fileName: string | null, author: V1GetNodesAuthorResponse | null) => {
+    if (!canDownload && !isOwnedByCurrentUser(author)) {
+      notify.error.forbidden();
+      return;
+    }
    try {
      const response = await downloadUrlMutation.mutateAsync({ spaceId, nodeId });
 
@@ -173,12 +189,18 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
      link.click();
      document.body.removeChild(link);
 
-    } catch (err) {
-      notify.error.generic("Не удалось скачать файл. Пожалуйста, попробуйте снова.");
+    } catch (err: any) {
+      if (err?.response?.status !== 403) {
+        notify.error.generic("Не удалось скачать файл. Пожалуйста, попробуйте снова.");
+      }
     }
   };
 
   const handleDeleteFile = async (nodeId: string, fileName: string | null) => {
+    if (!canDelete) {
+      notify.error.forbidden();
+      return;
+    }
     if (pendingDeleteNodeIds.has(nodeId)) {
       return;
     }
@@ -195,8 +217,10 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
 
     try {
       await deleteNodeMutation.mutateAsync({ spaceId, nodeId });
-    } catch (err) {
-      notify.error.generic("Не удалось удалить файл. Пожалуйста, попробуйте снова.");
+    } catch (err: any) {
+      if (err?.response?.status !== 403) {
+        notify.error.generic("Не удалось удалить файл. Пожалуйста, попробуйте снова.");
+      }
     } finally {
       setPendingDeleteNodeIds((prev) => {
         const next = new Set(prev);
@@ -299,9 +323,10 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                           className={cn(
                             "h-10 w-10 rounded-md border-0 p-0 transition-colors hover:bg-[hsl(var(--panel-surface-strong))] hover:ring-1 hover:ring-[hsl(var(--panel-border-strong))]",
                             isCurrentUserFile &&
-                              "text-[hsl(var(--self-block-foreground))] hover:bg-[hsl(var(--self-block-foreground)/0.2)] hover:ring-[hsl(var(--self-block-foreground)/0.3)] hover:text-[hsl(var(--self-block-foreground))]"
+                              "text-[hsl(var(--self-block-foreground))] hover:bg-[hsl(var(--self-block-foreground)/0.2)] hover:ring-[hsl(var(--self-block-foreground)/0.3)] hover:text-[hsl(var(--self-block-foreground))]",
+                            !canDownload && !isCurrentUserFile && "opacity-50"
                           )}
-                          onClick={() => handleDownload(file.nodeId, file.fileName)}
+                          onClick={() => handleDownload(file.nodeId, file.fileName, file.author)}
                           disabled={downloadUrlMutation.isPending || isPendingDelete}
                           aria-label={`Скачать ${fileName}`}
                           title={`Скачать ${fileName}`}
@@ -315,7 +340,10 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive"
+                          className={cn(
+                            "h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive",
+                            !canDelete && "opacity-50"
+                          )}
                           onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
                           disabled={isPendingDelete}
                           aria-label={`Удалить ${fileName}`}
