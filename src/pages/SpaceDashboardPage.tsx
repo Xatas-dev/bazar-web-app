@@ -227,10 +227,10 @@ export default function SpaceDashboardPage() {
                        <WorkspaceTabsTrigger
                           value="storage"
                           icon={HardDrive}
-                          label="Сторадж"
+                          label="Хранилище"
                           disabled={!canReadStorage}
-                          title={!canReadStorage ? "У вас нет прав на просмотр стораджа" : "Сторадж"} />
-                     </TabsList>
+                          title={!canReadStorage ? "У вас нет прав на просмотр хранилища" : "Хранилище"} />
+                    </TabsList>
 
                      {workspaceTab === "storage" && (
                        <div className="absolute right-12 top-2 flex items-start">

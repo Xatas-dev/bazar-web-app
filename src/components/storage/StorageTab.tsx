@@ -196,8 +196,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = f
     }
   };
 
-  const handleDeleteFile = async (nodeId: string, fileName: string | null, author: V1GetNodesAuthorResponse | null) => {
-    if (!canDelete && !isOwnedByCurrentUser(author)) {
+  const handleDeleteFile = async (nodeId: string, fileName: string | null) => {
+    if (!canDelete) {
       notify.error.forbidden();
       return;
     }
@@ -342,9 +342,9 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = f
                           variant="ghost"
                           className={cn(
                             "h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive",
-                            !canDelete && !isCurrentUserFile && "opacity-50"
+                            !canDelete && "opacity-50"
                           )}
-                          onClick={() => handleDeleteFile(file.nodeId, file.fileName, file.author)}
+                          onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
                           disabled={isPendingDelete}
                           aria-label={`Удалить ${fileName}`}
                           title={`Удалить ${fileName}`}
