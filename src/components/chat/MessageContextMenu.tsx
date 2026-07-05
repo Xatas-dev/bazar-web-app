@@ -14,7 +14,6 @@ import { useGetMessageReactionUsers } from "@/hooks/useChatReactions";
 import { getDisplayName, getInitials } from "@/lib/user-display";
 
 interface MessageContextMenuProps {
-  spaceId: number;
   chatId: number;
   message: MessageResponse;
   children: React.ReactNode;
@@ -27,7 +26,6 @@ interface MessageContextMenuProps {
 }
 
 export const MessageContextMenu = ({
-  spaceId,
   chatId,
   message,
   children,
@@ -41,10 +39,10 @@ export const MessageContextMenu = ({
   const [showReactionUsers, setShowReactionUsers] = useState(false);
   const canDelete = message.allowedActions?.includes(AllowedMessageAction.DELETE) ?? false;
   const canEdit = message.allowedActions?.includes(AllowedMessageAction.EDIT) ?? false;
+  const userReactionCount = message.reactions?.filter((reaction) => reaction.reactedByMe).length ?? 0;
   const hasReactions = message.reactions && message.reactions.length > 0;
 
   const { data: reactionUsersData, isLoading: isReactionUsersLoading } = useGetMessageReactionUsers(
-    spaceId,
     chatId,
     message.id,
     showReactionUsers
@@ -128,10 +126,12 @@ export const MessageContextMenu = ({
                     const isAlreadyReacted = message.reactions?.some(
                       (messageReaction) => messageReaction.reactionId === reaction.reactionId && messageReaction.reactedByMe
                     ) ?? false;
+                    const isBlockedByLimit = !isAlreadyReacted && userReactionCount >= 3;
 
                     return (
                       <ContextMenuItem
                         key={reaction.reactionId}
+                        disabled={isBlockedByLimit}
                         onSelect={() => handleReact(reaction.reactionId)}
                         className={cn(
                           "h-9 w-9 justify-center rounded-md px-0 text-lg transition-transform hover:scale-110 active:scale-75 data-[disabled]:opacity-30",

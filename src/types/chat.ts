@@ -136,10 +136,6 @@ export interface WebSocketChatEvent {
 
 export interface MessageReactionChangeResponse {
   messageId: string;
-  reactions: changedMessageReaction[];
-}
-
-export interface changedMessageReaction {
-    reactionId: string;
-    count: number;
+  reactionId: string;
+  count: number;
 }

@@ -10,7 +10,6 @@ import { MessageResponse, MessageAuthor } from "@/types/chat";
 import { MessageListSkeleton } from "./MessageListSkeleton";
 
 interface MessageListProps {
-  spaceId: number;
   chatId: number;
   onReply?: (message: MessageResponse) => void;
   onEdit?: (message: MessageResponse) => void;
@@ -18,7 +17,7 @@ interface MessageListProps {
 
 const EDGE_THRESHOLD = 16;
 
-export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListProps) => {
+export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   useChatWebSocket(chatId);
 
   const {
@@ -28,9 +27,9 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
     isFetchingNextPage,
     isLoading,
     isError
-  } = useGetChatMessages(spaceId, chatId);
+  } = useGetChatMessages(chatId);
 
-  const { data: availableReactions } = useGetChatReactions(spaceId, chatId);
+  const { data: availableReactions } = useGetChatReactions(chatId);
 
   const { user: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -79,7 +78,7 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
 
   const handleDeleteMessage = (messageId: number) => {
     deleteMessagesMutation.mutate(
-      { spaceId, chatId, data: { messageIds: [messageId] } },
+      { chatId, data: { messageIds: [messageId] } },
       {
         onSuccess: () => {
         },
@@ -94,7 +93,7 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
   };
 
   const handleReact = (messageId: number, reactionId: string) => {
-    changeReactionMutation.mutate({ spaceId, chatId, messageId, reactionId });
+    changeReactionMutation.mutate({ chatId, messageId, reactionId });
   };
 
   const handleScroll = () => {
@@ -194,7 +193,6 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
                   return (
                       <MessageItem
                           key={msg.id}
-                          spaceId={spaceId}
                           chatId={chatId}
                           message={msg}
                           isCurrentUser={isCurrentUser}

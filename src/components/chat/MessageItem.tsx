@@ -9,7 +9,6 @@ import { Reply } from "lucide-react";
 import { getDisplayName, getInitials } from "@/lib/user-display";
 
 interface MessageItemProps {
-  spaceId: number;
   chatId: number;
   message: MessageResponse;
   isCurrentUser: boolean;
@@ -24,7 +23,6 @@ interface MessageItemProps {
 }
 
 export const MessageItem = ({
-  spaceId,
   chatId,
   message,
   isCurrentUser,
@@ -121,7 +119,6 @@ export const MessageItem = ({
         )}
       >
         <MessageContextMenu
-          spaceId={spaceId}
           chatId={chatId}
           message={message}
           availableReactions={availableReactions}

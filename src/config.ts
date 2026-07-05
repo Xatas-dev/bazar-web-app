@@ -45,8 +45,8 @@ const config: Config = {
         targetLocal: '/bazar-persona' // локальный json-server через vite proxy
     },
     chatApi: {
-        baseUrl: '/api/bazar-chat/v1',
-        targetLocal: '/bazar-chat/v1' // локальный json-server через vite proxy
+        baseUrl: '/api/bazar-chat',
+        targetLocal: '/bazar-chat' // локальный json-server через vite proxy
     },
     storageApi: {
         baseUrl: '/api/bazar-storage',
