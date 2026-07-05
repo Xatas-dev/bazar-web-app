@@ -73,10 +73,6 @@ export default function SpaceDashboardPage() {
   const canDeleteMember = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.spaceUserDelete);
   const canReadChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatRead);
   const canWriteChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatWrite);
-  const canUploadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageUpload);
-  const canDownloadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDownload);
-  const canDeleteStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDelete);
-  const canReadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageRead);
 
   const createGrantableActionIds = isCreator
       ? null
@@ -118,14 +114,10 @@ export default function SpaceDashboardPage() {
 
   useEffect(() => {
     const permissionsResolved = isCreator || !!assignedRole;
-    if (userRolesResponse && permissionsResolved) {
-      if (!canReadChat && workspaceTab === "chat") {
-        setWorkspaceTab("storage");
-      } else if (!canReadStorage && workspaceTab === "storage") {
-        setWorkspaceTab("chat");
-      }
+    if (userRolesResponse && permissionsResolved && !canReadChat && workspaceTab === "chat") {
+      setWorkspaceTab("storage");
     }
-  }, [canReadChat, canReadStorage, workspaceTab, userRolesResponse, isCreator, assignedRole]);
+  }, [canReadChat, workspaceTab, userRolesResponse, isCreator, assignedRole]);
 
   useEffect(() => {
     if (active !== 'space-settings') {
@@ -224,17 +216,12 @@ export default function SpaceDashboardPage() {
                          disabled={!canReadChat}
                          title={!canReadChat ? "У вас нет прав на просмотр чата" : "Чат"}
                        />
-                       <WorkspaceTabsTrigger
-                          value="storage"
-                          icon={HardDrive}
-                          label="Хранилище"
-                          disabled={!canReadStorage}
-                          title={!canReadStorage ? "У вас нет прав на просмотр хранилища" : "Хранилище"} />
-                    </TabsList>
+                       <WorkspaceTabsTrigger value="storage" icon={HardDrive} label="Сторадж" title="Сторадж" />
+                     </TabsList>
 
                      {workspaceTab === "storage" && (
                        <div className="absolute right-12 top-2 flex items-start">
-                         <StorageUploadButton spaceId={id} canUpload={canUploadStorage} />
+                         <StorageUploadButton spaceId={id} />
                        </div>
                      )}
                    </div>
@@ -246,7 +233,7 @@ export default function SpaceDashboardPage() {
                    </TabsContent>
 
                    <TabsContent value="storage" className="mt-0 flex-1 min-h-0 overflow-visible">
-                     <StorageTab spaceId={id} canUpload={canUploadStorage} canDownload={canDownloadStorage} canDelete={canDeleteStorage}/>
+                     <StorageTab spaceId={id} />
                    </TabsContent>
                  </div>
                </motion.div>
