@@ -14,6 +14,9 @@ import { StorageTabSkeleton } from './StorageTabSkeleton';
 
 interface StorageTabProps {
   spaceId: number;
+  canUpload?: boolean;
+  canDownload?: boolean;
+  canDelete?: boolean;
 }
 
 const formatUploadedAt = (dateString: string | null) => {
@@ -34,13 +37,17 @@ const formatUploadedAt = (dateString: string | null) => {
     .replace(' в 0', ' в ');
 };
 
-export function StorageUploadButton({ spaceId }: StorageTabProps) {
+export function StorageUploadButton({ spaceId, canUpload = false }: StorageTabProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const initiateUploadMutation = useInitiateUpload();
   const queryClient = useQueryClient();
 
   const onUploadClick = () => {
+    if (!canUpload) {
+      notify.error.forbidden();
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -73,20 +80,20 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
     e.currentTarget.value = '';
 
     if (file.size > 50 * 1024 * 1024) {
-      notify.error.validation("File size cannot exceed 50 MB.");
+      notify.error.validation("Размер файла не может превышать 50 МБ.");
       return;
     }
 
     const name = file.name || '';
     if (name.length > 100) {
-      notify.error.validation("File name cannot exceed 100 characters.");
+      notify.error.validation("Имя файла не может превышать 100 символов.");
       return;
     }
 
     const parts = name.split('.');
     const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
     if (ext && ['exe', 'sh', 'bat', 'msi', 'bin', 'ps1', 'hta'].includes(ext)) {
-      notify.error.validation("File type is not allowed.");
+      notify.error.validation("Тип файла не разрешен.");
       return;
     }
 
@@ -103,7 +110,7 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
       });
 
       if (!putRes.ok) {
-        notify.error.generic("Upload failed. Please try again.");
+        notify.error.generic("Загрузка не удалась. Пожалуйста, попробуйте снова.");
         return;
       }
 
@@ -114,13 +121,15 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
       }
 
       if (result.status === 'ERROR') {
-        notify.error.generic("File processing failed. Please try again.");
+        notify.error.generic("Обработка файла не удалась. Пожалуйста, попробуйте снова.");
         return;
       }
 
       notify.error.timeout();
     } catch (err: any) {
-      notify.error.generic();
+      if (err?.response?.status !== 403) {
+        notify.error.generic();
+      }
     } finally {
       setIsUploading(false);
     }
@@ -133,16 +142,19 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
         type="button"
         onClick={onUploadClick}
         disabled={isUploading}
-        className="surface-panel-muted inline-flex min-w-32 items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-medium leading-none text-foreground transition-colors hover:bg-[hsl(var(--panel-surface-strong))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className={cn(
+          "surface-panel-muted inline-flex min-w-32 items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-medium leading-none text-foreground transition-colors hover:bg-[hsl(var(--panel-surface-strong))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          !canUpload && "opacity-50"
+        )}
       >
         {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        <span>Upload</span>
+        <span>Загрузить</span>
       </button>
     </>
   );
 }
 
-export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
+export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = false, canDelete = false }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 20;
   const [pendingDeleteNodeIds, setPendingDeleteNodeIds] = useState<Set<string>>(new Set());
@@ -162,7 +174,11 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   const downloadUrlMutation = useDownloadUrl();
   const deleteNodeMutation = useDeleteNode();
 
-  const handleDownload = async (nodeId: string, fileName: string | null) => {
+  const handleDownload = async (nodeId: string, fileName: string | null, author: V1GetNodesAuthorResponse | null) => {
+    if (!canDownload && !isOwnedByCurrentUser(author)) {
+      notify.error.forbidden();
+      return;
+    }
    try {
      const response = await downloadUrlMutation.mutateAsync({ spaceId, nodeId });
 
@@ -173,17 +189,23 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
      link.click();
      document.body.removeChild(link);
 
-    } catch (err) {
-      notify.error.generic("Failed to download file. Please try again.");
+    } catch (err: any) {
+      if (err?.response?.status !== 403) {
+        notify.error.generic("Не удалось скачать файл. Пожалуйста, попробуйте снова.");
+      }
     }
   };
 
   const handleDeleteFile = async (nodeId: string, fileName: string | null) => {
+    if (!canDelete) {
+      notify.error.forbidden();
+      return;
+    }
     if (pendingDeleteNodeIds.has(nodeId)) {
       return;
     }
 
-    if (!confirm(`Delete file "${fileName || 'unnamed'}"?`)) {
+    if (!confirm(`Удалить файл "${fileName || 'безымянный'}"?`)) {
       return;
     }
 
@@ -195,8 +217,10 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
 
     try {
       await deleteNodeMutation.mutateAsync({ spaceId, nodeId });
-    } catch (err) {
-      notify.error.generic("Failed to delete file. Please try again.");
+    } catch (err: any) {
+      if (err?.response?.status !== 403) {
+        notify.error.generic("Не удалось удалить файл. Пожалуйста, попробуйте снова.");
+      }
     } finally {
       setPendingDeleteNodeIds((prev) => {
         const next = new Set(prev);
@@ -207,7 +231,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   };
 
   const getAuthorName = (author: V1GetNodesAuthorResponse | null) => {
-    return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Unknown');
+    return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Неизвестно');
   };
 
   const normalizeName = (value: string | null | undefined) => value?.trim().toLowerCase() ?? '';
@@ -228,8 +252,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   if (error) {
     return (
       <div className="rounded-lg border border-destructive bg-[hsl(var(--panel-surface-muted))] p-6 text-destructive">
-        <h3 className="text-lg font-semibold">Error Loading Files</h3>
-        <p className="text-sm text-muted-foreground">Failed to load files from storage. Please try again later.</p>
+        <h3 className="text-lg font-semibold">Ошибка загрузки файлов</h3>
+        <p className="text-sm text-muted-foreground">Не удалось загрузить файлы из хранилища. Пожалуйста, попробуйте позже.</p>
       </div>
     );
   }
@@ -243,14 +267,14 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
         <div className="relative z-10 flex min-h-0 flex-1 items-center justify-center text-muted-foreground">
           <div className="flex flex-col items-center gap-3 text-center">
             <FileIcon className="h-12 w-12 opacity-50" />
-            <p>No files uploaded yet</p>
+            <p>Файлы ещё не загружены</p>
           </div>
         </div>
       ) : (
         <div className="relative z-10 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 message-fade-mask sm:-mt-16 sm:pt-16">
           <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-2 px-3 pb-24 scroll-pb-72 sm:px-6">
             {files.map((file) => {
-                const fileName = file.fileName?.trim() || 'Unnamed file';
+                const fileName = file.fileName?.trim() || 'Безымянный файл';
                 const isPendingDelete = pendingDeleteNodeIds.has(file.nodeId);
                 const isCurrentUserFile = isOwnedByCurrentUser(file.author);
 
@@ -288,7 +312,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                               </>
                             )}
                             <span>•</span>
-                            <span>by {getAuthorName(file.author)}</span>
+                            <span>от {getAuthorName(file.author)}</span>
                           </div>
                         </div>
                       </div>
@@ -299,12 +323,13 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                           className={cn(
                             "h-10 w-10 rounded-md border-0 p-0 transition-colors hover:bg-[hsl(var(--panel-surface-strong))] hover:ring-1 hover:ring-[hsl(var(--panel-border-strong))]",
                             isCurrentUserFile &&
-                              "text-[hsl(var(--self-block-foreground))] hover:bg-[hsl(var(--self-block-foreground)/0.2)] hover:ring-[hsl(var(--self-block-foreground)/0.3)] hover:text-[hsl(var(--self-block-foreground))]"
+                              "text-[hsl(var(--self-block-foreground))] hover:bg-[hsl(var(--self-block-foreground)/0.2)] hover:ring-[hsl(var(--self-block-foreground)/0.3)] hover:text-[hsl(var(--self-block-foreground))]",
+                            !canDownload && !isCurrentUserFile && "opacity-50"
                           )}
-                          onClick={() => handleDownload(file.nodeId, file.fileName)}
+                          onClick={() => handleDownload(file.nodeId, file.fileName, file.author)}
                           disabled={downloadUrlMutation.isPending || isPendingDelete}
-                          aria-label={`Download ${fileName}`}
-                          title={`Download ${fileName}`}
+                          aria-label={`Скачать ${fileName}`}
+                          title={`Скачать ${fileName}`}
                         >
                           {downloadUrlMutation.isPending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -315,11 +340,14 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive"
+                          className={cn(
+                            "h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive",
+                            !canDelete && "opacity-50"
+                          )}
                           onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
                           disabled={isPendingDelete}
-                          aria-label={`Delete ${fileName}`}
-                          title={`Delete ${fileName}`}
+                          aria-label={`Удалить ${fileName}`}
+                          title={`Удалить ${fileName}`}
                         >
                           {isPendingDelete ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -341,7 +369,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Page {currentPage + 1} of {totalPages}
+            Страница {currentPage + 1} из {totalPages}
           </p>
           <div className="flex gap-2">
             <Button

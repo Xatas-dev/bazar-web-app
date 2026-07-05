@@ -55,6 +55,7 @@
   --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(222 55% 42% / 0.55), transparent 60%),
     radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.35), transparent 55%),
     linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(229.4 100% 91%) 55%, hsl(228 100% 88%) 100%);
+  --particles-pattern: radial-gradient(circle, hsla(222, 55%, 42%, 0.28) 1px, transparent 1.6px);
   --radius: 1.375rem;
 
   /* Sidebar width tokens */
@@ -120,4 +121,5 @@
   --app-gradient: radial-gradient(900px circle at 15% -10%, hsl(222 55% 42% / 0.55), transparent 60%),
     radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.45), transparent 55%),
     linear-gradient(135deg, hsl(225 22.2% 10%) 0%, hsl(228 29.4% 14%) 55%, hsl(224.3 29.9% 20%) 100%);
+  --particles-pattern: radial-gradient(circle, hsla(222, 55%, 42%, 0.32) 1px, transparent 1.6px);
 }

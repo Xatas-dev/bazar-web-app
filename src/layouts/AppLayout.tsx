@@ -1,6 +1,8 @@
-import { useMemo, useState } from "react";
-import { Outlet, Link, NavLink, useLocation } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSpaces } from "@/hooks/useSpaces";
+import { useGetChatById } from "@/hooks/useChat";
+import { pushService } from "@/services/pushService";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -65,7 +67,7 @@ function SidebarTopBar({
       <div className="surface-shell flex flex-col items-center gap-2 px-1 py-2.5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0" aria-label="Open user menu">
+            <Button variant="ghost" size="icon" className="shrink-0" aria-label="Открыть меню пользователя">
               <Menu className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
@@ -76,14 +78,14 @@ function SidebarTopBar({
                 <AvatarFallback>{userName?.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{userName || "User"}</p>
-                <p className="truncate text-xs text-muted-foreground">Open profile</p>
+                <p className="truncate text-sm font-medium">{userName || "Пользователь"}</p>
+                <p className="truncate text-xs text-muted-foreground">Открыть профиль</p>
               </div>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/spaces" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Create space
+                Создать спейс
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -93,7 +95,7 @@ function SidebarTopBar({
               className="flex items-center gap-2 text-destructive focus:text-destructive"
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              Выйти
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -104,7 +106,7 @@ function SidebarTopBar({
             size="icon"
             className="shrink-0"
             onClick={onToggleCollapse}
-            aria-label="Expand sidebar"
+            aria-label="Развернуть боковую панель"
           >
             <PanelLeft className="h-5 w-5" />
           </Button>
@@ -117,7 +119,7 @@ function SidebarTopBar({
     <div className="surface-shell flex items-center gap-3 px-3 py-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="shrink-0" aria-label="Open user menu">
+          <Button variant="ghost" size="icon" className="shrink-0" aria-label="Открыть меню пользователя">
             <Menu className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
@@ -135,7 +137,7 @@ function SidebarTopBar({
           <DropdownMenuItem asChild>
             <Link to="/spaces" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Create space
+              Создать спейс
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -145,7 +147,7 @@ function SidebarTopBar({
             className="flex items-center gap-2 text-destructive focus:text-destructive"
           >
             <LogOut className="h-4 w-4" />
-            Logout
+            Выйти
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -155,8 +157,8 @@ function SidebarTopBar({
         <Input
           value={spaceSearch}
           onChange={(event) => onSpaceSearchChange(event.target.value)}
-          placeholder="Search spaces"
-          aria-label="Search spaces"
+          placeholder="Поиск спейса"
+          aria-label="Поиск спейса"
           className="pl-9"
         />
       </div>
@@ -167,7 +169,7 @@ function SidebarTopBar({
           size="icon"
           className="shrink-0 ml-auto"
           onClick={onToggleCollapse}
-          aria-label="Collapse sidebar"
+          aria-label="Свернуть боковую панель"
         >
           <PanelLeftClose className="h-5 w-5" />
         </Button>
@@ -193,9 +195,6 @@ function NavigationContent({
     <ScrollArea className="flex-1 py-4">
       <div className="px-4 space-y-4">
         <nav className="space-y-1">
-          <h3 className="mb-2 px-2 text-xs font-semibold tracking-tight text-muted-foreground">
-            My Spaces
-          </h3>
           {spaces.map((space) => (
             <motion.div
               key={space.id}
@@ -219,7 +218,7 @@ function NavigationContent({
             </motion.div>
           ))}
           {spaceSearch.trim() && spaces.length === 0 ? (
-            <p className="px-2 text-sm text-muted-foreground">No spaces found.</p>
+            <p className="px-2 text-sm text-muted-foreground">Спейсы не найдены.</p>
           ) : null}
         </nav>
       </div>
@@ -238,10 +237,43 @@ export const AppLayout = () => {
   const isSpaceRoute = location.pathname.startsWith('/spaces/');
   const isSpaceDetailRoute = /^\/spaces\/\d+/.test(location.pathname);
   const contentKey = isSpaceDetailRoute ? 'space-detail' : location.pathname;
-  const { user } = useUser();
-  const { theme, toggleTheme } = useThemeStore();
-  const { data: spacesData } = useSpaces();
-  const spaces = spacesData?.spaces || [];
+   const { user } = useUser();
+   const { theme, toggleTheme } = useThemeStore();
+   const { data: spacesData } = useSpaces();
+   const spaces = spacesData?.spaces || [];
+   const navigate = useNavigate();
+
+   const searchParams = new URLSearchParams(location.search);
+  const notificationChatIdParam = searchParams.get("chatId");
+  const notificationMessageIdParam = searchParams.get("messageId");
+  const notificationChatId = notificationChatIdParam ? Number(notificationChatIdParam) : undefined;
+  const { data: notificationChat, error: notificationChatError } = useGetChatById(notificationChatId);
+
+  useEffect(() => {
+    if (notificationChatError) {
+      console.error("[WebPush] Failed to resolve chat route from notification", notificationChatError);
+    }
+  }, [notificationChatError]);
+
+  useEffect(() => {
+    if (!notificationChat || !notificationChatIdParam) {
+      return;
+    }
+
+    const targetSearchParams = new URLSearchParams();
+    targetSearchParams.set("chatId", notificationChatIdParam);
+    if (notificationMessageIdParam) {
+      targetSearchParams.set("messageId", notificationMessageIdParam);
+    }
+    targetSearchParams.set("tab", "chat");
+
+    const targetPath = `/spaces/${notificationChat.spaceId}`;
+    const targetUrl = `${targetPath}?${targetSearchParams.toString()}`;
+
+    if (`${location.pathname}${location.search}` !== targetUrl) {
+      navigate(targetUrl, { replace: true });
+    }
+  }, [location.pathname, location.search, navigate, notificationChat, notificationChatIdParam, notificationMessageIdParam]);
 
   const filteredSpaces = useMemo(() => {
     const query = spaceSearch.trim().toLowerCase();
@@ -252,22 +284,25 @@ export const AppLayout = () => {
     return spaces.filter((space) => space.name.toLowerCase().includes(query));
   }, [spaceSearch, spaces]);
 
-  const handleLogout = async () => {
-    try {
-      const logoutUrl = process.env.NODE_ENV === "development" ? "/logout" : "/api/logout";
-      await fetch(logoutUrl, {
-        method: "POST",
-        credentials: "include",
-        redirect: "follow",
-      });
+   const handleLogout = async () => {
+     try {
+       await pushService.unsubscribe();
 
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Logout failed", error);
-      window.location.href = "/";
-    }
-  };
+       const logoutUrl = process.env.NODE_ENV === "development" ? "/logout" : "/api/logout";
+       await fetch(logoutUrl, {
+         method: "POST",
+         credentials: "include",
+         redirect: "follow",
+       });
 
+       window.location.href = "/";
+     } catch (error) {
+       console.error("Выход не удался", error);
+       window.location.href = "/";
+     }
+   };
+
+   // Закрывать меню при переходе на другую страницу
   const handleNavClick = () => {
     setMobileMenuOpen(false);
   };
@@ -305,7 +340,7 @@ export const AppLayout = () => {
         <header className="surface-shell flex h-16 items-center border-b border-border px-4 md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu">
+              <Button variant="ghost" size="icon" aria-label="Открыть меню">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
