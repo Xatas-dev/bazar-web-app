@@ -6,51 +6,51 @@ export const notify = {
     forbidden: () =>
       toast({
         variant: "destructive",
-        title: "Доступ запрещён",
-        description: "У вас нет прав на выполнение этого действия.",
+        title: "Access denied",
+        description: "You do not have permission to perform this action.",
       }),
 
     unauthorized: () =>
       toast({
         variant: "destructive",
-        title: "Требуется аутентификация",
-        description: "Пожалуйста, войдите снова для продолжения.",
+        title: "Authentication required",
+        description: "Please log in again to continue.",
       }),
 
 
     serverError: () =>
       toast({
         variant: "destructive",
-        title: "Ошибка сервера",
-        description: "Произошла неожиданная ошибка. Пожалуйста, попробуйте снова.",
+        title: "Server error",
+        description: "An unexpected error occurred. Please try again.",
       }),
 
     networkError: () =>
       toast({
         variant: "destructive",
-        title: "Ошибка соединения",
-        description: "Не удаётся связаться с сервером. Проверьте подключение.",
+        title: "Connection error",
+        description: "Unable to reach the server. Please check your connection.",
       }),
 
     timeout: () =>
       toast({
         variant: "destructive",
-        title: "Тайм-аут запроса",
-        description: "Запрос занял слишком много времени. Пожалуйста, попробуйте снова.",
+        title: "Request timeout",
+        description: "The request took too long. Please try again.",
       }),
 
     validation: (description: string) =>
       toast({
         variant: "destructive",
-        title: "Ошибка валидации",
+        title: "Validation error",
         description,
       }),
 
     generic: (description?: string) =>
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: description ?? "Что-то пошло не так. Пожалуйста, попробуйте снова.",
+        title: "Error",
+        description: description ?? "Something went wrong. Please try again.",
       }),
   },
 };

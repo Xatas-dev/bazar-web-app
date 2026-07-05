@@ -30,16 +30,16 @@ export function ProfileRail() {
         >
       <div className="surface-shell flex items-start justify-between gap-4 px-4 py-4 sm:px-6">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Профиль</p>
-          <h2 className="truncate text-lg font-semibold sm:text-xl">Редактировать профиль</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Profile</p>
+          <h2 className="truncate text-lg font-semibold sm:text-xl">Edit profile</h2>
         </div>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={() => setActive(null)} aria-label="Закрыть панель профиля">
+            <Button variant="ghost" size="icon" onClick={() => setActive(null)} aria-label="Close profile panel">
               <X className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">Закрыть панель</TooltipContent>
+          <TooltipContent side="left">Close panel</TooltipContent>
         </Tooltip>
       </div>
 
@@ -56,40 +56,40 @@ export function ProfileRail() {
                 </Avatar>
                 <div className="min-w-0">
                   <p className="truncate text-lg font-semibold">{user.userName || "User"}</p>
-                  <p className="truncate text-sm text-muted-foreground">Обновите данные вашего профиля.</p>
+                  <p className="truncate text-sm text-muted-foreground">Update your profile details.</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="profile-userName">Имя пользователя</Label>
+                  <Label htmlFor="profile-userName">Username</Label>
                   <Input
                     id="profile-userName"
                     name="userName"
                     value={formData.userName}
                     onChange={handleChange}
-                    placeholder="Имя пользователя"
+                    placeholder="Username"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="profile-firstName">Имя</Label>
+                    <Label htmlFor="profile-firstName">First name</Label>
                     <Input
                       id="profile-firstName"
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      placeholder="Имя"
+                      placeholder="First name"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="profile-lastName">Фамилия</Label>
+                    <Label htmlFor="profile-lastName">Last name</Label>
                     <Input
                       id="profile-lastName"
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      placeholder="Фамилия"
+                      placeholder="Last name"
                     />
                   </div>
                 </div>
@@ -105,7 +105,7 @@ export function ProfileRail() {
                         </Button>
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent side="left">Сохранение...</TooltipContent>
+                    <TooltipContent side="left">Saving...</TooltipContent>
                   </Tooltip>
                 ) : (
                   <Tooltip>
@@ -114,7 +114,7 @@ export function ProfileRail() {
                         <Save className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="left">Сохранить изменения</TooltipContent>
+                    <TooltipContent side="left">Save changes</TooltipContent>
                   </Tooltip>
                 )}
               </div>

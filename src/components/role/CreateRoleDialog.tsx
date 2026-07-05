@@ -45,12 +45,12 @@ export default function CreateRolePanel({
 
   const handleSubmit = async () => {
     if (!roleName.trim()) {
-      notify.error.validation("Название роли обязательно.");
+      notify.error.validation("Role name is required.");
       return;
     }
 
     if (selectedActions.size === 0) {
-      notify.error.validation("Выберите хотя бы одно разрешение.");
+      notify.error.validation("Select at least one permission.");
       return;
     }
 
@@ -98,18 +98,18 @@ export default function CreateRolePanel({
       <div className="surface-shell flex items-center gap-3 border-b border-border px-4 py-4 sm:px-6">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onBack} aria-label="Назад к ролям">
+            <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back to roles">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">Назад</TooltipContent>
+          <TooltipContent side="left">Back</TooltipContent>
         </Tooltip>
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Создание роли
+            Create role
           </p>
           <h2 className="truncate text-lg font-semibold sm:text-xl">
-            Новая роль
+            New Role
           </h2>
         </div>
       </div>
@@ -260,7 +260,7 @@ export default function CreateRolePanel({
               <X className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">Отмена</TooltipContent>
+          <TooltipContent side="left">Cancel</TooltipContent>
         </Tooltip>
         {createRoleMutation.isPending ? (
           <Tooltip>
@@ -271,7 +271,7 @@ export default function CreateRolePanel({
                 </Button>
               </span>
             </TooltipTrigger>
-            <TooltipContent side="left">Создание...</TooltipContent>
+            <TooltipContent side="left">Creating...</TooltipContent>
           </Tooltip>
         ) : (
           <Tooltip>
@@ -280,7 +280,7 @@ export default function CreateRolePanel({
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="left">Создать роль</TooltipContent>
+            <TooltipContent side="left">Create role</TooltipContent>
           </Tooltip>
         )}
       </div>

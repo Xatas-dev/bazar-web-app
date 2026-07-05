@@ -127,7 +127,7 @@ export default function SpaceDashboardPage() {
   }, [active]);
 
   const handleDeleteSpace = () => {
-    if (confirm("Вы уверены, что хотите удалить этот спейс?")) {
+    if (confirm("Are you sure you want to delete this space?")) {
       deleteSpaceMutation.mutate(id, {
         onSuccess: () => {
           navigate("/spaces");
@@ -138,7 +138,7 @@ export default function SpaceDashboardPage() {
 
   const handleUpdateSpace = () => {
     if (!spaceName.trim()) {
-      notify.error.validation("Название спейса обязательно.");
+      notify.error.validation("Space name is required.");
       return;
     }
 
@@ -161,7 +161,7 @@ export default function SpaceDashboardPage() {
             className="group flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             aria-expanded={active === 'space-settings'}
             aria-controls="space-settings-drawer"
-            title="Открыть настройки спейса"
+            title="Open space settings"
           >
             <Box className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6" />
             <h1 className="truncate text-xl font-bold sm:text-2xl">
@@ -177,7 +177,7 @@ export default function SpaceDashboardPage() {
                   ) : currentSpace ? (
                     currentSpace.name
                   ) : (
-                    `Спейс #${id}`
+                    `Space #${id}`
                   )}
                 </motion.span>
               </AnimatePresence>
@@ -204,11 +204,11 @@ export default function SpaceDashboardPage() {
                       <WorkspaceTabsTrigger
                         value="chat"
                         icon={MessageSquare}
-                        label="Чат"
+                        label="Chat"
                         disabled={!canReadChat}
-                        title={!canReadChat ? "У вас нет прав на просмотр чата" : "Чат"}
+                        title={!canReadChat ? "You don't have permission to view chat" : "Chat"}
                       />
-                      <WorkspaceTabsTrigger value="storage" icon={HardDrive} label="Сторадж" title="Сторадж" />
+                      <WorkspaceTabsTrigger value="storage" icon={HardDrive} label="Storage" title="Storage" />
                     </TabsList>
 
                     {workspaceTab === "storage" && (
@@ -237,7 +237,7 @@ export default function SpaceDashboardPage() {
           open={active === 'space-settings'}
           onClose={() => setActive(null)}
           id={id}
-          currentSpaceName={currentSpace ? currentSpace.name : `Спейс #${id}`}
+          currentSpaceName={currentSpace ? currentSpace.name : `Space #${id}`}
           spaceName={spaceName}
           setSpaceName={setSpaceName}
           settingsTab={settingsTab}

@@ -65,7 +65,7 @@ function SidebarTopBar({
       <div className="surface-shell flex flex-col items-center gap-2 px-1 py-2.5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0" aria-label="Открыть меню пользователя">
+            <Button variant="ghost" size="icon" className="shrink-0" aria-label="Open user menu">
               <Menu className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
@@ -76,14 +76,14 @@ function SidebarTopBar({
                 <AvatarFallback>{userName?.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{userName || "Пользователь"}</p>
-                <p className="truncate text-xs text-muted-foreground">Открыть профиль</p>
+                <p className="truncate text-sm font-medium">{userName || "User"}</p>
+                <p className="truncate text-xs text-muted-foreground">Open profile</p>
               </div>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/spaces" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Создать спейс
+                Create space
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -93,7 +93,7 @@ function SidebarTopBar({
               className="flex items-center gap-2 text-destructive focus:text-destructive"
             >
               <LogOut className="h-4 w-4" />
-              Выйти
+              Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -104,7 +104,7 @@ function SidebarTopBar({
             size="icon"
             className="shrink-0"
             onClick={onToggleCollapse}
-            aria-label="Развернуть боковую панель"
+            aria-label="Expand sidebar"
           >
             <PanelLeft className="h-5 w-5" />
           </Button>
@@ -117,7 +117,7 @@ function SidebarTopBar({
     <div className="surface-shell flex items-center gap-3 px-3 py-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="shrink-0" aria-label="Открыть меню пользователя">
+          <Button variant="ghost" size="icon" className="shrink-0" aria-label="Open user menu">
             <Menu className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
@@ -135,7 +135,7 @@ function SidebarTopBar({
           <DropdownMenuItem asChild>
             <Link to="/spaces" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Создать спейс
+              Create space
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -145,7 +145,7 @@ function SidebarTopBar({
             className="flex items-center gap-2 text-destructive focus:text-destructive"
           >
             <LogOut className="h-4 w-4" />
-            Выйти
+            Logout
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -155,8 +155,8 @@ function SidebarTopBar({
         <Input
           value={spaceSearch}
           onChange={(event) => onSpaceSearchChange(event.target.value)}
-          placeholder="Поиск спейса"
-          aria-label="Поиск спейса"
+          placeholder="Search spaces"
+          aria-label="Search spaces"
           className="pl-9"
         />
       </div>
@@ -167,7 +167,7 @@ function SidebarTopBar({
           size="icon"
           className="shrink-0 ml-auto"
           onClick={onToggleCollapse}
-          aria-label="Свернуть боковую панель"
+          aria-label="Collapse sidebar"
         >
           <PanelLeftClose className="h-5 w-5" />
         </Button>
@@ -193,6 +193,9 @@ function NavigationContent({
     <ScrollArea className="flex-1 py-4">
       <div className="px-4 space-y-4">
         <nav className="space-y-1">
+          <h3 className="mb-2 px-2 text-xs font-semibold tracking-tight text-muted-foreground">
+            My Spaces
+          </h3>
           {spaces.map((space) => (
             <motion.div
               key={space.id}
@@ -216,7 +219,7 @@ function NavigationContent({
             </motion.div>
           ))}
           {spaceSearch.trim() && spaces.length === 0 ? (
-            <p className="px-2 text-sm text-muted-foreground">Спейсы не найдены.</p>
+            <p className="px-2 text-sm text-muted-foreground">No spaces found.</p>
           ) : null}
         </nav>
       </div>
@@ -260,7 +263,7 @@ export const AppLayout = () => {
 
       window.location.href = "/";
     } catch (error) {
-      console.error("Выход не удался", error);
+      console.error("Logout failed", error);
       window.location.href = "/";
     }
   };
@@ -302,7 +305,7 @@ export const AppLayout = () => {
         <header className="surface-shell flex h-16 items-center border-b border-border px-4 md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Открыть меню">
+              <Button variant="ghost" size="icon" aria-label="Open menu">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>

@@ -154,7 +154,7 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
   }
 
   if (isError) {
-    return <div className="text-center text-destructive p-4">Не удалось загрузить сообщения</div>;
+    return <div className="text-center text-destructive p-4">Failed to load messages</div>;
   }
 
   return (
@@ -174,14 +174,14 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
                     disabled={isFetchingNextPage}
                 >
                     {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Загрузить старые сообщения
+                    Load Older Messages
                 </Button>
             </div>
         )}
 
           {reversedMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-50">
-                  <p>Пока нет сообщений. Начните разговор!</p>
+                  <p>No messages yet. Start the conversation!</p>
               </div>
           ) : (
               reversedMessages.map((msg, index) => {

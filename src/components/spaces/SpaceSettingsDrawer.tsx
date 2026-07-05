@@ -148,19 +148,19 @@ export function SpaceSettingsDrawer({
         <div className="surface-shell flex items-start justify-between gap-4 px-4 pb-2 pt-4 sm:px-6">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Настройки спейса
+              Space settings
             </p>
             <h2 id="space-settings-title" className="truncate text-lg font-semibold sm:text-xl">
-              Управление {currentSpaceName}
+              Manage {currentSpaceName}
             </h2>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Закрыть панель настроек">
+              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close settings panel">
                 <X className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="left">Закрыть настройки</TooltipContent>
+            <TooltipContent side="left">Close settings</TooltipContent>
           </Tooltip>
         </div>
 
@@ -169,14 +169,14 @@ export function SpaceSettingsDrawer({
             <Tabs value={settingsTab} onValueChange={(value) => setSettingsTab(value as SettingsTab)} className="flex min-h-0 flex-col">
               <div className="flex justify-center px-1 pb-6">
                 <TabsList className={sharedTabsListClass}>
-                  <WorkspaceTabsTrigger value="overview" icon={LayoutGrid} label="Обзор" />
-                  <WorkspaceTabsTrigger value="members" icon={Users} label="Участники" />
+                  <WorkspaceTabsTrigger value="overview" icon={LayoutGrid} label="Overview" />
+                  <WorkspaceTabsTrigger value="members" icon={Users} label="Members" />
                   <WorkspaceTabsTrigger
                     value="roles"
                     icon={Shield}
-                    label="Роли"
+                    label="Roles"
                     disabled={!canReadRoles}
-                    title={!canReadRoles ? "У вас нет прав на просмотр ролей" : undefined}
+                    title={!canReadRoles ? "You don't have permission to view roles" : undefined}
                   />
                 </TabsList>
               </div>
@@ -185,7 +185,7 @@ export function SpaceSettingsDrawer({
                 <TabsContent value="overview" className="mt-0 flex-1 min-h-0 overflow-y-auto space-y-4">
                   <div className="space-y-4">
                     <div className="grid w-full items-center gap-1.5">
-                      <Label htmlFor="spaceName">Название спейса</Label>
+                      <Label htmlFor="spaceName">Space Name</Label>
                       <div className="flex flex-col gap-2 sm:flex-row px-1">
                         <Input
                           id="spaceName"
@@ -204,7 +204,7 @@ export function SpaceSettingsDrawer({
                                   </Button>
                                 </span>
                               </TooltipTrigger>
-                              <TooltipContent side="left">Сохранение...</TooltipContent>
+                              <TooltipContent side="left">Saving...</TooltipContent>
                             </Tooltip>
                           ) : (
                             <Tooltip>
@@ -213,7 +213,7 @@ export function SpaceSettingsDrawer({
                                   <Save className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent side="left">Сохранить</TooltipContent>
+                              <TooltipContent side="left">Save</TooltipContent>
                             </Tooltip>
                           )
                         ) : (
@@ -223,7 +223,7 @@ export function SpaceSettingsDrawer({
                                 <Save className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent side="left">Сохранить</TooltipContent>
+                            <TooltipContent side="left">Save</TooltipContent>
                           </Tooltip>
                         )}
                       </div>
@@ -231,9 +231,9 @@ export function SpaceSettingsDrawer({
 
                     <div className="surface-panel-muted mt-8 flex flex-col justify-between gap-4 rounded-lg p-4 sm:flex-row sm:items-center">
                       <div>
-                        <h3 className="font-medium text-destructive">Удалить спейс</h3>
+                        <h3 className="font-medium text-destructive">Delete Space</h3>
                         <p className="text-sm text-muted-foreground">
-                          Навсегда удалить этот спейс и все его данные.
+                          Permanently remove this space and all its data.
                         </p>
                       </div>
                       {canDeleteSpace ? (
@@ -243,7 +243,7 @@ export function SpaceSettingsDrawer({
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent side="left">Удалить спейс</TooltipContent>
+                          <TooltipContent side="left">Delete Space</TooltipContent>
                         </Tooltip>
                       ) : (
                         <Tooltip>
@@ -257,7 +257,7 @@ export function SpaceSettingsDrawer({
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent side="left">Удалить спейс</TooltipContent>
+                          <TooltipContent side="left">Delete Space</TooltipContent>
                         </Tooltip>
                       )}
                     </div>

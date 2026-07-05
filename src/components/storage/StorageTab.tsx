@@ -73,20 +73,20 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
     e.currentTarget.value = '';
 
     if (file.size > 50 * 1024 * 1024) {
-      notify.error.validation("Размер файла не может превышать 50 МБ.");
+      notify.error.validation("File size cannot exceed 50 MB.");
       return;
     }
 
     const name = file.name || '';
     if (name.length > 100) {
-      notify.error.validation("Имя файла не может превышать 100 символов.");
+      notify.error.validation("File name cannot exceed 100 characters.");
       return;
     }
 
     const parts = name.split('.');
     const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
     if (ext && ['exe', 'sh', 'bat', 'msi', 'bin', 'ps1', 'hta'].includes(ext)) {
-      notify.error.validation("Тип файла не разрешен.");
+      notify.error.validation("File type is not allowed.");
       return;
     }
 
@@ -103,7 +103,7 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
       });
 
       if (!putRes.ok) {
-        notify.error.generic("Загрузка не удалась. Пожалуйста, попробуйте снова.");
+        notify.error.generic("Upload failed. Please try again.");
         return;
       }
 
@@ -114,7 +114,7 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
       }
 
       if (result.status === 'ERROR') {
-        notify.error.generic("Обработка файла не удалась. Пожалуйста, попробуйте снова.");
+        notify.error.generic("File processing failed. Please try again.");
         return;
       }
 
@@ -136,7 +136,7 @@ export function StorageUploadButton({ spaceId }: StorageTabProps) {
         className="surface-panel-muted inline-flex min-w-32 items-center justify-center gap-2 rounded-full px-5 py-4 text-sm font-medium leading-none text-foreground transition-colors hover:bg-[hsl(var(--panel-surface-strong))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-        <span>Загрузить</span>
+        <span>Upload</span>
       </button>
     </>
   );
@@ -174,7 +174,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
      document.body.removeChild(link);
 
     } catch (err) {
-      notify.error.generic("Не удалось скачать файл. Пожалуйста, попробуйте снова.");
+      notify.error.generic("Failed to download file. Please try again.");
     }
   };
 
@@ -183,7 +183,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
       return;
     }
 
-    if (!confirm(`Удалить файл "${fileName || 'безымянный'}"?`)) {
+    if (!confirm(`Delete file "${fileName || 'unnamed'}"?`)) {
       return;
     }
 
@@ -196,7 +196,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
     try {
       await deleteNodeMutation.mutateAsync({ spaceId, nodeId });
     } catch (err) {
-      notify.error.generic("Не удалось удалить файл. Пожалуйста, попробуйте снова.");
+      notify.error.generic("Failed to delete file. Please try again.");
     } finally {
       setPendingDeleteNodeIds((prev) => {
         const next = new Set(prev);
@@ -207,7 +207,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   };
 
   const getAuthorName = (author: V1GetNodesAuthorResponse | null) => {
-    return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Неизвестно');
+    return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Unknown');
   };
 
   const normalizeName = (value: string | null | undefined) => value?.trim().toLowerCase() ?? '';
@@ -228,8 +228,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
   if (error) {
     return (
       <div className="rounded-lg border border-destructive bg-[hsl(var(--panel-surface-muted))] p-6 text-destructive">
-        <h3 className="text-lg font-semibold">Ошибка загрузки файлов</h3>
-        <p className="text-sm text-muted-foreground">Не удалось загрузить файлы из хранилища. Пожалуйста, попробуйте позже.</p>
+        <h3 className="text-lg font-semibold">Error Loading Files</h3>
+        <p className="text-sm text-muted-foreground">Failed to load files from storage. Please try again later.</p>
       </div>
     );
   }
@@ -243,14 +243,14 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
         <div className="relative z-10 flex min-h-0 flex-1 items-center justify-center text-muted-foreground">
           <div className="flex flex-col items-center gap-3 text-center">
             <FileIcon className="h-12 w-12 opacity-50" />
-            <p>Файлы ещё не загружены</p>
+            <p>No files uploaded yet</p>
           </div>
         </div>
       ) : (
         <div className="relative z-10 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 message-fade-mask sm:-mt-16 sm:pt-16">
           <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-2 px-3 pb-24 scroll-pb-72 sm:px-6">
             {files.map((file) => {
-                const fileName = file.fileName?.trim() || 'Безымянный файл';
+                const fileName = file.fileName?.trim() || 'Unnamed file';
                 const isPendingDelete = pendingDeleteNodeIds.has(file.nodeId);
                 const isCurrentUserFile = isOwnedByCurrentUser(file.author);
 
@@ -288,7 +288,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                               </>
                             )}
                             <span>•</span>
-                            <span>от {getAuthorName(file.author)}</span>
+                            <span>by {getAuthorName(file.author)}</span>
                           </div>
                         </div>
                       </div>
@@ -303,8 +303,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                           )}
                           onClick={() => handleDownload(file.nodeId, file.fileName)}
                           disabled={downloadUrlMutation.isPending || isPendingDelete}
-                          aria-label={`Скачать ${fileName}`}
-                          title={`Скачать ${fileName}`}
+                          aria-label={`Download ${fileName}`}
+                          title={`Download ${fileName}`}
                         >
                           {downloadUrlMutation.isPending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -318,8 +318,8 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
                           className="h-10 w-10 rounded-md border-0 p-0 text-destructive transition-colors hover:bg-destructive/10 hover:ring-1 hover:ring-destructive/30 hover:text-destructive"
                           onClick={() => handleDeleteFile(file.nodeId, file.fileName)}
                           disabled={isPendingDelete}
-                          aria-label={`Удалить ${fileName}`}
-                          title={`Удалить ${fileName}`}
+                          aria-label={`Delete ${fileName}`}
+                          title={`Delete ${fileName}`}
                         >
                           {isPendingDelete ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -341,7 +341,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId }) => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Страница {currentPage + 1} из {totalPages}
+            Page {currentPage + 1} of {totalPages}
           </p>
           <div className="flex gap-2">
             <Button
