@@ -32,7 +32,7 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
 
     const handleSendMessage = (content: string, replyMessageId?: number) => {
         if (chat?.id) {
-            createMessageMutation.mutate({chatId: chat.id, data: {content, replyMessageId}});
+            createMessageMutation.mutate({spaceId, chatId: chat.id, data: {content, replyMessageId}});
         }
     };
 
@@ -55,7 +55,7 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
     const handleEditMessageSubmit = (messageId: number, newContent: string) => {
         if (chat?.id) {
             editMessageMutation.mutate(
-                {chatId: chat.id, messageId, data: {newContent}},
+                {spaceId, chatId: chat.id, messageId, data: {newContent}},
                 {
                     onSuccess: () => {
                         setEditingMessage(null);
@@ -77,13 +77,13 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
                     <MessageSquarePlus className="h-8 w-8 text-muted-foreground"/>
                 </div>
                 <div>
-                    <h3 className="text-lg font-medium">No chat initialized</h3>
+                    <h3 className="text-lg font-medium">Чат не найден</h3>
                     <p className="text-sm text-muted-foreground max-w-xs">
-                        Start a new conversation in this space.
+                        Начните новый разговор в этом спейса.
                     </p>
                 </div>
                 <Button onClick={handleCreateChat} disabled={createChatMutation.isPending}>
-                    Create Chat
+                    Создать чат
                 </Button>
             </div>
         );
@@ -92,7 +92,7 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
     return (
         <div className="relative flex h-full min-h-0 flex-col bg-transparent">
             {/* Message List */}
-            <MessageList chatId={chat.id} onReply={handleReply} onEdit={handleEditMessage}/>
+            <MessageList spaceId={spaceId} chatId={chat.id} onReply={handleReply} onEdit={handleEditMessage}/>
 
             {/* Input Area */}
             <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30">

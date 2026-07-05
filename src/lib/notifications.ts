@@ -6,51 +6,51 @@ export const notify = {
     forbidden: () =>
       toast({
         variant: "destructive",
-        title: "Access denied",
-        description: "You do not have permission to perform this action.",
+        title: "Доступ запрещён",
+        description: "У вас нет прав на выполнение этого действия.",
       }),
 
     unauthorized: () =>
       toast({
         variant: "destructive",
-        title: "Authentication required",
-        description: "Please log in again to continue.",
+        title: "Требуется аутентификация",
+        description: "Пожалуйста, войдите снова для продолжения.",
       }),
 
 
     serverError: () =>
       toast({
         variant: "destructive",
-        title: "Server error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "Ошибка сервера",
+        description: "Произошла неожиданная ошибка. Пожалуйста, попробуйте снова.",
       }),
 
     networkError: () =>
       toast({
         variant: "destructive",
-        title: "Connection error",
-        description: "Unable to reach the server. Please check your connection.",
+        title: "Ошибка соединения",
+        description: "Не удаётся связаться с сервером. Проверьте подключение.",
       }),
 
     timeout: () =>
       toast({
         variant: "destructive",
-        title: "Request timeout",
-        description: "The request took too long. Please try again.",
+        title: "Тайм-аут запроса",
+        description: "Запрос занял слишком много времени. Пожалуйста, попробуйте снова.",
       }),
 
     validation: (description: string) =>
       toast({
         variant: "destructive",
-        title: "Validation error",
+        title: "Ошибка валидации",
         description,
       }),
 
     generic: (description?: string) =>
       toast({
         variant: "destructive",
-        title: "Error",
-        description: description ?? "Something went wrong. Please try again.",
+        title: "Ошибка",
+        description: description ?? "Что-то пошло не так. Пожалуйста, попробуйте снова.",
       }),
   },
 };

@@ -54,8 +54,8 @@ export default function RolesTab({
         <div className="flex items-center gap-3">
           <Shield className="h-6 w-6 text-primary" />
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold">Roles</h2>
-            <p className="text-xs sm:text-sm text-muted-foreground">Manage roles and pemissions in your space</p>
+            <h2 className="text-xl sm:text-2xl font-bold">Роли</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Управляйте ролями и разрешениями в спейсе</p>
           </div>
         </div>
         {canCreate ? (
@@ -65,7 +65,7 @@ export default function RolesTab({
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="left">Create role</TooltipContent>
+            <TooltipContent side="left">Создать роль</TooltipContent>
           </Tooltip>
         ) : (
           <Tooltip>
@@ -74,7 +74,7 @@ export default function RolesTab({
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="left">Create role</TooltipContent>
+            <TooltipContent side="left">Создать роль</TooltipContent>
           </Tooltip>
         )}
       </div>
@@ -85,9 +85,9 @@ export default function RolesTab({
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Shield className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <p className="text-center text-muted-foreground">
-                No roles. Create one
-              </p>
+                  <p className="text-center text-muted-foreground">
+                    Нет ролей. Создайте одну
+                  </p>
             </CardContent>
           </Card>
         ) : (
@@ -115,14 +115,14 @@ export default function RolesTab({
               <DropdownMenuContent align="start" className="min-w-40">
                 <DropdownMenuItem onSelect={() => setPanel('role-info', { roleId: role.id })}>
                   <Info className="mr-2 h-4 w-4" />
-                  Role info
+                  Информация о роли
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={!canEdit}
                   onSelect={() => setPanel('edit-role', { roleId: role.id })}
                 >
                   <Pencil className="mr-2 h-4 w-4" />
-                  Edit role
+                  Редактировать роль
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -1,10 +1,15 @@
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useUser } from "@/hooks/useUser";
+import { useWebPush } from "@/hooks/useWebPush";
+import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const RootLayout = () => {
   const { user, isLoading } = useUser();
   const location = useLocation();
+
+  useWebPush(user);
+  useServiceWorkerUpdate();
 
   if (isLoading) {
     return (
@@ -17,13 +22,11 @@ export const RootLayout = () => {
     );
   }
 
-  // If user is logged in, but on root or guest paths, redirect to app home (e.g. /home or /spaces)
-  if (user && (location.pathname === "/" || location.pathname === "/guest")) {
+  if (user && location.pathname === "/") {
       return <Navigate to="/spaces" replace />;
   }
 
-  // If user is NOT logged in, but tries to access protected routes, redirect to guest/landing
-  if (!user && location.pathname !== "/" && location.pathname !== "/guest") {
+  if (!user && location.pathname !== "/") {
       return <Navigate to="/" replace />;
   }
 

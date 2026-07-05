@@ -10,6 +10,7 @@ import { MessageResponse, MessageAuthor } from "@/types/chat";
 import { MessageListSkeleton } from "./MessageListSkeleton";
 
 interface MessageListProps {
+  spaceId: number;
   chatId: number;
   onReply?: (message: MessageResponse) => void;
   onEdit?: (message: MessageResponse) => void;
@@ -17,7 +18,7 @@ interface MessageListProps {
 
 const EDGE_THRESHOLD = 16;
 
-export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
+export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListProps) => {
   useChatWebSocket(chatId);
 
   const {
@@ -27,9 +28,9 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
     isFetchingNextPage,
     isLoading,
     isError
-  } = useGetChatMessages(chatId);
+  } = useGetChatMessages(spaceId, chatId);
 
-  const { data: availableReactions } = useGetChatReactions(chatId);
+  const { data: availableReactions } = useGetChatReactions(spaceId, chatId);
 
   const { user: currentUser } = useUser();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -78,7 +79,7 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
 
   const handleDeleteMessage = (messageId: number) => {
     deleteMessagesMutation.mutate(
-      { chatId, data: { messageIds: [messageId] } },
+      { spaceId, chatId, data: { messageIds: [messageId] } },
       {
         onSuccess: () => {
         },
@@ -93,7 +94,7 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   };
 
   const handleReact = (messageId: number, reactionId: string) => {
-    changeReactionMutation.mutate({ chatId, messageId, reactionId });
+    changeReactionMutation.mutate({ spaceId, chatId, messageId, reactionId });
   };
 
   const handleScroll = () => {
@@ -153,7 +154,7 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
   }
 
   if (isError) {
-    return <div className="text-center text-destructive p-4">Failed to load messages</div>;
+    return <div className="text-center text-destructive p-4">Не удалось загрузить сообщения</div>;
   }
 
   return (
@@ -173,14 +174,14 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
                     disabled={isFetchingNextPage}
                 >
                     {isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Load Older Messages
+                    Загрузить старые сообщения
                 </Button>
             </div>
         )}
 
           {reversedMessages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-50">
-                  <p>No messages yet. Start the conversation!</p>
+                  <p>Пока нет сообщений. Начните разговор!</p>
               </div>
           ) : (
               reversedMessages.map((msg, index) => {
@@ -193,6 +194,7 @@ export const MessageList = ({ chatId, onReply, onEdit }: MessageListProps) => {
                   return (
                       <MessageItem
                           key={msg.id}
+                          spaceId={spaceId}
                           chatId={chatId}
                           message={msg}
                           isCurrentUser={isCurrentUser}

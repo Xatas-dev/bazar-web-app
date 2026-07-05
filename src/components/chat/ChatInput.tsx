@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
 import {Edit2, Reply, SendHorizontal, X} from "lucide-react";
@@ -117,7 +117,7 @@ export const ChatInput = ({
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 shrink-0"
-                            onClick={onCancelEdit}
+                            onClick={() => { setContent(""); onCancelEdit?.(); }}
                         >
                             <X className="h-4 w-4"/>
                         </Button>
@@ -160,7 +160,7 @@ export const ChatInput = ({
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
+                    placeholder="Введите сообщение..."
                     className="
           min-h-[2rem] max-h-24 resize-none
           !border-0 !bg-transparent !shadow-none !ring-0
@@ -172,7 +172,7 @@ export const ChatInput = ({
         "
                     rows={1}
                     readOnly={readOnly}
-                    title={readOnly ? "У вас нет прав на отправку сообщений в этом пространстве" : undefined}
+                    title={readOnly ? "У вас нет прав на отправку сообщений в этом спейсе" : undefined}
                 />
                 <Button
                     variant="ghost"

@@ -11,14 +11,15 @@ import {
     WebSocketChatEvent,
 } from '@/types/chat';
 import config from "@/config.ts";
+import { useUser } from "@/hooks/useUser";
 import {
     updateChatMessagesCache,
-    updateMessageReactionCountInMessage,
+    updateMessageReactionInMessage,
     removeMessagesFromCache,
 } from '@/lib/chat-reactions';
 
 // Helper function to process WebSocket events (extracted for testing)
-const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryClient: any) => {
+const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryClient: any, currentUserId?: string) => {
 
     // Handle different event types
     if (event.type === ChatEventType.CREATED) {
@@ -116,12 +117,14 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
     } else if (event.type === ChatEventType.REACTION_CHANGED) {
         const payload = event.payload as MessageReactionChangedPayload;
 
+        if (payload.author.userId === currentUserId) return;
+
         queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) => {
             if (!oldData) return oldData;
 
             return updateChatMessagesCache(oldData, (message) => {
                 if (message.id !== Number(payload.messageId)) return message;
-                return updateMessageReactionCountInMessage(message, payload.reactionId, payload.count);
+                return updateMessageReactionInMessage(message, payload.reactionId, payload.count);
             });
         });
 
@@ -132,13 +135,15 @@ const processWebSocketEvent = (event: WebSocketChatEvent, chatId: number, queryC
 export const useChatWebSocket = (chatId: number | undefined) => {
     const clientRef = useRef<Client | null>(null);
     const queryClient = useQueryClient();
+    const { user: currentUser } = useUser();
 
     // Expose queryClient to window for testing (development only)
     useEffect(() => {
         if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
             (window as any).__testQueryClient = queryClient;
+            (window as any).__testCurrentUserId = currentUser?.id;
         }
-    }, [queryClient]);
+    }, [queryClient, currentUser]);
 
     useEffect(() => {
         if (!chatId) return;
@@ -169,7 +174,7 @@ export const useChatWebSocket = (chatId: number | undefined) => {
                     if (message.body) {
                         const event: WebSocketChatEvent = JSON.parse(message.body);
                         console.log('📨 WebSocket event received:', event);
-                        processWebSocketEvent(event, chatId, queryClient);
+                        processWebSocketEvent(event, chatId, queryClient, currentUser?.id);
                     }
                 });
             },
@@ -204,6 +209,6 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
             console.error('❌ QueryClient not available. Make sure chat is open.');
             return;
         }
-        processWebSocketEvent(event, event.chatId, queryClient);
+        processWebSocketEvent(event, event.chatId, queryClient, (window as any).__testCurrentUserId);
     };
 }

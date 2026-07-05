@@ -16,7 +16,7 @@ export default function HomePage() {
     event?.preventDefault();
 
     if (!newSpaceName.trim()) {
-      notify.error.validation("Space name is required.");
+      notify.error.validation("Название спейса обязательно.");
       return;
     }
     createSpaceMutation.mutate(newSpaceName, {
@@ -34,18 +34,18 @@ export default function HomePage() {
           <div className="surface-panel-muted inline-flex rounded-full p-6 mb-2">
             <Box className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome to Bazar Space</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Добро пожаловать в Bazar Space</h1>
           <p className="text-muted-foreground">
-            Select a space from the sidebar to view details, or create a new space to get started.
+            Выберите спейс из боковой панели, чтобы просмотреть детали, или создайте новый.
           </p>
         <form className="pt-4 flex flex-col gap-2" onSubmit={handleCreateSpace}>
             <Input
-              placeholder="Enter space name"
+              placeholder="Введите название спейса"
               value={newSpaceName}
               onChange={(e) => setNewSpaceName(e.target.value)}
             />
           <Button type="submit" disabled={createSpaceMutation.isPending} size="lg" className="w-full">
-              {createSpaceMutation.isPending ? "Creating..." : <><Plus className="mr-2 h-4 w-4" /> Create New Space</>}
+              {createSpaceMutation.isPending ? "Создание..." : <><Plus className="mr-2 h-4 w-4" /> Создать спейс</>}
             </Button>
         </form>
         </CardContent>

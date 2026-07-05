@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDeleteSpace, usePatchSpace, useSpaces } from "@/hooks/useSpaces";
 import { useUser } from "@/hooks/useUser";
@@ -58,6 +58,8 @@ export default function SpaceDashboardPage() {
   const { data: userRolesResponse } = useGetUserRoles(id, userId ? [userId] : []);
   const assignedRoleId = userRolesResponse?.roles && userRolesResponse.roles.length > 0 ? userRolesResponse.roles[0].id : undefined;
   const { data: assignedRole } = useGetRole(id, assignedRoleId as number | undefined);
+   const [searchParams] = useSearchParams();
+   const [workspaceTab, setWorkspaceTab] = useState<"chat" | "storage">("chat");
 
   const isCreator = !!userRolesResponse?.roles?.some((r: any) => r.isCreator === true);
   const allowedPermissions = isCreator ? new Set<string>() : new Set<string>((assignedRole?.actions || []).map(getPermissionKey));
@@ -71,6 +73,10 @@ export default function SpaceDashboardPage() {
   const canDeleteMember = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.spaceUserDelete);
   const canReadChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatRead);
   const canWriteChat = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.chatWrite);
+  const canUploadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageUpload);
+  const canDownloadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDownload);
+  const canDeleteStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDelete);
+  const canReadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageRead);
 
   const createGrantableActionIds = isCreator
       ? null
@@ -84,10 +90,9 @@ export default function SpaceDashboardPage() {
   const { data: spacesData, isLoading: isSpacesLoading } = useSpaces();
   const navigate = useNavigate();
 
-  const currentSpace = spacesData?.spaces.find((s) => s.id === id);
-  const [spaceName, setSpaceName] = useState("");
-  const [workspaceTab, setWorkspaceTab] = useState<"chat" | "storage">("chat");
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>("overview");
+   const currentSpace = spacesData?.spaces.find((s) => s.id === id);
+   const [spaceName, setSpaceName] = useState("");
+   const [settingsTab, setSettingsTab] = useState<SettingsTab>("overview");
   const active = useSidebarStore((s) => s.active);
   const setActive = useSidebarStore((s) => s.setActive);
   const panel = useSidebarStore((s) => s.panel);
@@ -100,16 +105,27 @@ export default function SpaceDashboardPage() {
     }
   }, [currentSpace]);
 
-  useEffect(() => {
-    setWorkspaceTab("chat");
-  }, [id]);
+   useEffect(() => {
+     setWorkspaceTab("chat");
+   }, [id]);
+
+   useEffect(() => {
+     const nextTab = searchParams.get("chatId") ? "chat" : searchParams.get("tab") ?? "chat";
+     if (nextTab === "chat" || nextTab === "storage") {
+       setWorkspaceTab(nextTab as "chat" | "storage");
+     }
+   }, [searchParams]);
 
   useEffect(() => {
     const permissionsResolved = isCreator || !!assignedRole;
-    if (userRolesResponse && permissionsResolved && !canReadChat && workspaceTab === "chat") {
-      setWorkspaceTab("storage");
+    if (userRolesResponse && permissionsResolved) {
+      if (!canReadChat && workspaceTab === "chat") {
+        setWorkspaceTab("storage");
+      } else if (!canReadStorage && workspaceTab === "storage") {
+        setWorkspaceTab("chat");
+      }
     }
-  }, [canReadChat, workspaceTab, userRolesResponse, isCreator, assignedRole]);
+  }, [canReadChat, canReadStorage, workspaceTab, userRolesResponse, isCreator, assignedRole]);
 
   useEffect(() => {
     if (active !== 'space-settings') {
@@ -127,7 +143,7 @@ export default function SpaceDashboardPage() {
   }, [active]);
 
   const handleDeleteSpace = () => {
-    if (confirm("Are you sure you want to delete this space?")) {
+    if (confirm("Вы уверены, что хотите удалить этот спейс?")) {
       deleteSpaceMutation.mutate(id, {
         onSuccess: () => {
           navigate("/spaces");
@@ -138,7 +154,7 @@ export default function SpaceDashboardPage() {
 
   const handleUpdateSpace = () => {
     if (!spaceName.trim()) {
-      notify.error.validation("Space name is required.");
+      notify.error.validation("Название спейса обязательно.");
       return;
     }
 
@@ -151,118 +167,123 @@ export default function SpaceDashboardPage() {
     );
   };
 
-  return (
-    <div className="flex h-full min-h-0 flex-col overflow-clip">
-      <div className="surface-shell relative z-20 flex-shrink-0 border-b border-border px-2 sm:px-4 py-2">
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setActive('space-settings')}
-            className="group flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            aria-expanded={active === 'space-settings'}
-            aria-controls="space-settings-drawer"
-            title="Open space settings"
-          >
-            <Box className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6" />
-            <h1 className="truncate text-xl font-bold sm:text-2xl">
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={id}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                >
-                  {isSpacesLoading ? (
-                    <Skeleton className="h-7 w-48 sm:h-8 sm:w-56" />
-                  ) : currentSpace ? (
-                    currentSpace.name
-                  ) : (
-                    `Space #${id}`
-                  )}
-                </motion.span>
-              </AnimatePresence>
-            </h1>
-            <Settings2 className="h-4 w-4 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-          </button>
-        </div>
-      </div>
+   return (
+     <div className="flex h-full min-h-0 flex-col overflow-clip">
+       <div className="surface-shell relative z-20 flex-shrink-0 border-b border-border px-2 sm:px-4 py-2">
+         <div className="flex items-center justify-between gap-3">
+           <button
+             type="button"
+             onClick={() => setActive('space-settings')}
+             className="group flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+             aria-expanded={active === 'space-settings'}
+             aria-controls="space-settings-drawer"
+             title="Открыть настройки спейса"
+           >
+             <Box className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6" />
+             <h1 className="truncate text-xl font-bold sm:text-2xl">
+               <AnimatePresence mode="wait">
+                 <motion.span
+                   key={id}
+                   initial={{ opacity: 0, y: 6 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   transition={{ duration: 0.2, ease: "easeOut" }}
+                 >
+                   {isSpacesLoading ? (
+                     <Skeleton className="h-7 w-48 sm:h-8 sm:w-56" />
+                   ) : currentSpace ? (
+                     currentSpace.name
+                   ) : (
+                     `Спейс #${id}`
+                   )}
+                 </motion.span>
+               </AnimatePresence>
+             </h1>
+             <Settings2 className="h-4 w-4 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+           </button>
+         </div>
+       </div>
 
-      <div className="flex min-h-0 flex-1 items-stretch overflow-clip">
-        <div className="flex min-h-0 flex-1 flex-col overflow-clip">
-          <Tabs value={workspaceTab} onValueChange={(value) => setWorkspaceTab(value as "chat" | "storage")} className="flex min-h-0 flex-1 flex-col">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="flex min-h-0 flex-1 flex-col"
-              >
-                <div className="relative z-20 flex-shrink-0 px-2 pb-3 sm:px-4">
-                  <div className="relative flex items-center gap-3 pr-24 sm:pr-32">
-                    <TabsList className={sharedTabsListClass}>
-                      <WorkspaceTabsTrigger
-                        value="chat"
-                        icon={MessageSquare}
-                        label="Chat"
-                        disabled={!canReadChat}
-                        title={!canReadChat ? "You don't have permission to view chat" : "Chat"}
-                      />
-                      <WorkspaceTabsTrigger value="storage" icon={HardDrive} label="Storage" title="Storage" />
+       <div className="flex min-h-0 flex-1 items-stretch overflow-clip">
+         <div className="flex min-h-0 flex-1 flex-col overflow-clip">
+           <Tabs value={workspaceTab} onValueChange={(value) => setWorkspaceTab(value as "chat" | "storage")} className="flex min-h-0 flex-1 flex-col">
+             <AnimatePresence mode="wait">
+               <motion.div
+                 key={id}
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 transition={{ duration: 0.2, ease: "easeOut" }}
+                 className="flex min-h-0 flex-1 flex-col"
+               >
+                 <div className="relative z-20 flex-shrink-0 px-2 pb-3 sm:px-4">
+                   <div className="relative flex items-center gap-3 pr-24 sm:pr-32">
+                     <TabsList className={sharedTabsListClass}>
+                       <WorkspaceTabsTrigger
+                         value="chat"
+                         icon={MessageSquare}
+                         label="Чат"
+                         disabled={!canReadChat}
+                         title={!canReadChat ? "У вас нет прав на просмотр чата" : "Чат"}
+                       />
+                       <WorkspaceTabsTrigger
+                          value="storage"
+                          icon={HardDrive}
+                          label="Хранилище"
+                          disabled={!canReadStorage}
+                          title={!canReadStorage ? "У вас нет прав на просмотр хранилища" : "Хранилище"} />
                     </TabsList>
 
-                    {workspaceTab === "storage" && (
-                      <div className="absolute right-12 top-2 flex items-start">
-                        <StorageUploadButton spaceId={id} />
-                      </div>
-                    )}
-                  </div>
-                </div>
+                     {workspaceTab === "storage" && (
+                       <div className="absolute right-12 top-2 flex items-start">
+                         <StorageUploadButton spaceId={id} canUpload={canUploadStorage} />
+                       </div>
+                     )}
+                   </div>
+                 </div>
 
-                <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-6 sm:pb-6">
-                  <TabsContent value="chat" className="mt-0 flex-1 min-h-0 overflow-visible">
-                    <ChatTab spaceId={id} canWrite={canWriteChat} />
-                  </TabsContent>
+                 <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-6 sm:pb-6">
+                   <TabsContent value="chat" className="mt-0 flex-1 min-h-0 overflow-visible">
+                     <ChatTab spaceId={id} canWrite={canWriteChat} />
+                   </TabsContent>
 
-                  <TabsContent value="storage" className="mt-0 flex-1 min-h-0 overflow-visible">
-                    <StorageTab spaceId={id} />
-                  </TabsContent>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </Tabs>
-        </div>
+                   <TabsContent value="storage" className="mt-0 flex-1 min-h-0 overflow-visible">
+                     <StorageTab spaceId={id} canUpload={canUploadStorage} canDownload={canDownloadStorage} canDelete={canDeleteStorage}/>
+                   </TabsContent>
+                 </div>
+               </motion.div>
+             </AnimatePresence>
+           </Tabs>
+         </div>
 
-        <SpaceSettingsDrawer
-          open={active === 'space-settings'}
-          onClose={() => setActive(null)}
-          id={id}
-          currentSpaceName={currentSpace ? currentSpace.name : `Space #${id}`}
-          spaceName={spaceName}
-          setSpaceName={setSpaceName}
-          settingsTab={settingsTab}
-          setSettingsTab={setSettingsTab}
-          canReadRoles={canReadRoles}
-          canCreateRoles={canCreateRoles}
-          canAssignRoles={canAssignRoles}
-          canEditRoles={canEditRoles}
-          canDeleteSpace={canDeleteSpace}
-          canWriteSpace={canWriteSpace}
-          canAddMember={canAddMember}
-          canDeleteMember={canDeleteMember}
-          createGrantableActionIds={createGrantableActionIds}
-          editGrantableActionIds={editGrantableActionIds}
-          onUpdateSpace={handleUpdateSpace}
-          onDeleteSpace={handleDeleteSpace}
-          isSaving={patchSpaceMutation.isPending}
-          onNoPermissionSave={() => notify.error.forbidden()}
-          onNoPermissionDelete={() => notify.error.forbidden()}
-          panel={active === 'space-settings' ? panel : null}
-          panelMeta={panelMeta}
-          onPanelChange={setPanel}
-        />
-        <ProfileRail />
-      </div>
-    </div>
-  );
+         <SpaceSettingsDrawer
+           open={active === 'space-settings'}
+           onClose={() => setActive(null)}
+           id={id}
+           currentSpaceName={currentSpace ? currentSpace.name : `Спейс #${id}`}
+           spaceName={spaceName}
+           setSpaceName={setSpaceName}
+           settingsTab={settingsTab}
+           setSettingsTab={setSettingsTab}
+           canReadRoles={canReadRoles}
+           canCreateRoles={canCreateRoles}
+           canAssignRoles={canAssignRoles}
+           canEditRoles={canEditRoles}
+           canDeleteSpace={canDeleteSpace}
+           canWriteSpace={canWriteSpace}
+           canAddMember={canAddMember}
+           canDeleteMember={canDeleteMember}
+           createGrantableActionIds={createGrantableActionIds}
+           editGrantableActionIds={editGrantableActionIds}
+           onUpdateSpace={handleUpdateSpace}
+           onDeleteSpace={handleDeleteSpace}
+           isSaving={patchSpaceMutation.isPending}
+           onNoPermissionSave={() => notify.error.forbidden()}
+           onNoPermissionDelete={() => notify.error.forbidden()}
+           panel={active === 'space-settings' ? panel : null}
+           panelMeta={panelMeta}
+           onPanelChange={setPanel}
+         />
+         <ProfileRail />
+       </div>
+     </div>
+   );
 }

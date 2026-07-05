@@ -9,6 +9,7 @@ import { Reply } from "lucide-react";
 import { getDisplayName, getInitials } from "@/lib/user-display";
 
 interface MessageItemProps {
+  spaceId: number;
   chatId: number;
   message: MessageResponse;
   isCurrentUser: boolean;
@@ -23,6 +24,7 @@ interface MessageItemProps {
 }
 
 export const MessageItem = ({
+  spaceId,
   chatId,
   message,
   isCurrentUser,
@@ -68,7 +70,7 @@ export const MessageItem = ({
   const authorDisplayName = getDisplayName(
     (message.author as any)?.firstName,
     (message.author as any)?.lastName,
-    (message.author as any)?.userName || "Unknown"
+    (message.author as any)?.userName || "Неизвестно"
   );
 
   const authorInitials = !message.author
@@ -90,7 +92,7 @@ export const MessageItem = ({
         (message.reply.author as any).lastName,
         (message.reply.author as any).userName || "Unknown"
       )
-    : "Unknown";
+    : "Неизвестно";
 
   return (
     <motion.div
@@ -119,6 +121,7 @@ export const MessageItem = ({
         )}
       >
         <MessageContextMenu
+          spaceId={spaceId}
           chatId={chatId}
           message={message}
           availableReactions={availableReactions}
@@ -157,7 +160,10 @@ export const MessageItem = ({
                       <Reply className="h-3 w-3" />
                       <span className="font-medium">{replyAuthorDisplayName}</span>
                     </div>
-                    <p className="truncate">{message.reply.contentPreview}</p>
+                    <p className="truncate">
+                        {message.reply.contentPreview}
+                        {message.reply.contentPreview.length >= 30 ? '...' : ''}
+                    </p>
                   </div>
                 )}
 
