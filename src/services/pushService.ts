@@ -182,7 +182,7 @@ export const pushService = {
         }
 
         // Получаем VAPID public key
-        const publicKeyResponse = await chatAxiosInstance.get<PushPublicKeyResponse>('/v1/push/public-key');
+        const publicKeyResponse = await chatAxiosInstance.get<PushPublicKeyResponse>('/push/public-key');
         console.info('[WebPush] Retrieved public key');
         const applicationServerKey = base64UrlToArrayBuffer(publicKeyResponse.data.publicKey);
 
@@ -229,7 +229,7 @@ export const pushService = {
         }
 
         const endpoint = subscription.endpoint;
-        await chatAxiosInstance.delete('/v1/push/subscriptions', {
+        await chatAxiosInstance.delete('/push/subscriptions', {
           data: {
             endpoint,
           },
@@ -256,7 +256,7 @@ export const pushService = {
       return;
     }
 
-    await chatAxiosInstance.post('/v1/push/subscriptions', payload);
+    await chatAxiosInstance.post('/push/subscriptions', payload);
     lastSyncedSubscriptionEndpoint = payload.endpoint;
   },
 

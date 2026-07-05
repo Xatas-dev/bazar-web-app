@@ -12,7 +12,7 @@ export const useGetChatMessages = (spaceId: number | undefined, chatId: number |
     queryKey: ['chat', chatId, 'messages'],
     queryFn: async ({ pageParam = 0 }) => {
       if (!spaceId || !chatId) throw new Error("Space ID and Chat ID are required");
-      const response = await chatAxiosInstance.get<MessagePageResponse>(`/v1/spaces/${spaceId}/chats/${chatId}/messages`, {
+      const response = await chatAxiosInstance.get<MessagePageResponse>(`/spaces/${spaceId}/chats/${chatId}/messages`, {
         params: {
           page: pageParam,
           size: pageSize,
@@ -36,7 +36,7 @@ export const useCreateMessage = () => {
   return useMutation<void, Error, { spaceId: number; chatId: number; data: CreateMessageRequest }>({
     mutationFn: async ({ spaceId, chatId, data }) => {
       if (!spaceId || !chatId) throw new Error("Space ID and Chat ID are required");
-      await chatAxiosInstance.post(`/v1/spaces/${spaceId}/chats/${chatId}/messages`, data);
+      await chatAxiosInstance.post(`/spaces/${spaceId}/chats/${chatId}/messages`, data);
     },
   });
 };
@@ -46,7 +46,7 @@ export const useDeleteMessages = () => {
   return useMutation<void, Error, { spaceId: number; chatId: number; data: DeleteMessagesRequest }>({
     mutationFn: async ({ spaceId, chatId, data }) => {
       if (!spaceId || !chatId) throw new Error("Space ID and Chat ID are required");
-      await chatAxiosInstance.delete(`/v1/spaces/${spaceId}/chats/${chatId}/messages`, { data });
+      await chatAxiosInstance.delete(`/spaces/${spaceId}/chats/${chatId}/messages`, { data });
     },
     onSuccess: (_, { chatId, data }) => {
       queryClient.setQueryData(['chat', chatId, 'messages'], (oldData: any) =>
@@ -60,7 +60,7 @@ export const useEditMessage = () => {
   return useMutation<void, Error, { spaceId: number; chatId: number; messageId: number; data: EditMessageRequest }>({
     mutationFn: async ({ spaceId, chatId, messageId, data }) => {
       if (!spaceId || !chatId || !messageId) throw new Error("Space ID, Chat ID and Message ID are required");
-      await chatAxiosInstance.patch(`/v1/spaces/${spaceId}/chats/${chatId}/messages/${messageId}`, data);
+      await chatAxiosInstance.patch(`/spaces/${spaceId}/chats/${chatId}/messages/${messageId}`, data);
     },
   });
 };
