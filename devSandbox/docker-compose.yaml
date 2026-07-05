@@ -205,7 +205,6 @@ services:
       - SETTING_MAX_FILE_NAME_LENGTH=100
       - SETTING_SCHEDULE_DELETE_MARKED_FILES_BATCH_SIZE=2
       - SETTING_SCHEDULE_DELETE_MARKED_FILES_CRON=0 */2 * * * *
-      - SETTING_SCHEDULE_DELETE_MARKED_FILES_RETENTION_DAYS=1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
