@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
 import {Edit2, Reply, SendHorizontal, X} from "lucide-react";
@@ -117,7 +117,7 @@ export const ChatInput = ({
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 shrink-0"
-                            onClick={() => { setContent(""); onCancelEdit?.(); }}
+                            onClick={onCancelEdit}
                         >
                             <X className="h-4 w-4"/>
                         </Button>
