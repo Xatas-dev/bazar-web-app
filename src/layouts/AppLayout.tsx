@@ -1,8 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
-import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Outlet, Link, NavLink, useLocation } from "react-router-dom";
 import { useSpaces } from "@/hooks/useSpaces";
-import { useGetChatById } from "@/hooks/useChat";
-import { pushService } from "@/services/pushService";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -237,43 +235,10 @@ export const AppLayout = () => {
   const isSpaceRoute = location.pathname.startsWith('/spaces/');
   const isSpaceDetailRoute = /^\/spaces\/\d+/.test(location.pathname);
   const contentKey = isSpaceDetailRoute ? 'space-detail' : location.pathname;
-   const { user } = useUser();
-   const { theme, toggleTheme } = useThemeStore();
-   const { data: spacesData } = useSpaces();
-   const spaces = spacesData?.spaces || [];
-   const navigate = useNavigate();
-
-   const searchParams = new URLSearchParams(location.search);
-  const notificationChatIdParam = searchParams.get("chatId");
-  const notificationMessageIdParam = searchParams.get("messageId");
-  const notificationChatId = notificationChatIdParam ? Number(notificationChatIdParam) : undefined;
-  const { data: notificationChat, error: notificationChatError } = useGetChatById(notificationChatId);
-
-  useEffect(() => {
-    if (notificationChatError) {
-      console.error("[WebPush] Failed to resolve chat route from notification", notificationChatError);
-    }
-  }, [notificationChatError]);
-
-  useEffect(() => {
-    if (!notificationChat || !notificationChatIdParam) {
-      return;
-    }
-
-    const targetSearchParams = new URLSearchParams();
-    targetSearchParams.set("chatId", notificationChatIdParam);
-    if (notificationMessageIdParam) {
-      targetSearchParams.set("messageId", notificationMessageIdParam);
-    }
-    targetSearchParams.set("tab", "chat");
-
-    const targetPath = `/spaces/${notificationChat.spaceId}`;
-    const targetUrl = `${targetPath}?${targetSearchParams.toString()}`;
-
-    if (`${location.pathname}${location.search}` !== targetUrl) {
-      navigate(targetUrl, { replace: true });
-    }
-  }, [location.pathname, location.search, navigate, notificationChat, notificationChatIdParam, notificationMessageIdParam]);
+  const { user } = useUser();
+  const { theme, toggleTheme } = useThemeStore();
+  const { data: spacesData } = useSpaces();
+  const spaces = spacesData?.spaces || [];
 
   const filteredSpaces = useMemo(() => {
     const query = spaceSearch.trim().toLowerCase();
@@ -284,25 +249,22 @@ export const AppLayout = () => {
     return spaces.filter((space) => space.name.toLowerCase().includes(query));
   }, [spaceSearch, spaces]);
 
-   const handleLogout = async () => {
-     try {
-       await pushService.unsubscribe();
+  const handleLogout = async () => {
+    try {
+      const logoutUrl = process.env.NODE_ENV === "development" ? "/logout" : "/api/logout";
+      await fetch(logoutUrl, {
+        method: "POST",
+        credentials: "include",
+        redirect: "follow",
+      });
 
-       const logoutUrl = process.env.NODE_ENV === "development" ? "/logout" : "/api/logout";
-       await fetch(logoutUrl, {
-         method: "POST",
-         credentials: "include",
-         redirect: "follow",
-       });
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Выход не удался", error);
+      window.location.href = "/";
+    }
+  };
 
-       window.location.href = "/";
-     } catch (error) {
-       console.error("Выход не удался", error);
-       window.location.href = "/";
-     }
-   };
-
-   // Закрывать меню при переходе на другую страницу
   const handleNavClick = () => {
     setMobileMenuOpen(false);
   };

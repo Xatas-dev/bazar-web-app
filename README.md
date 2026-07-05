@@ -89,32 +89,3 @@ window.simulateWSEvent({
 2. Убедитесь, что приложение запущено в режиме разработки
 3. Проверьте консоль на наличие ошибок
 4. Убедитесь, что `window.__testQueryClient` доступен (должен быть установлен автоматически)
-
-## Web Push уведомления
-
-### Что добавлено
-
-- Регистрация Service Worker при старте приложения.
-- Автоматический запрос разрешения на уведомления после успешной авторизации.
-- Подписка на Web Push через VAPID public key с backend endpoint'а `/push/public-key`.
-- Сохранение и удаление подписки через `/push/subscriptions`.
-- Открытие нужного чата по клику на уведомление.
-
-### Ключевые файлы
-
-- `src/services/pushService.ts` — сервис управления push-подпиской.
-- `src/hooks/useWebPush.ts` — глобальная инициализация push после загрузки пользователя.
-- `src/layouts/RootLayout.tsx` — подключение Web Push на старте приложения.
-- `src/layouts/AppLayout.tsx` — восстановление маршрута по `chatId` и logout-отписка.
-- `src/pages/SpaceDashboardPage.tsx` — открытие вкладки чата по query-параметру.
-- `src/hooks/useChat.ts` — запрос чата по `chatId`.
-- `src/types/push.ts` — типы payload'ов Web Push.
-- `public/sw.js` — Service Worker для `push` и `notificationclick`.
-
-### Как работает переход из уведомления
-
-Service Worker открывает URL вида:
-
-`/spaces?chatId=123&messageId=456&tab=chat`
-
-Дальше `AppLayout` получает `chatId`, запрашивает чат по ID, находит `spaceId` и перенаправляет пользователя в нужное пространство. После этого `SpaceDashboardPage` открывает вкладку чата.

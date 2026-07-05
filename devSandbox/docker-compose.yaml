@@ -71,7 +71,7 @@ services:
       - app-network
 
   bazar-api-gateway:
-    image: basegod/bazar-api-gateway:1.0.2-SNAPSHOT
+    image: basegod/bazar-api-gateway:latest
     container_name: bazar-api-gateway
     environment:
       - KC_URL=http://host.docker.internal:9999
@@ -147,9 +147,9 @@ services:
     restart: unless-stopped
 
   bazar-chat:
-     image: basegod/bazar-chat:latest
-     container_name: bazar-chat
-     environment:
+    image: basegod/bazar-chat:latest
+    container_name: bazar-chat
+    environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrchat
       - SYSTEM_DB_USERNAME=postgres
       - SYSTEM_DB_PASSWORD=postgres
@@ -157,26 +157,16 @@ services:
       - INTEGRATION_KEYCLOAK_EXTERNAL_URL=http://host.docker.internal:9999
       - INTEGRATION_KEYCLOAK_REALM=bazar-realm
       - INTEGRATION_REST_BAZAR_PERSONA_API_URL=http://bazar-persona:8080/api
-      - INTEGRATION_REST_BAZAR_SPACE_API_URL=http://bazar-space:8080/api
-      - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-      - INTEGRATION_REST_AUTHORIZATION_HOST=bazar-authorization
-      - INTEGRATION_REST_AUTHORIZATION_PORT=9090
       - SETTING_SCHEDULER_MESSAGE_DELETE_MESSAGES=0 0 3 * * *
       - SETTING_MESSAGE_REPLY_PREVIEW_LENGTH=30
-      - SETTING_PUSH_SUBSCRIPTION_PUBLIC_KEY=BD7Ly3KFruY0cndkBkmJ8pjeThxCKVrD3h6krbEqRTeLjDwi0XBa9t4BLXmZ6xvjrxaR5z2u2RDUEI4ru05CXsA
-      - SETTING_PUSH_SUBSCRIPTION_PRIVATE_KEY=xnLO-fKZ-3p8zO3XLFHMf_PW03Y-BjR2n2ginAJXl_M
-      - SETTING_PUSH_SUBSCRIPTION_SUBJECT=mailto:bazar@bazar.mail.ru
-      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
-     depends_on:
+    depends_on:
       postgresql:
         condition: service_healthy
-     extra_hosts:
+    extra_hosts:
       - "host.docker.internal:host-gateway"
-     networks:
+    networks:
       - app-network
-     restart: unless-stopped
-     ports:
-      - "5005:5005"
+    restart: unless-stopped
 
   bazar-persona:
     image: basegod/bazar-persona:latest

@@ -1,7 +1,6 @@
 # Локальный запуск всей системы для теста фронта
 1. Добавить host.docker.internal в /etc/hosts маппинг на 127.0.0.1 (НЕ ЗАБЫТЬ УДАЛИТЬ другую запись для этого хоста если ставили docker desktop)!!!1
-2. Есть вероятность, что помешает файрвол: sudo systemctl stop ufw ИЛИ sudo systemctl stop nftables ИЛИ sudo systemctl stop firewalld
-3. Зайти сюда https://github.com/Xatas-dev/bazar-k8s-charts/blob/master/bazar-infra/policies/space.yaml, скопировать оттуда space.yaml и вставить в папку devSandbox с именем space-policy.yaml 
+2. Зайти сюда https://github.com/Xatas-dev/bazar-k8s-charts/blob/master/bazar-infra/policies/space.yaml, скопировать оттуда space.yaml и вставить в папку devSandbox с именем space-policy.yaml 
 3. Запустить docker-compose.yaml
     - Либо перейти в devSandbox и прописать docker-compose up (загуглите и скачайте прогу)
     - Либо в самой IDEA нажать на запуск в файлике docker-compose.yaml (зеленый треугольник сдвоенный)
