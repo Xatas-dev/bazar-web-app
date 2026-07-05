@@ -7,7 +7,7 @@ export const useGetChatBySpace = (spaceId: number) => {
     queryKey: ['chat', 'space', spaceId],
     queryFn: async () => {
       if (!spaceId) throw new Error('Space ID is required');
-      const response = await chatAxiosInstance.get<ChatResponse>(`/spaces/${spaceId}/chats`);
+      const response = await chatAxiosInstance.get<ChatResponse>(`/v1/spaces/${spaceId}/chats`);
       return response.data;
     },
     enabled: !!spaceId,
@@ -22,7 +22,7 @@ export const useGetChatById = (chatId: number | undefined) => {
         throw new Error('Chat ID is required');
       }
 
-      const response = await chatAxiosInstance.get<ChatResponse>(`/chats/${chatId}`);
+      const response = await chatAxiosInstance.get<ChatResponse>(`/v1/chats/${chatId}`);
       return response.data;
     },
     enabled: typeof chatId === 'number' && Number.isFinite(chatId),
@@ -35,7 +35,7 @@ export const useCreateChat = () => {
   return useMutation<ChatResponse, Error, CreateChatRequest>({
     mutationFn: async (data) => {
       if (!data.spaceId) throw new Error('Space ID is required');
-      const response = await chatAxiosInstance.post<ChatResponse>(`/spaces/${data.spaceId}/chats`, data);
+      const response = await chatAxiosInstance.post<ChatResponse>(`/v1/spaces/${data.spaceId}/chats`, data);
       return response.data;
     },
     onSuccess: (_, variables) => {
@@ -51,7 +51,7 @@ export const useCreateChat = () => {
      queryKey: ['chat', chatId, 'messages'],
      queryFn: async ({ pageParam = 0 }) => {
        if (!chatId) throw new Error("Chat ID is required");
-       const response = await chatAxiosInstance.get<MessagePageResponse>(`/chats/${chatId}/messages`, {
+       const response = await chatAxiosInstance.get<MessagePageResponse>(`/v1/chats/${chatId}/messages`, {
          params: {
            page: pageParam,
            size: pageSize,
@@ -79,7 +79,7 @@ export const useCreateChat = () => {
  export const useCreateMessage = () => {
    return useMutation<void, Error, { chatId: number; data: CreateMessageRequest }>({
      mutationFn: async ({ chatId, data }) => {
-       await chatAxiosInstance.post(`/chats/${chatId}/messages`, data);
+       await chatAxiosInstance.post(`/v1/chats/${chatId}/messages`, data);
      },
      // No need to invalidate queries here - WebSocket will handle the cache update
    });
@@ -89,7 +89,7 @@ export const useCreateChat = () => {
    const queryClient = useQueryClient();
    return useMutation<void, Error, { chatId: number; data: DeleteMessagesRequest }>({
      mutationFn: async ({ chatId, data }) => {
-       await chatAxiosInstance.delete(`/chats/${chatId}/messages`, { data });
+       await chatAxiosInstance.delete(`/v1/chats/${chatId}/messages`, { data });
      },
      onSuccess: (_, { chatId, data }) => {
        // Immediately remove deleted messages from cache after successful DELETE
@@ -116,7 +116,7 @@ export const useCreateChat = () => {
  export const useEditMessage = () => {
    return useMutation<void, Error, { chatId: number; messageId: number; data: EditMessageRequest }>({
      mutationFn: async ({ chatId, messageId, data }) => {
-       await chatAxiosInstance.patch(`/chats/${chatId}/messages/${messageId}`, data);
+       await chatAxiosInstance.patch(`/v1/chats/${chatId}/messages/${messageId}`, data);
      },
      // No need to invalidate queries here - WebSocket will handle the cache update
    });
