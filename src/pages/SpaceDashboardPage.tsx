@@ -58,8 +58,14 @@ export default function SpaceDashboardPage() {
   const { data: userRolesResponse } = useGetUserRoles(id, userId ? [userId] : []);
   const assignedRoleId = userRolesResponse?.roles && userRolesResponse.roles.length > 0 ? userRolesResponse.roles[0].id : undefined;
   const { data: assignedRole } = useGetRole(id, assignedRoleId as number | undefined);
-   const [searchParams] = useSearchParams();
-   const [workspaceTab, setWorkspaceTab] = useState<"chat" | "storage">("chat");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("chatId") ? "chat" : searchParams.get("tab") ?? "chat";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    const nextTab = searchParams.get("chatId") ? "chat" : searchParams.get("tab") ?? "chat";
+    setActiveTab(nextTab);
+  }, [searchParams]);
 
   const isCreator = !!userRolesResponse?.roles?.some((r: any) => r.isCreator === true);
   const allowedPermissions = isCreator ? new Set<string>() : new Set<string>((assignedRole?.actions || []).map(getPermissionKey));
@@ -86,9 +92,10 @@ export default function SpaceDashboardPage() {
   const { data: spacesData, isLoading: isSpacesLoading } = useSpaces();
   const navigate = useNavigate();
 
-   const currentSpace = spacesData?.spaces.find((s) => s.id === id);
-   const [spaceName, setSpaceName] = useState("");
-   const [settingsTab, setSettingsTab] = useState<SettingsTab>("overview");
+  const currentSpace = spacesData?.spaces.find((s) => s.id === id);
+  const [spaceName, setSpaceName] = useState("");
+  const [workspaceTab, setWorkspaceTab] = useState<"chat" | "storage">("chat");
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("overview");
   const active = useSidebarStore((s) => s.active);
   const setActive = useSidebarStore((s) => s.setActive);
   const panel = useSidebarStore((s) => s.panel);
@@ -101,16 +108,9 @@ export default function SpaceDashboardPage() {
     }
   }, [currentSpace]);
 
-   useEffect(() => {
-     setWorkspaceTab("chat");
-   }, [id]);
-
-   useEffect(() => {
-     const nextTab = searchParams.get("chatId") ? "chat" : searchParams.get("tab") ?? "chat";
-     if (nextTab === "chat" || nextTab === "storage") {
-       setWorkspaceTab(nextTab as "chat" | "storage");
-     }
-   }, [searchParams]);
+  useEffect(() => {
+    setWorkspaceTab("chat");
+  }, [id]);
 
   useEffect(() => {
     const permissionsResolved = isCreator || !!assignedRole;

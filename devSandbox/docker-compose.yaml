@@ -147,7 +147,7 @@ services:
     restart: unless-stopped
 
   bazar-chat:
-     image: basegod/bazar-chat:latest-SNAPSHOT
+     image: basegod/bazar-chat:latest
      container_name: bazar-chat
      environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrchat
