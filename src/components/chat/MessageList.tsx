@@ -1,6 +1,5 @@
-import { useEffect, useRef, useLayoutEffect, useMemo, useState } from "react";
+import { useRef, useLayoutEffect, useMemo, useState } from "react";
 import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChatMessages";
-import { useQueryClient } from "@tanstack/react-query";
 import { useGetChatReactions, useChangeMessageReaction } from "@/hooks/useChatReactions";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
@@ -21,16 +20,6 @@ const EDGE_THRESHOLD = 16;
 
 export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListProps) => {
   useChatWebSocket(chatId);
-
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return () => {
-      if (chatId) {
-        queryClient.invalidateQueries({ queryKey: ['chat', chatId, 'messages'] });
-      }
-    };
-  }, [chatId, queryClient]);
 
   const {
     data,

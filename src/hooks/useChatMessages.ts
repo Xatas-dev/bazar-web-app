@@ -21,6 +21,7 @@ export const useGetChatMessages = (spaceId: number | undefined, chatId: number |
       });
       return response.data;
     },
+    staleTime: 0,
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       if (lastPage.page < lastPage.totalPages - 1) {
