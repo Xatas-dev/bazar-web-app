@@ -6,7 +6,7 @@ import { useDeleteSpace, usePatchSpace, useSpaces } from "@/hooks/useSpaces";
 import { useUser } from "@/hooks/useUser";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { useGetRole, useGetUserRoles } from "@/hooks/useRoles";
-import { Box, HardDrive, MessageSquare, Settings2 } from "lucide-react";
+import { Box, EyeOff, HardDrive, MessageSquare, Settings2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatTab } from "@/components/chat/ChatTab";
 import { StorageTab, StorageUploadButton } from "@/components/storage/StorageTab";
@@ -45,7 +45,7 @@ function WorkspaceTabsTrigger({
       aria-label={label}
     >
       <Icon className="h-4 w-4 shrink-0" />
-      <span className={sharedTabsLabelClass}>{label}</span>
+      {!disabled && <span className={sharedTabsLabelClass}>{label}</span>}
     </TabsTrigger>
   );
 }
@@ -119,6 +119,7 @@ export default function SpaceDashboardPage() {
   useEffect(() => {
     const permissionsResolved = isCreator || !!assignedRole;
     if (userRolesResponse && permissionsResolved) {
+      if (!canReadChat && !canReadStorage) return;
       if (!canReadChat && workspaceTab === "chat") {
         setWorkspaceTab("storage");
       } else if (!canReadStorage && workspaceTab === "storage") {
@@ -240,15 +241,27 @@ export default function SpaceDashboardPage() {
                    </div>
                  </div>
 
-                 <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-6 sm:pb-6">
-                   <TabsContent value="chat" className="mt-0 flex-1 min-h-0 overflow-visible">
-                     <ChatTab spaceId={id} canWrite={canWriteChat} />
-                   </TabsContent>
+                 {!canReadChat && !canReadStorage ? (
+                   <div className="flex min-h-0 flex-1 items-center justify-center text-muted-foreground px-3 pb-3 sm:px-6 sm:pb-6">
+                     <div className="flex flex-col items-center gap-3 text-center">
+                       <EyeOff className="h-12 w-12 opacity-50" />
+                       <p className="text-base font-medium">У вас нет прав на просмотр содержимого</p>
+                       <p className="text-sm text-muted-foreground">
+                         Обратитесь к администратору спейса, чтобы получить доступ
+                       </p>
+                     </div>
+                   </div>
+                 ) : (
+                   <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-6 sm:pb-6">
+                     <TabsContent value="chat" className="mt-0 flex-1 min-h-0 overflow-visible">
+                       <ChatTab spaceId={id} canWrite={canWriteChat} />
+                     </TabsContent>
 
-                   <TabsContent value="storage" className="mt-0 flex-1 min-h-0 overflow-visible">
-                     <StorageTab spaceId={id} canUpload={canUploadStorage} canDownload={canDownloadStorage} canDelete={canDeleteStorage}/>
-                   </TabsContent>
-                 </div>
+                     <TabsContent value="storage" className="mt-0 flex-1 min-h-0 overflow-visible">
+                       <StorageTab spaceId={id} canUpload={canUploadStorage} canDownload={canDownloadStorage} canDelete={canDeleteStorage}/>
+                     </TabsContent>
+                   </div>
+                 )}
                </motion.div>
              </AnimatePresence>
            </Tabs>
