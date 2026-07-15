@@ -15,7 +15,7 @@ interface ChatTabProps {
 }
 
 export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
-    const {data: chat, isLoading: isLoadingChat, isError} = useGetChatBySpace(spaceId);
+    const {data: chat, isLoading: isLoadingChat, isError, error} = useGetChatBySpace(spaceId);
     const createChatMutation = useCreateChat();
     const createMessageMutation = useCreateMessage();
     const editMessageMutation = useEditMessage();
@@ -70,14 +70,17 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
     }
 
     if (isError) {
-        return (
-            <div className="rounded-lg border border-destructive bg-[hsl(var(--panel-surface-muted))] p-6 text-destructive">
-                <h3 className="text-lg font-semibold">Ошибка загрузки чата</h3>
-                <p className="text-sm text-muted-foreground">
-                    Не удалось загрузить чат. Пожалуйста, попробуйте позже.
-                </p>
-            </div>
-        );
+        const status = (error as any)?.response?.status;
+        if (status !== 404) {
+            return (
+                <div className="rounded-lg border border-destructive bg-[hsl(var(--panel-surface-muted))] p-6 text-destructive">
+                    <h3 className="text-lg font-semibold">Ошибка загрузки чата</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Не удалось загрузить чат. Пожалуйста, попробуйте позже.
+                    </p>
+                </div>
+            );
+        }
     }
 
     if (!chat) {
