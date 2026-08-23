@@ -1,0 +1,19 @@
+<svg viewBox="0 0 120 150" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <!-- Icon -->
+    <g fill="#FFFFFF">
+        <!-- Left Bracket -->
+        <path d="M 52 20 L 36 20 A 16 16 0 0 0 20 36 L 20 84 A 16 16 0 0 0 36 100 L 52 100 L 52 80 L 40 80 L 40 40 L 52 40 Z" />
+        
+        <!-- Right Bracket -->
+        <path d="M 68 20 L 84 20 A 16 16 0 0 1 100 36 L 100 84 A 16 16 0 0 1 84 100 L 68 100 L 68 80 L 80 80 L 80 40 L 68 40 Z" />
+    </g>
+    
+    <!-- Text Label -->
+    <g fill="#FFFFFF" font-family="'Montserrat', 'Helvetica Neue', 'Arial', sans-serif" font-size="14" font-weight="600" text-anchor="middle">
+        <text x="24" y="135">S</text>
+        <text x="42" y="135">P</text>
+        <text x="60" y="135">Λ</text>
+        <text x="78" y="135">C</text>
+        <text x="96" y="135">E</text>
+    </g>
+</svg>
