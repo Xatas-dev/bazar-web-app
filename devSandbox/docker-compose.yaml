@@ -147,7 +147,7 @@ services:
     restart: unless-stopped
 
   bazar-chat:
-     image: basegod/bazar-chat:latest
+     image: basegod/bazar-chat:latest-SNAPSHOT
      container_name: bazar-chat
      environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrchat
@@ -199,7 +199,7 @@ services:
     restart: unless-stopped
 
   bazar-storage:
-    image: basegod/bazar-storage:latest
+    image: basegod/bazar-storage:latest-SNAPSHOT
     container_name: bazar-storage
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrstorage
@@ -231,7 +231,7 @@ services:
 
 
   bazar-files:
-    image: basegod/bazar-files:latest
+    image: basegod/bazar-files:latest-SNAPSHOT
     container_name: bazar-files
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrfiles
@@ -248,6 +248,9 @@ services:
       - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SETTING_SCHEDULER_DELETE_FILES_CRON=60s
       - SETTING_SCHEDULER_DELETE_FILES_BATCH_SIZE=2
+      - SETTING_MAX_FILE_SIZE=40000
+      - SETTING_NOT_ALLOWED_EXTENSIONS=.exe,.sh,.bat,.msi,.bin,.ps1,.hta
+      - JAVA_OPTS_APPEND=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
     depends_on:
       postgresql:
         condition: service_healthy

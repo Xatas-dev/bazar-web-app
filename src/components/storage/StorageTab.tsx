@@ -51,7 +51,7 @@ export function StorageUploadButton({ spaceId, canUpload = false }: StorageTabPr
     fileInputRef.current?.click();
   };
 
-  const pollFileStatus = async (spaceIdParam: number, nodeId: string): Promise<{ status: string }> => {
+  const pollFileStatus = async (spaceIdParam: number, nodeId: string): Promise<{ status: string; errors?: any[] }> => {
     const interval = 2000;
     const maxAttempts = 60;
 
@@ -62,7 +62,7 @@ export function StorageUploadButton({ spaceId, canUpload = false }: StorageTabPr
           return { status: 'UPLOADED' };
         }
         if (res?.status === 'ERROR') {
-          return { status: 'ERROR' };
+          return { status: 'ERROR', errors: res?.errors };
         }
       } catch (e) {
         // ignore transient errors, continue polling
@@ -79,28 +79,19 @@ export function StorageUploadButton({ spaceId, canUpload = false }: StorageTabPr
 
     e.currentTarget.value = '';
 
-    if (file.size > 50 * 1024 * 1024) {
-      notify.error.validation("Размер файла не может превышать 50 МБ.");
-      return;
-    }
-
-    const name = file.name || '';
-    if (name.length > 100) {
-      notify.error.validation("Имя файла не может превышать 100 символов.");
-      return;
-    }
-
-    const parts = name.split('.');
-    const ext = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
-    if (ext && ['exe', 'sh', 'bat', 'msi', 'bin', 'ps1', 'hta'].includes(ext)) {
-      notify.error.validation("Тип файла не разрешен.");
-      return;
-    }
-
     setIsUploading(true);
 
     try {
-      const init = await initiateUploadMutation.mutateAsync({ spaceId, fileName: name, size: file.size });
+      const init = await initiateUploadMutation.mutateAsync({ spaceId, fileName: file.name, size: file.size });
+      
+      // Проверяем ошибки от POST /api/v1/spaces/{spaceId}/nodes
+      if (init.errors && init.errors.length > 0) {
+        init.errors.forEach((error) => {
+          notify.error.generic(error.description);
+        });
+        return;
+      }
+
       const putRes = await fetch(init.uploadUrl, {
         method: 'PUT',
         headers: {
@@ -121,13 +112,31 @@ export function StorageUploadButton({ spaceId, canUpload = false }: StorageTabPr
       }
 
       if (result.status === 'ERROR') {
-        notify.error.generic("Обработка файла не удалась. Пожалуйста, попробуйте снова.");
+        // Обработка ошибок из GET /api/v1/spaces/{spaceId}/nodes/{nodeId}/status
+        if (result.errors && result.errors.length > 0) {
+          result.errors.forEach((error) => {
+            notify.error.generic(error.description);
+          });
+        } else {
+          notify.error.generic("Обработка файла не удалась. Пожалуйста, попробуйте снова.");
+        }
         return;
       }
 
       notify.error.timeout();
     } catch (err: any) {
-      if (err?.response?.status !== 403) {
+      if (err?.response?.status === 400) {
+        const errors = err.response.data;
+        if (Array.isArray(errors) && errors.length > 0) {
+          errors.forEach((error: any) => {
+            if (error.description) {
+              notify.error.generic(error.description);
+            }
+          });
+        } else {
+          notify.error.generic();
+        }
+      } else if (err?.response?.status !== 403) {
         notify.error.generic();
       }
     } finally {
