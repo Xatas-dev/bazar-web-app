@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
 
+import mainBlackLogo from "@/static/main-black.svg";
+import mainWhiteLogo from "@/static/main-white.svg";
+
 import config from "@/config";
 
 export default function GuestPage() {
@@ -8,11 +11,25 @@ export default function GuestPage() {
         : config.auth.keycloakUrl;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-6 px-4">
-      <p className="text-sm text-muted-foreground">Войдите в систему, чтобы продолжить.</p>
-      <a href={loginUrl}>
-        <Button>Войти</Button>
-      </a>
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-8">
+      <div className="surface-panel-strong flex w-full max-w-sm flex-col items-center gap-8 rounded-lg p-10">
+        <img
+          src={mainWhiteLogo}
+          alt="Bazar Space"
+          className="hidden w-36 max-w-full dark:block"
+        />
+        <img
+          src={mainBlackLogo}
+          alt="Bazar Space"
+          className="w-36 max-w-full dark:hidden"
+        />
+        <p className="text-sm text-muted-foreground">
+          Войдите в систему, чтобы продолжить.
+        </p>
+        <Button asChild size="lg" className="w-full">
+          <a href={loginUrl}>Войти</a>
+        </Button>
+      </div>
     </div>
   );
 }

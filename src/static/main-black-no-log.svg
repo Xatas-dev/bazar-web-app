@@ -1,0 +1,9 @@
+<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <g fill="#111111">
+        <!-- Left Bracket -->
+        <path d="M 52 20 L 36 20 A 16 16 0 0 0 20 36 L 20 84 A 16 16 0 0 0 36 100 L 52 100 L 52 80 L 40 80 L 40 40 L 52 40 Z" />
+        
+        <!-- Right Bracket -->
+        <path d="M 68 20 L 84 20 A 16 16 0 0 1 100 36 L 100 84 A 16 16 0 0 1 84 100 L 68 100 L 68 80 L 80 80 L 80 40 L 68 40 Z" />
+    </g>
+</svg>
