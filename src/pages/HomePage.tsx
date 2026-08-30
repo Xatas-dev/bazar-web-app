@@ -4,8 +4,11 @@ import { useCreateSpace } from "@/hooks/useSpaces";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Box } from "lucide-react";
+import { Plus } from "lucide-react";
 import { notify } from "@/lib/notifications";
+
+import mainBlackNoLogo from "@/static/main-black-no-log.svg";
+import mainWhiteNoLogo from "@/static/main-white-no-logo.svg";
 
 export default function HomePage() {
   const createSpaceMutation = useCreateSpace();
@@ -31,8 +34,9 @@ export default function HomePage() {
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
       <Card className="max-w-md w-full">
         <CardContent className="p-6 sm:p-8 space-y-4">
-          <div className="surface-panel-muted inline-flex rounded-full p-6 mb-2">
-            <Box className="h-12 w-12 text-primary" />
+          <div className="mb-2 flex justify-center">
+            <img src={mainWhiteNoLogo} alt="Bazar Space" className="hidden h-16 w-auto dark:block" />
+            <img src={mainBlackNoLogo} alt="Bazar Space" className="h-16 w-auto dark:hidden" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Добро пожаловать в Bazar Space</h1>
           <p className="text-muted-foreground">

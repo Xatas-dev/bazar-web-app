@@ -25,13 +25,21 @@ export interface V1GetDownloadUrlResponse {
   downloadUrl: string;
 }
 
+export interface V1ErrorDetail {
+  code: string;
+  description: string;
+}
+
 export interface V1GetUploadUrlResponse {
   uploadUrl: string;
   nodeId: string;
+  errors?: V1ErrorDetail[];
 }
 
 export interface V1GetFileStatusResponse {
   status: string;
   // Новое поле: author присутствует когда status = 'UPLOADED'
   author?: V1GetNodesAuthorResponse | null;
+  // Новое поле: errors когда status = 'ERROR'
+  errors?: V1ErrorDetail[];
 }

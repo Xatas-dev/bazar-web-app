@@ -71,7 +71,7 @@ services:
       - app-network
 
   bazar-api-gateway:
-    image: basegod/bazar-api-gateway:1.0.2-SNAPSHOT
+    image: basegod/bazar-api-gateway:latest
     container_name: bazar-api-gateway
     environment:
       - KC_URL=http://host.docker.internal:9999
@@ -248,6 +248,9 @@ services:
       - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SETTING_SCHEDULER_DELETE_FILES_CRON=60s
       - SETTING_SCHEDULER_DELETE_FILES_BATCH_SIZE=2
+      - SETTING_MAX_FILE_SIZE=40000
+      - SETTING_NOT_ALLOWED_EXTENSIONS=.exe,.sh,.bat,.msi,.bin,.ps1,.hta
+      - JAVA_OPTS_APPEND=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
     depends_on:
       postgresql:
         condition: service_healthy
