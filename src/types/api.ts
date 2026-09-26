@@ -61,6 +61,7 @@ export interface SimpleActionDto {
 export interface RoleDto {
   id: number;
   name: string | null;
+  description?: string | null;
   isVisible: boolean;
   createdBy: string;
   spaceId: number | null;

@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useGetActions, useGetRoles } from "@/hooks/useRoles";
-import { ActionDto } from "@/types/api";
-import { getRoleAttributeKey, RoleAttributeSelections } from "@/lib/role-attributes";
+import { getRoleAttributeKey, groupActionsByResource, RoleAttributeSelections } from "@/lib/role-attributes";
 import { ActiveAttribute } from "@/components/role/AttributeManagePanel";
 
 export interface UseRoleEditorOptions {
@@ -26,17 +25,7 @@ export function useRoleEditor({ spaceId, allowedActionIds = null }: UseRoleEdito
 
   const isActionAllowed = (actionId: number) => !allowedActionIds || allowedActionIds.includes(actionId);
 
-  const groupedActions = useMemo(() => {
-    const map = new Map<string, ActionDto[]>();
-    for (const action of actions) {
-      const group = action.resourceName || "other";
-      if (!map.has(group)) {
-        map.set(group, []);
-      }
-      map.get(group)!.push(action);
-    }
-    return Array.from(map.entries());
-  }, [actions]);
+  const groupedActions = useMemo(() => groupActionsByResource(actions), [actions]);
 
   const handleActionToggle = (actionId: number) => {
     setSelectedActions((prev) => {

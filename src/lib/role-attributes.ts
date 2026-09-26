@@ -12,6 +12,18 @@ export type RoleAttributeSelections = Record<string, Set<number>>;
 
 export const getRoleAttributeKey = (actionId: number, attributeName: string) => `${actionId}:${attributeName}`;
 
+export const groupActionsByResource = (actions: ActionDto[]): [string, ActionDto[]][] => {
+  const map = new Map<string, ActionDto[]>();
+  for (const action of actions) {
+    const group = action.resourceName || "other";
+    if (!map.has(group)) {
+      map.set(group, []);
+    }
+    map.get(group)!.push(action);
+  }
+  return Array.from(map.entries());
+};
+
 const isSupportedAttributeName = (attributeName: string): attributeName is SupportedAttributeName => {
   return SUPPORTED_ATTRIBUTE_NAMES.has(attributeName as SupportedAttributeName);
 };
