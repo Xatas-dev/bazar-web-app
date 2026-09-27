@@ -95,9 +95,6 @@ export default function SpaceDashboardPage() {
    const [settingsTab, setSettingsTab] = useState<SettingsTab>("overview");
   const active = useSidebarStore((s) => s.active);
   const setActive = useSidebarStore((s) => s.setActive);
-  const panel = useSidebarStore((s) => s.panel);
-  const panelMeta = useSidebarStore((s) => s.panelMeta);
-  const setPanel = useSidebarStore((s) => s.setPanel);
 
   useEffect(() => {
     if (currentSpace) {
@@ -289,13 +286,10 @@ export default function SpaceDashboardPage() {
            onUpdateSpace={handleUpdateSpace}
            onDeleteSpace={handleDeleteSpace}
            isSaving={patchSpaceMutation.isPending}
-           onNoPermissionSave={() => notify.error.forbidden()}
-           onNoPermissionDelete={() => notify.error.forbidden()}
-           panel={active === 'space-settings' ? panel : null}
-           panelMeta={panelMeta}
-           onPanelChange={setPanel}
-         />
-         <ProfileRail />
+            onNoPermissionSave={() => notify.error.forbidden()}
+            onNoPermissionDelete={() => notify.error.forbidden()}
+          />
+          <ProfileRail />
        </div>
      </div>
    );

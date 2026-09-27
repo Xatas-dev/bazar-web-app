@@ -102,7 +102,7 @@ services:
     restart: unless-stopped
 
   bazar-authorization:
-    image: basegod/bazar-authorization:latest
+    image: basegod/bazar-authorization:1.0.4-SNAPSHOT
     container_name: bazar-authorization
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrauthz
@@ -112,6 +112,7 @@ services:
       - KC_JWK_URL=http://host.docker.internal:9999/realms/bazar-realm/protocol/openid-connect/certs
       - LOGGING_LEVEL=INFO
       - CERBOS_URL=cerbos:3593
+      - BAZAR_SPACE_URL=http://bazar-space:8080/api
     depends_on:
       postgresql:
         condition: service_healthy
@@ -124,7 +125,7 @@ services:
     restart: unless-stopped
 
   bazar-space:
-    image: basegod/bazar-space:latest
+    image: basegod/bazar-space:1.0.3-SNAPSHOT
     container_name: bazar-space
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrspace
@@ -132,7 +133,7 @@ services:
       - DB_PASS=postgres
       - KC_URL=http://host.docker.internal:9999
       - KC_REALM=bazar-realm
-      - LOGGING_LEVEL=INFO
+      - LOGGING_LEVEL=TRACE
       - BAZAR_AUTHORIZATION_HOST=bazar-authorization
       - BAZAR_AUTHORIZATION_PORT=9090
       - BAZAR_AUTHORIZATION_API_URL=http://bazar-authorization:8080/api
