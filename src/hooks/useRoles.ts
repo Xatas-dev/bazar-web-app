@@ -17,7 +17,7 @@ const getActions = async (spaceId: number): Promise<GetActionsResponse> => {
 };
 
 // Get list of all roles in a space - NEW endpoint
-const getRoles = async (spaceId: number): Promise<{ roles: Array<{ id: number; name: string; spaceId: number; scope: string; isVisible: boolean; createdBy?: string | null }> }> => {
+const getRoles = async (spaceId: number): Promise<{ roles: Array<{ id: number; name: string; spaceId: number; scope: string; isVisible: boolean; description?: string | null; createdBy?: string | null }> }> => {
   const { data } = await authorizationAxiosInstance.get('/v1/roles', {
     params: { spaceId }
   });

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +10,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Save, Trash2, X, LayoutGrid, Users, Shield } from "lucide-react";
 import SpaceMembersPage from "@/pages/SpaceMembersPage";
 import RolesTab from "@/components/role/RolesTab";
-import CreateRolePanel from "@/components/role/CreateRoleDialog";
-import EditRolePanel from "@/components/role/EditRolePanel";
 import RoleInfoPanel from "@/components/role/RoleInfoPanel";
+import RoleEditorScreen from "@/components/role/RoleEditorScreen";
+
+type RoleScreen =
+  | { kind: "list" }
+  | { kind: "info"; roleId: number }
+  | { kind: "editor"; roleId?: number; fromInfo?: boolean };
 
 type SettingsTab = "overview" | "members" | "roles";
 
@@ -74,9 +79,6 @@ interface SpaceSettingsDrawerProps {
   isSaving: boolean;
   onNoPermissionSave: () => void;
   onNoPermissionDelete: () => void;
-  panel: string | null;
-  panelMeta: Record<string, unknown>;
-  onPanelChange: (panel: string | null, meta?: Record<string, unknown>) => void;
 }
 
 export function SpaceSettingsDrawer({
@@ -103,42 +105,41 @@ export function SpaceSettingsDrawer({
   isSaving,
   onNoPermissionSave,
   onNoPermissionDelete,
-  panel,
-  panelMeta,
-  onPanelChange,
 }: SpaceSettingsDrawerProps) {
+  const [roleScreen, setRoleScreen] = useState<RoleScreen>({ kind: "list" });
+
+  useEffect(() => {
+    if (!open) {
+      setRoleScreen({ kind: "list" });
+    }
+  }, [open]);
+
   const renderContent = () => {
-    if (panel === 'create-role') {
-      return (
-        <CreateRolePanel
-          spaceId={id}
-          allowedActionIds={createGrantableActionIds}
-          onBack={() => onPanelChange(null)}
-        />
-      );
-    }
-
-    if (panel === 'edit-role') {
-      const roleId = panelMeta.roleId as number | undefined;
-      if (!roleId) return null;
-      return (
-        <EditRolePanel
-          spaceId={id}
-          roleId={roleId}
-          allowedActionIds={editGrantableActionIds}
-          onBack={() => onPanelChange(null)}
-        />
-      );
-    }
-
-    if (panel === 'role-info') {
-      const roleId = panelMeta.roleId as number | undefined;
-      if (!roleId) return null;
+    if (roleScreen.kind === "info") {
       return (
         <RoleInfoPanel
           spaceId={id}
+          roleId={roleScreen.roleId}
+          canEdit={canEditRoles}
+          onBack={() => setRoleScreen({ kind: "list" })}
+          onEdit={() => setRoleScreen({ kind: "editor", roleId: roleScreen.roleId, fromInfo: true })}
+        />
+      );
+    }
+
+    if (roleScreen.kind === "editor") {
+      const roleId = roleScreen.roleId;
+      return (
+        <RoleEditorScreen
+          spaceId={id}
           roleId={roleId}
-          onBack={() => onPanelChange(null)}
+          allowedActionIds={roleId ? editGrantableActionIds : createGrantableActionIds}
+          onBack={() =>
+            setRoleScreen(roleScreen.fromInfo && roleId ? { kind: "info", roleId } : { kind: "list" })
+          }
+          onDone={() =>
+            setRoleScreen(roleScreen.fromInfo && roleId ? { kind: "info", roleId } : { kind: "list" })
+          }
         />
       );
     }
@@ -272,8 +273,9 @@ export function SpaceSettingsDrawer({
                   <RolesTab
                     spaceId={id}
                     canCreate={canCreateRoles}
-                    canEdit={canEditRoles}
                     canRead={canReadRoles}
+                    onSelectRole={(roleId) => setRoleScreen({ kind: "info", roleId })}
+                    onCreateRole={() => setRoleScreen({ kind: "editor" })}
                   />
                 </TabsContent>
               </div>
@@ -288,7 +290,7 @@ export function SpaceSettingsDrawer({
     <AnimatePresence mode="wait">
       {open && (
         <motion.aside
-          key={panel ?? "settings"}
+          key="settings"
           initial={{ width: 0, opacity: 0 }}
           animate={{ width: "40rem", opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
