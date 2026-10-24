@@ -232,7 +232,7 @@ services:
 
 
   bazar-files:
-    image: basegod/bazar-files:latest-SNAPSHOT
+    image: bazar-files-local:dev
     container_name: bazar-files
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrfiles
@@ -251,6 +251,9 @@ services:
       - SETTING_SCHEDULER_DELETE_FILES_BATCH_SIZE=2
       - SETTING_MAX_FILE_SIZE=40000
       - SETTING_NOT_ALLOWED_EXTENSIONS=.exe,.sh,.bat,.msi,.bin,.ps1,.hta
+      - SETTING_SCHEDULER_SEND_OUTBOX_EVENTS_CRON=2s
+      - SETTING_SCHEDULER_SEND_OUTBOX_EVENTS_BATCH_SIZE=100
+      - SETTING_OUTBOX_MAX_RETRY_COUNT=5
       - JAVA_OPTS_APPEND=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
     depends_on:
       postgresql:
