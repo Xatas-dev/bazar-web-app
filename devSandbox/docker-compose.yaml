@@ -232,7 +232,7 @@ services:
 
 
   bazar-files:
-    image: bazar-files-local:dev
+    image: basegod/bazar-files:latest-SNAPSHOT
     container_name: bazar-files
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrfiles
