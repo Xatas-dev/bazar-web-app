@@ -5,8 +5,8 @@ export const getPermissionKey = (action: Pick<ActionDto, "resource" | "code">) =
 export const SPACE_PERMISSIONS = {
   rolesRead: "roles:READ",
   rolesAssign: "roles:ASSIGN",
-  rolesEdit: "roles:EDIT",
-  rolesCreate: "roles:CREATE",
+  rolesEdit: "roles:MANAGE",
+  rolesCreate: "roles:MANAGE",
   spaceDelete: "space:DELETE",
   spaceWrite: "space:WRITE",
   chatRead: "chat_messages:READ",
