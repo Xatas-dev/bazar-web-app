@@ -3,7 +3,6 @@ import { ActionDto } from "@/types/api";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +11,6 @@ interface PermissionCategoryListProps {
   variant: "read" | "edit";
   grantedActionIds?: Set<number>;
   selectedActions?: Set<number>;
-  isActionAllowed?: (actionId: number) => boolean;
   onToggleAction?: (actionId: number) => void;
 }
 
@@ -21,9 +19,8 @@ export default function PermissionCategoryList({
                                                  variant,
                                                  grantedActionIds,
                                                  selectedActions,
-                                                 isActionAllowed,
                                                  onToggleAction,
-                                               }: PermissionCategoryListProps) {
+}: PermissionCategoryListProps) {
   const firstResource = groupedActions[0]?.[0];
   const [open, setOpen] = useState<Set<string>>(() =>
       new Set(firstResource ? [firstResource] : [])
@@ -89,39 +86,25 @@ export default function PermissionCategoryList({
                           );
                         }
 
-                        const allowed = isActionAllowed ? isActionAllowed(action.id) : true;
                         const selected = selectedActions?.has(action.id) ?? false;
-                        const row = (
+                  return (
                             <div
-                                className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-                                    allowed ? "hover:bg-accent/40" : "opacity-[var(--panel-disabled-opacity)]"
-                                )}
+                                key={action.id}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-accent/40"
                             >
                               <Checkbox
                                   id={`perm-action-${action.id}`}
                                   checked={selected}
-                                  disabled={!allowed}
                                   onCheckedChange={() => onToggleAction?.(action.id)}
-                              />
-                              <Label
-                                  htmlFor={`perm-action-${action.id}`}
-                                  className="cursor-pointer text-sm font-medium"
-                              >
-                                {action.name}
-                              </Label>
-                            </div>
-                        );
-
-                        if (!allowed) {
-                          return (
-                              <Tooltip key={action.id}>
-                                <TooltipTrigger asChild>{row}</TooltipTrigger>
-                                <TooltipContent>В вашей текущей роли нет данного права</TooltipContent>
-                              </Tooltip>
-                          );
-                        }
-                        return <div key={action.id}>{row}</div>;
+                      />
+                      <Label
+                        htmlFor={`perm-action-${action.id}`}
+                        className="cursor-pointer text-sm font-medium"
+                      >
+                        {action.name}
+                      </Label>
+                    </div>
+                  );
                       })}
                     </div>
                 )}

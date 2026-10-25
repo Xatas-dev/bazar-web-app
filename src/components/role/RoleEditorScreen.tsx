@@ -16,7 +16,6 @@ import { notify } from "@/lib/notifications";
 interface RoleEditorScreenProps {
   spaceId: number;
   roleId?: number;
-  allowedActionIds?: number[] | null;
   onBack: () => void;
   onDone: () => void;
 }
@@ -24,17 +23,15 @@ interface RoleEditorScreenProps {
 export default function RoleEditorScreen({
                                            spaceId,
                                            roleId,
-                                           allowedActionIds = null,
                                            onBack,
-                                           onDone,
-                                         }: RoleEditorScreenProps) {
+  onDone,
+}: RoleEditorScreenProps) {
   const isEdit = typeof roleId === "number";
-  const editor = useRoleEditor({ spaceId, allowedActionIds });
+  const editor = useRoleEditor({ spaceId });
   const {
     roleName, setRoleName, isVisible, setIsVisible,
     selectedActions, setSelectedActions,
-    groupedActions, isActionAllowed,
-    handleActionToggle,
+    groupedActions, handleActionToggle,
   } = editor;
 
   const { data: role, isLoading: isLoadingRole } = useGetRole(spaceId, roleId);
@@ -142,27 +139,26 @@ export default function RoleEditorScreen({
                         variant="edit"
                         groupedActions={groupedActions}
                         selectedActions={selectedActions}
-                        isActionAllowed={isActionAllowed}
                         onToggleAction={handleActionToggle}
-                    />
-                  </div>
-                </>
-            )}
-          </div>
-        </ScrollArea>
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </ScrollArea>
 
         <div className="surface-panel-strong flex items-center justify-end gap-3 border-t border-border px-4 py-4 sm:px-6">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" onClick={onBack} disabled={mutation.isPending}>
+              <X className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left">Отмена</TooltipContent>
+        </Tooltip>
+        {mutation.isPending ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={onBack} disabled={mutation.isPending}>
-                <X className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">Отмена</TooltipContent>
-          </Tooltip>
-          {mutation.isPending ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
               <span tabIndex={0}>
                 <Button size="icon" disabled>
                   <Loader2 className="h-4 w-4 animate-spin" />

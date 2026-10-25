@@ -10,7 +10,7 @@ import { Box, EyeOff, HardDrive, MessageSquare, Settings2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatTab } from "@/components/chat/ChatTab";
 import { StorageTab, StorageUploadButton } from "@/components/storage/StorageTab";
-import { getGrantableActionIds, getPermissionKey, SPACE_PERMISSIONS } from "@/lib/permissions";
+import { getPermissionKey, SPACE_PERMISSIONS } from "@/lib/permissions";
 import { ProfileRail } from "@/components/ProfileRail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { notify } from "@/lib/notifications";
@@ -77,13 +77,6 @@ export default function SpaceDashboardPage() {
   const canDownloadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDownload);
   const canDeleteStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageDelete);
   const canReadStorage = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.storageRead);
-
-  const createGrantableActionIds = isCreator
-      ? null
-      : getGrantableActionIds(assignedRole?.actions, SPACE_PERMISSIONS.rolesCreate);
-  const editGrantableActionIds = isCreator
-      ? null
-      : getGrantableActionIds(assignedRole?.actions, SPACE_PERMISSIONS.rolesEdit);
 
   const deleteSpaceMutation = useDeleteSpace();
   const patchSpaceMutation = usePatchSpace();
@@ -281,8 +274,6 @@ export default function SpaceDashboardPage() {
            canWriteSpace={canWriteSpace}
            canAddMember={canAddMember}
            canDeleteMember={canDeleteMember}
-           createGrantableActionIds={createGrantableActionIds}
-           editGrantableActionIds={editGrantableActionIds}
            onUpdateSpace={handleUpdateSpace}
            onDeleteSpace={handleDeleteSpace}
            isSaving={patchSpaceMutation.isPending}
