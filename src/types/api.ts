@@ -27,13 +27,6 @@ export interface AddUserToSpaceDtoRequest {
 }
 
 // Authorization API Types
-export interface ActionAttributeDto {
-  id: number;
-  name: string;
-  displayName: string;
-  valueType: string;
-  value?: string | null;
-}
 
 export interface ActionDto {
   id: number;
@@ -41,21 +34,14 @@ export interface ActionDto {
   name: string;
   resource: string;
   resourceName: string;
-  attributes: ActionAttributeDto[];
 }
 
 export interface GetActionsResponse {
   actions: ActionDto[];
 }
 
-export interface SimpleAttributeDto {
-  id: number;
-  value: string;
-}
-
 export interface SimpleActionDto {
   id: number;
-  attributes?: SimpleAttributeDto[];
 }
 
 export interface RoleDto {

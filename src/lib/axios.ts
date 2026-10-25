@@ -73,10 +73,28 @@ const addAuthorizationHeader = (requestConfig: any) => {
   return requestConfig;
 };
 
+// Extract a human-readable message from the error response body, if present.
+// All services (space, persona, chat, storage, authorization) place it in `response.data.message`.
+const getErrorMessage = (error: any): string | undefined => {
+  const data = error?.response?.data;
+  if (data && typeof data.message === 'string' && data.message.trim()) {
+    return data.message;
+  }
+  return undefined;
+};
+
 // Global response error interceptor
 const handleResponseError = (error: any) => {
   if (error.response) {
     const status = error.response.status;
+
+    // Surface the server-provided message when available; otherwise fall back to
+    // the per-status default below. Errors without a message won't break the UI.
+    const message = getErrorMessage(error);
+    if (message) {
+      notify.error.generic(message);
+      return Promise.reject(error);
+    }
 
     switch (status) {
       case 400:
