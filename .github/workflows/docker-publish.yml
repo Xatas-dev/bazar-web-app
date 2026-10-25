@@ -8,12 +8,12 @@ permissions:
 on:
   push:
     branches:
-      - dev
       - master
+      - 'release/**'
   pull_request:
     branches:
-      - dev
       - master
+      - 'release/**'
   workflow_dispatch:
 
 env:
@@ -30,6 +30,7 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v5
         with:
           skip_after_successful_duplicate: 'true'
+          do_not_skip: '["push", "pull_request", "workflow_dispatch", "schedule"]'
 
   docker-build-and-publish:
     needs: pre_job
@@ -44,17 +45,41 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Extract Version
         id: get_version
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          echo "Detected version: $VERSION"
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
           echo "APP_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Determine image tags and push flag
+        id: docker_pre_job
+        run: |
+          PUSH_DOCKER_IMAGE="false"
+          TAGS=""
+
+          if [[ "${{ github.event_name }}" == "push" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ github.ref_name }}" == release/* ]]; then
+              TAGS="${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }},${{ env.IMAGE_NAME }}:latest"
+              PUSH_DOCKER_IMAGE="true"
+            elif [[ "${{ github.ref_name }}" == "master" ]]; then
+              TAGS="${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }}-SNAPSHOT"
+              PUSH_DOCKER_IMAGE="true"
+            fi
+          fi
+
+          echo "PUSH_DOCKER_IMAGE=$PUSH_DOCKER_IMAGE" >> $GITHUB_OUTPUT
+          echo "TAGS=$TAGS" >> $GITHUB_OUTPUT
+          echo "Push: $PUSH_DOCKER_IMAGE"
+          echo "Tags: $TAGS"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        if: github.event_name == 'push' && github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
+        if: steps.docker_pre_job.outputs.PUSH_DOCKER_IMAGE == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -65,32 +90,27 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: ${{ github.event_name == 'push' && github.ref_name == 'master' || github.event_name == 'workflow_dispatch' }}
-          load: ${{ !(github.event_name == 'push' && github.ref_name == 'master') && !(github.event_name == 'workflow_dispatch') }}
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ env.APP_VERSION }}
-            ${{ env.IMAGE_NAME }}:latest
+          push: ${{ steps.docker_pre_job.outputs.PUSH_DOCKER_IMAGE == 'true' }}
+          load: ${{ steps.docker_pre_job.outputs.PUSH_DOCKER_IMAGE != 'true' }}
+          tags: ${{ steps.docker_pre_job.outputs.TAGS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
   create-tag:
     needs: docker-build-and-publish
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/release/')
     steps:
       - uses: actions/checkout@v4
+
       - name: Create or Update Git Tag
-        if: github.ref == 'refs/heads/master'
         run: |
           TAG_NAME="bweb-${{ needs.docker-build-and-publish.outputs.app-version }}"
 
-          # Configure git user (required for tagging)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           echo "Force updating tag $TAG_NAME to point to current commit..."
 
-          # -f: Force (overwrite if exists)
-          # -a: Annotated tag (stores history/message)
           git tag -fa "$TAG_NAME" -m "Auto-tag release $TAG_NAME"
-
-          # Push with --force to update the remote tag
           git push origin -f "$TAG_NAME"
