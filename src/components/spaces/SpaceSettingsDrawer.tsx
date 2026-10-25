@@ -72,8 +72,6 @@ interface SpaceSettingsDrawerProps {
   canWriteSpace: boolean;
   canAddMember: boolean;
   canDeleteMember: boolean;
-  createGrantableActionIds: number[] | null;
-  editGrantableActionIds: number[] | null;
   onUpdateSpace: () => void;
   onDeleteSpace: () => void;
   isSaving: boolean;
@@ -98,8 +96,6 @@ export function SpaceSettingsDrawer({
   canWriteSpace,
   canAddMember,
   canDeleteMember,
-  createGrantableActionIds,
-  editGrantableActionIds,
   onUpdateSpace,
   onDeleteSpace,
   isSaving,
@@ -133,7 +129,6 @@ export function SpaceSettingsDrawer({
         <RoleEditorScreen
           spaceId={id}
           roleId={roleId}
-          allowedActionIds={roleId ? editGrantableActionIds : createGrantableActionIds}
           onBack={() =>
             setRoleScreen(roleScreen.fromInfo && roleId ? { kind: "info", roleId } : { kind: "list" })
           }
