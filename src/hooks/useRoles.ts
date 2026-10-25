@@ -165,6 +165,10 @@ export const useAssignRoleToUser = () => {
       queryClient.invalidateQueries({
         queryKey: ['user-roles', variables.spaceId],
       });
+      // Reload space users so the member's role badge reflects the assignment
+      queryClient.invalidateQueries({
+        queryKey: ['space-users', variables.spaceId],
+      });
     },
   });
 };
