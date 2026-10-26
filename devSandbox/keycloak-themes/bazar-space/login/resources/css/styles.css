@@ -1,0 +1,457 @@
+/* ============================================================
+   APP GLASSMORPHISM THEME FOR KEYCLOAK
+   ============================================================ */
+
+:root {
+    --foreground: 228 100% 98%;
+
+    --primary: 222 55% 42%;
+    --primary-hover: 222 55% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --muted-foreground: 223.4 24.8% 77.1%;
+
+    --input-border: 225 24.6% 28%;
+    --ring: 222 55% 48%;
+
+    --panel-surface: 228 29.4% 10% / 0.88;
+    --panel-border: 223.9 30% 55% / 0.35;
+    --panel-backdrop: blur(16px) saturate(1.2) brightness(0.95);
+
+    --app-gradient:
+            radial-gradient(900px circle at 15% -10%, hsl(222 55% 42% / 0.55), transparent 60%),
+            radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.45), transparent 55%),
+            linear-gradient(135deg, hsl(225 22.2% 10%) 0%, hsl(228 29.4% 14%) 55%, hsl(224.3 29.9% 20%) 100%);
+
+    --app-glow: radial-gradient(circle at 20% 18%, hsl(222 55% 42% / 0.28), transparent 24%);
+
+    --radius-card: 1.375rem;
+    --radius-input: 0.75rem;
+
+    /* Size knobs: tweak these to resize everything */
+    --card-width: 440px;
+    --control-height: 2.75rem;
+    --field-gap: 1.1rem;
+}
+
+/* ---------- Page ---------- */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--app-gradient) !important;
+    background-attachment: fixed !important;
+    color: hsl(var(--foreground)) !important;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: var(--app-glow);
+    filter: blur(70px);
+    opacity: 0.9;
+}
+
+#kc-header,
+.pf-v5-c-login__header,
+.pf-v5-c-brand,
+.pf-c-brand {
+    display: none !important;
+}
+
+.pf-v5-c-login,
+.login-pf-page,
+#kc-container {
+    min-height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    padding: 1.5rem !important;
+    position: relative;
+    z-index: 1;
+}
+
+.pf-v5-c-login__container {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: var(--card-width) !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+}
+
+/* Kill nested PF boxes + their built-in spacing */
+.pf-v5-c-login__main-container,
+.pf-v5-c-login__main-header,
+.pf-v5-c-login__main-body,
+.pf-v5-c-login__main-footer,
+.pf-v5-c-login__main-footer-band,
+.pf-v5-c-login__main-footer-band-item,
+.pf-v5-c-form,
+#kc-form,
+#kc-form-wrapper,
+#kc-registration-container,
+#kc-registration {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    --pf-v5-c-login__main-footer-band--PaddingTop: 0;
+    --pf-v5-c-login__main-footer-band--PaddingBottom: 0;
+    --pf-v5-c-login__main-footer-band--MarginTop: 0;
+    --pf-v5-c-login__main-footer--PaddingBottom: 0;
+    --pf-v5-c-login__main-body--PaddingBottom: 0;
+}
+
+/* PF form uses CSS grid with a big gap, so we control it ourselves */
+.pf-v5-c-form,
+#kc-form-login {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--field-gap) !important;
+    --pf-v5-c-form--GridGap: var(--field-gap) !important;
+}
+
+/* ---------- Card ---------- */
+.pf-v5-c-login__main,
+.card-pf {
+    width: 100% !important;
+    max-width: var(--card-width) !important;
+    background: hsl(var(--panel-surface)) !important;
+    border: 1px solid hsl(var(--panel-border)) !important;
+    border-radius: var(--radius-card) !important;
+    -webkit-backdrop-filter: var(--panel-backdrop) !important;
+    backdrop-filter: var(--panel-backdrop) !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45) !important;
+    padding: 2.5rem 2.25rem 2.25rem !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+}
+
+/* ---------- Header (logo centered on top) ---------- */
+.pf-v5-c-login__main-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.875rem !important;
+    margin-bottom: 1.75rem !important;
+    text-align: center !important;
+}
+
+.pf-v5-c-login__main-header img,
+#kc-header-wrapper {
+    display: none !important;
+}
+
+.pf-v5-c-login__main-header::before {
+    content: "";
+    display: block;
+    width: 52px;
+    height: 52px;
+    background: url("../img/logo.svg") center / contain no-repeat;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+#kc-page-title,
+.pf-v5-c-title {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: hsl(var(--foreground)) !important;
+    letter-spacing: -0.02em !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ---------- Fields ---------- */
+.pf-v5-c-form__group,
+.form-group {
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.pf-v5-c-form__label,
+label {
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: hsl(var(--foreground) / 0.85) !important;
+    margin-bottom: 0.45rem !important;
+    padding: 0 !important;
+    display: block !important;
+}
+
+/* Kill PF underline wrappers */
+.pf-v5-c-form-control,
+.pf-c-form-control {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    outline: none !important;
+}
+
+.pf-v5-c-form-control::before,
+.pf-v5-c-form-control::after,
+.pf-c-form-control::before,
+.pf-c-form-control::after,
+.pf-v5-c-button::after,
+.pf-v5-c-button.pf-m-control::after {
+    display: none !important;
+    content: none !important;
+    border: none !important;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+.pf-v5-c-form-control > input,
+.pf-v5-c-form-control input {
+    width: 100% !important;
+    height: var(--control-height) !important;
+    padding: 0 1rem !important;
+    font-size: 0.9375rem !important;
+    color: hsl(var(--foreground)) !important;
+    background: hsl(var(--foreground) / 0.05) !important;
+    border: 1px solid hsl(var(--input-border)) !important;
+    border-radius: var(--radius-input) !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: all 0.15s ease !important;
+}
+
+input:focus,
+.pf-v5-c-form-control > input:focus {
+    border-color: hsl(var(--ring)) !important;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2) !important;
+    background: hsl(var(--foreground) / 0.07) !important;
+}
+
+/* Password + eye */
+.pf-v5-c-input-group,
+.pf-c-input-group {
+    display: flex !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    height: var(--control-height) !important;
+    background: hsl(var(--foreground) / 0.05) !important;
+    border: 1px solid hsl(var(--input-border)) !important;
+    border-radius: var(--radius-input) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    transition: all 0.15s ease !important;
+}
+
+.pf-v5-c-input-group:focus-within {
+    border-color: hsl(var(--ring)) !important;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.2) !important;
+}
+
+.pf-v5-c-input-group input {
+    border: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    height: 100% !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-input-group__item {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.pf-v5-c-input-group button,
+.pf-v5-c-button.pf-m-control {
+    background: transparent !important;
+    border: none !important;
+    border-left: 1px solid hsl(var(--input-border) / 0.5) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: hsl(var(--muted-foreground)) !important;
+    padding: 0 0.9rem !important;
+    height: 100% !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.pf-v5-c-input-group button:hover {
+    color: hsl(var(--foreground)) !important;
+    background: hsl(var(--foreground) / 0.04) !important;
+}
+
+/* ---------- Forgot password ---------- */
+#kc-form-options,
+.pf-v5-c-form__group:has(#kc-form-options) {
+    margin-top: calc(var(--field-gap) * -0.5) !important; /* pull closer to password */
+}
+
+a,
+#kc-form-options a {
+    font-size: 0.825rem !important;
+    font-weight: 500 !important;
+    color: hsl(var(--primary)) !important;
+    text-decoration: none !important;
+}
+
+a:hover {
+    color: hsl(var(--ring)) !important;
+    text-decoration: underline !important;
+}
+
+/* ---------- Sign In ---------- */
+#kc-form-buttons,
+.pf-v5-c-form__group.pf-m-action,
+.pf-v5-c-form__actions {
+    margin: 0.25rem 0 0 !important;
+    padding: 0 !important;
+}
+
+#kc-login,
+.pf-v5-c-button.pf-m-primary,
+button[type="submit"] {
+    width: 100% !important;
+    height: var(--control-height) !important;
+    margin: 0 !important;
+    background: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: var(--radius-input) !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.3) !important;
+    transition: all 0.15s ease !important;
+}
+
+#kc-login:hover,
+.pf-v5-c-button.pf-m-primary:hover,
+button[type="submit"]:hover {
+    background: hsl(var(--primary-hover)) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px hsl(var(--primary) / 0.4) !important;
+}
+
+/* ---------- Register (right under Sign In) ---------- */
+.pf-v5-c-login__main-footer {
+    margin-top: 0.625rem !important;   /* gap between Sign In and Register */
+    display: block !important;
+    width: 100% !important;
+}
+
+#kc-registration-container,
+#kc-registration,
+.pf-v5-c-login__main-footer-band {
+    width: 100% !important;
+    text-align: center !important;
+    font-size: 0 !important;           /* hides "New user?" text */
+}
+
+#kc-registration a,
+.pf-v5-c-login__main-footer-band a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: calc(var(--control-height) - 0.2rem) !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: hsl(var(--foreground) / 0.85) !important;
+    background: hsl(var(--foreground) / 0.04) !important;
+    border: 1px solid hsl(var(--input-border)) !important;
+    border-radius: var(--radius-input) !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    transition: all 0.15s ease !important;
+}
+
+#kc-registration a:hover,
+.pf-v5-c-login__main-footer-band a:hover {
+    background: hsl(var(--foreground) / 0.09) !important;
+    color: hsl(var(--foreground)) !important;
+    text-decoration: none !important;
+}
+
+/* ---------- Alerts ---------- */
+.pf-v5-c-alert,
+.alert {
+    border-radius: var(--radius-input) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.pf-v5-c-alert.pf-m-danger,
+.alert-error {
+    background: hsl(349.9 82.7% 52.4% / 0.15) !important;
+    color: #ff6b81 !important;
+    border: 1px solid hsl(349.9 82.7% 52.4% / 0.3) !important;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 480px) {
+    .pf-v5-c-login__main,
+    .card-pf {
+        padding: 2rem 1.25rem 1.5rem !important;
+    }
+}
+
+/* ============================================================
+   REGISTRATION PAGE FIXES
+   ============================================================ */
+
+/* 1. Add gap between 'Register' button and 'Back to Login' button */
+#kc-register-form #kc-form-options,
+.pf-v5-c-form__group.pf-m-action + #kc-form-options,
+#kc-form-buttons + #kc-form-options {
+    margin-top: 0.75rem !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+/* 2. Format 'Back to Login' as a clean full-width button with top spacing */
+#kc-register-form #kc-form-options a,
+.pf-v5-c-form__group.pf-m-action + #kc-form-options a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: calc(var(--control-height, 2.75rem) - 0.2rem) !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: hsl(var(--foreground) / 0.85) !important;
+    background: hsl(var(--foreground) / 0.04) !important;
+    border: 1px solid hsl(var(--input-border)) !important;
+    border-radius: var(--radius-input) !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    transition: all 0.15s ease !important;
+}
+
+#kc-register-form #kc-form-options a:hover,
+.pf-v5-c-form__group.pf-m-action + #kc-form-options a:hover {
+    background: hsl(var(--foreground) / 0.09) !important;
+    color: hsl(var(--foreground)) !important;
+    text-decoration: none !important;
+}
+
+/* 1. Hide the top "* Required fields" / "* Обязательные поля" text */
+.subtitle,
+#kc-register-form .subtitle,
+.pf-v5-c-form__text,
+.pf-c-form__text,
+#kc-register-form .required {
+    display: none !important;
+}
+

@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   postgresql:
     image: postgres:15-alpine
     container_name: postgresql
+    platform: linux/amd64
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -26,6 +25,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
+    platform: linux/amd64
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgresql:5432/keycloak
@@ -39,18 +39,20 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
       KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_PORT: 9999
     command:
       - start-dev
       - --import-realm
     volumes:
       - ./bazar-realm.json:/opt/keycloak/data/import/bazar-realm-realm.json:ro
+      - ./keycloak-themes/bazar-space:/opt/keycloak/themes/bazar-space
     ports:
-      - "9999:8080"
+      - "9999:9999"
     depends_on:
       postgresql:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "cat < /dev/null > /dev/tcp/localhost/8080" ]
+      test: [ "CMD-SHELL", "cat < /dev/null > /dev/tcp/localhost/9999" ]
       interval: 10s
       timeout: 5s
       retries: 20
@@ -61,6 +63,7 @@ services:
   cerbos:
     image: ghcr.io/cerbos/cerbos:latest
     container_name: cerbos
+    platform: linux/amd64
     volumes:
       - ./policies:/policies
       - ./configs/cerbos.yaml:/configs/cerbos.yaml
@@ -73,8 +76,9 @@ services:
   bazar-api-gateway:
     image: basegod/bazar-api-gateway:latest
     container_name: bazar-api-gateway
+    platform: linux/amd64
     environment:
-      - KC_URL=http://host.docker.internal:9999
+      - KC_URL=http://keycloak:9999
       - KC_REALM=bazar-realm
       - CLIENT_ID=bazar-api-gateway
       - CLIENT_SECRET=secret
@@ -95,21 +99,20 @@ services:
         condition: service_healthy
       cerbos:
         condition: service_healthy
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - app-network
     restart: unless-stopped
 
   bazar-authorization:
-    image: basegod/bazar-authorization:1.0.4-SNAPSHOT
+    image: basegod/bazar-authorization:1.0.6-SNAPSHOT
     container_name: bazar-authorization
+    platform: linux/amd64
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrauthz
       - DB_USER=postgres
       - DB_PASS=postgres
-      - KC_ISSUER_URL=http://host.docker.internal:9999/realms/bazar-realm
-      - KC_JWK_URL=http://host.docker.internal:9999/realms/bazar-realm/protocol/openid-connect/certs
+      - KC_ISSUER_URL=http://keycloak:9999/realms/bazar-realm
+      - KC_JWK_URL=http://keycloak:9999/realms/bazar-realm/protocol/openid-connect/certs
       - LOGGING_LEVEL=INFO
       - CERBOS_URL=cerbos:3593
       - BAZAR_SPACE_URL=http://bazar-space:8080/api
@@ -127,11 +130,12 @@ services:
   bazar-space:
     image: basegod/bazar-space:1.0.3-SNAPSHOT
     container_name: bazar-space
+    platform: linux/amd64
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrspace
       - DB_USER=postgres
       - DB_PASS=postgres
-      - KC_URL=http://host.docker.internal:9999
+      - KC_URL=http://keycloak:9999
       - KC_REALM=bazar-realm
       - LOGGING_LEVEL=TRACE
       - BAZAR_AUTHORIZATION_HOST=bazar-authorization
@@ -150,12 +154,13 @@ services:
   bazar-chat:
      image: basegod/bazar-chat:latest-SNAPSHOT
      container_name: bazar-chat
+     platform: linux/amd64
      environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrchat
       - SYSTEM_DB_USERNAME=postgres
       - SYSTEM_DB_PASSWORD=postgres
       - SYSTEM_LOGGING_LEVEL=INFO
-      - INTEGRATION_KEYCLOAK_EXTERNAL_URL=http://host.docker.internal:9999
+      - INTEGRATION_KEYCLOAK_EXTERNAL_URL=http://keycloak:9999
       - INTEGRATION_KEYCLOAK_REALM=bazar-realm
       - INTEGRATION_REST_BAZAR_PERSONA_API_URL=http://bazar-persona:8080/api
       - INTEGRATION_REST_BAZAR_SPACE_API_URL=http://bazar-space:8080/api
@@ -182,12 +187,13 @@ services:
   bazar-persona:
     image: basegod/bazar-persona:latest
     container_name: bazar-persona
+    platform: linux/amd64
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrpersona
       - DB_USER=postgres
       - DB_PASS=postgres
-      - KC_URL=http://host.docker.internal:9999
-      - KC_EXTERNAL_URL=http://host.docker.internal:9999
+      - KC_URL=http://keycloak:9999
+      - KC_EXTERNAL_URL=http://keycloak:9999
       - KC_REALM=bazar-realm
       - LOGGING_LEVEL=INFO
     extra_hosts:
@@ -202,11 +208,12 @@ services:
   bazar-storage:
     image: basegod/bazar-storage:latest-SNAPSHOT
     container_name: bazar-storage
+    platform: linux/amd64
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrstorage
       - SYSTEM_DB_USERNAME=postgres
       - SYSTEM_DB_PASSWORD=postgres
-      - INTEGRATION_KEYCLOAK_EXTERNAL_URL=http://host.docker.internal:9999
+      - INTEGRATION_KEYCLOAK_EXTERNAL_URL=http://keycloak:9999
       - INTEGRATION_KEYCLOAK_REALM=bazar-realm
       - INTEGRATION_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - INTEGRATION_REST_BAZAR_FILES_API_URL=http://bazar-files:8080/api
@@ -234,6 +241,7 @@ services:
   bazar-files:
     image: basegod/bazar-files:latest-SNAPSHOT
     container_name: bazar-files
+    platform: linux/amd64
     environment:
       - SYSTEM_DB_URL=jdbc:postgresql://postgresql:5432/bzrfiles
       - SYSTEM_DB_USERNAME=postgres
@@ -269,6 +277,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.2.1
     container_name: zookeeper
+    platform: linux/amd64
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     networks:
@@ -277,6 +286,7 @@ services:
   kafka:
     image: confluentinc/cp-server:7.2.1
     container_name: kafka
+    platform: linux/amd64
     depends_on:
       - zookeeper
     ports:
@@ -297,6 +307,7 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
+    platform: linux/amd64
     depends_on:
       - kafka
     ports:
@@ -310,6 +321,7 @@ services:
   rustfs:
     image: rustfs/rustfs@sha256:23ff2af1ec2d64e0fb9608a1c39b5eb96fcff3a8efecf332986c948b0e3e4f8a
     container_name: rustfs
+    platform: linux/amd64
     ports:
       - "9000:9000"
       - "9001:9001"
