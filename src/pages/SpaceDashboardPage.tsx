@@ -266,6 +266,7 @@ export default function SpaceDashboardPage() {
            setSpaceName={setSpaceName}
            settingsTab={settingsTab}
            setSettingsTab={setSettingsTab}
+           isCreator={isCreator}
            canReadRoles={canReadRoles}
            canCreateRoles={canCreateRoles}
            canAssignRoles={canAssignRoles}

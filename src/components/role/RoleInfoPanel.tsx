@@ -49,16 +49,24 @@ export default function RoleInfoPanel({
             {role?.name || "Role"}
           </h2>
         </div>
-        {canEdit && (
-          <Tooltip>
-            <TooltipTrigger asChild>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {canEdit ? (
               <Button variant="ghost" size="icon" onClick={onEdit} aria-label="Редактировать роль">
                 <Pencil className="h-4 w-4" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">Редактировать роль</TooltipContent>
-          </Tooltip>
-        )}
+            ) : (
+              <span tabIndex={0}>
+                <Button variant="ghost" size="icon" disabled aria-label="Редактировать роль">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </span>
+            )}
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            {canEdit ? "Редактировать роль" : "Редактирование ролей доступно только создателю спейса"}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <ScrollArea className="flex-1 min-h-0">
