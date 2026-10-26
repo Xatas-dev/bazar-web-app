@@ -16,6 +16,8 @@ import { notify } from "@/lib/notifications";
 interface RoleEditorScreenProps {
   spaceId: number;
   roleId?: number;
+  canEdit?: boolean;
+  canCreate?: boolean;
   onBack: () => void;
   onDone: () => void;
 }
@@ -23,10 +25,13 @@ interface RoleEditorScreenProps {
 export default function RoleEditorScreen({
                                            spaceId,
                                            roleId,
+                                           canEdit = false,
+                                           canCreate = false,
                                            onBack,
   onDone,
 }: RoleEditorScreenProps) {
   const isEdit = typeof roleId === "number";
+  const canSave = isEdit ? canEdit : canCreate;
   const editor = useRoleEditor({ spaceId });
   const {
     roleName, setRoleName, isVisible, setIsVisible,
@@ -50,6 +55,10 @@ export default function RoleEditorScreen({
   }, [isEdit, role, setRoleName, setIsVisible, setSelectedActions]);
 
   const handleSubmit = () => {
+    if (!canSave) {
+      notify.error.forbidden();
+      return;
+    }
     if (!roleName.trim()) {
       notify.error.validation("Название роли обязательно.");
       return;
@@ -167,7 +176,7 @@ export default function RoleEditorScreen({
                 </TooltipTrigger>
                 <TooltipContent side="left">{isEdit ? "Обновление..." : "Создание..."}</TooltipContent>
               </Tooltip>
-          ) : (
+          ) : canSave ? (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button onClick={handleSubmit} size="icon">
@@ -175,6 +184,19 @@ export default function RoleEditorScreen({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="left">{isEdit ? "Обновить роль" : "Создать роль"}</TooltipContent>
+              </Tooltip>
+          ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span tabIndex={0}>
+                    <Button size="icon" disabled>
+                      {isEdit ? <Save className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  {isEdit ? "Обновление роли" : "Создание роли"} — доступно только создателю спейса
+                </TooltipContent>
               </Tooltip>
           )}
         </div>

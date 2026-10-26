@@ -64,6 +64,7 @@ interface SpaceSettingsDrawerProps {
   setSpaceName: (value: string) => void;
   settingsTab: SettingsTab;
   setSettingsTab: (value: SettingsTab) => void;
+  isCreator: boolean;
   canReadRoles: boolean;
   canCreateRoles: boolean;
   canAssignRoles: boolean;
@@ -88,6 +89,7 @@ export function SpaceSettingsDrawer({
   setSpaceName,
   settingsTab,
   setSettingsTab,
+  isCreator,
   canReadRoles,
   canCreateRoles,
   canAssignRoles,
@@ -129,6 +131,8 @@ export function SpaceSettingsDrawer({
         <RoleEditorScreen
           spaceId={id}
           roleId={roleId}
+          canEdit={canEditRoles}
+          canCreate={canCreateRoles}
           onBack={() =>
             setRoleScreen(roleScreen.fromInfo && roleId ? { kind: "info", roleId } : { kind: "list" })
           }
@@ -267,6 +271,7 @@ export function SpaceSettingsDrawer({
                 <TabsContent value="roles" className="mt-0 flex-1 min-h-0 overflow-y-auto">
                   <RolesTab
                     spaceId={id}
+                    isCreator={isCreator}
                     canCreate={canCreateRoles}
                     canRead={canReadRoles}
                     onSelectRole={(roleId) => setRoleScreen({ kind: "info", roleId })}

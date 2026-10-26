@@ -217,6 +217,11 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                         <Shield className="mr-2 h-4 w-4" />
                         Назначить роль
                       </DropdownMenuItem>
+                      {!canAssign && (
+                        <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                          Назначение ролей доступно только создателю спейса
+                        </p>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         disabled={!canDelete}

@@ -9,6 +9,7 @@ import { RolesTabSkeleton } from "./RolesTabSkeleton";
 
 interface RolesTabProps {
   spaceId: number;
+  isCreator?: boolean;
   canCreate?: boolean;
   canRead?: boolean;
   onSelectRole?: (roleId: number) => void;
@@ -17,6 +18,7 @@ interface RolesTabProps {
 
 export default function RolesTab({
   spaceId,
+  isCreator = false,
   canCreate = false,
   canRead = false,
   onSelectRole,
@@ -48,14 +50,29 @@ export default function RolesTab({
           <p className="text-sm text-muted-foreground">
             Управляйте уровнями доступа участников спейса
           </p>
+          {!isCreator && (
+            <p className="mt-1 text-xs text-muted-foreground/70">
+              Создание и редактирование ролей доступно только создателю спейса
+            </p>
+          )}
         </div>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button size="icon" disabled={!canCreate} onClick={onCreateRole}>
-              <Plus className="h-4 w-4" />
-            </Button>
+            {canCreate ? (
+              <Button size="icon" onClick={onCreateRole}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            ) : (
+              <span tabIndex={0}>
+                <Button size="icon" disabled onClick={onCreateRole}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </span>
+            )}
           </TooltipTrigger>
-          <TooltipContent side="left">Добавить роль</TooltipContent>
+          <TooltipContent side="left">
+            {canCreate ? "Добавить роль" : "Добавить роль — доступно только создателю спейса"}
+          </TooltipContent>
         </Tooltip>
       </div>
 
