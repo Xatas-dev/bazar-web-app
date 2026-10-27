@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import { UserDtoResponse } from '@/types/api'
+import { UserDtoResponseV2 } from '@/types/api'
 
 interface UserState {
-  user: UserDtoResponse | null
+  user: UserDtoResponseV2 | null
   isLoading: boolean
-  setUser: (user: UserDtoResponse | null) => void
+  setUser: (user: UserDtoResponseV2 | null) => void
   setLoading: (loading: boolean) => void
   logout: () => void
 }

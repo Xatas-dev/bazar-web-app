@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { personaAxiosInstance } from '@/lib/axios'
-import { UserDtoResponse, GetUsersDtoRequest } from '@/types/api'
+import { UserDtoResponseV2, GetUsersDtoRequest } from '@/types/api'
 
 export const useUsers = (ids: string[]) => {
   return useQuery({
@@ -10,7 +10,7 @@ export const useUsers = (ids: string[]) => {
 
       const requestDto: GetUsersDtoRequest = { ids };
 
-      const response = await personaAxiosInstance.get<UserDtoResponse[]>('/users', {
+      const response = await personaAxiosInstance.get<UserDtoResponseV2[]>('/v2/users', {
         params: {
           ...requestDto
         },
@@ -33,7 +33,7 @@ export const useSearchUsers = (searchTerm: string) => {
 
       const requestDto: GetUsersDtoRequest = { search: searchTerm };
 
-      const response = await personaAxiosInstance.get<UserDtoResponse[]>('/users', {
+      const response = await personaAxiosInstance.get<UserDtoResponseV2[]>('/v2/users', {
         params: {
             ...requestDto
         }

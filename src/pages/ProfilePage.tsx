@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ProfilePageSkeleton } from "@/pages/ProfilePageSkeleton";
 import { Loader2 } from "lucide-react";
 
@@ -24,8 +24,7 @@ export default function ProfilePage() {
         <CardHeader>
           <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                  <AvatarImage src={user.userPic || ""} />
-                  <AvatarFallback>{user.userName?.substring(0,2).toUpperCase() || "??"}</AvatarFallback>
+                  <AvatarFallback>{user.displayName?.substring(0,2).toUpperCase() || "??"}</AvatarFallback>
               </Avatar>
               <div>
                   <CardTitle>Редактировать профиль</CardTitle>
@@ -36,36 +35,14 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="userName">Имя пользователя</Label>
+              <Label htmlFor="displayName">Отображаемое имя</Label>
               <Input
-                id="userName"
-                name="userName"
-                value={formData.userName}
+                id="displayName"
+                name="displayName"
+                value={formData.displayName}
                 onChange={handleChange}
-                placeholder="Имя пользователя"
+                placeholder="Отображаемое имя"
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">Имя</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="Имя"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Фамилия</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    placeholder="Фамилия"
-                  />
-                </div>
             </div>
           </CardContent>
           <CardFooter>

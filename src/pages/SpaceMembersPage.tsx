@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Trash2, UserPlus, Search, Shield, Loader2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MembersListSkeleton } from "@/components/members/MembersListSkeleton";
 import { notify } from "@/lib/notifications";
 import { Badge } from "@/components/ui/badge";
@@ -102,16 +102,10 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                   <div key={user.id} className="surface-panel flex items-center justify-between rounded-md p-3">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.userPic || ""} />
-                        <AvatarFallback>{user.userName?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{user.userName}</span>
-                        {(user.firstName || user.lastName) && (
-                          <span className="text-xs text-muted-foreground">
-                            {user.firstName} {user.lastName}
-                          </span>
-                        )}
+                        <span className="text-sm font-medium">{user.displayName}</span>
                       </div>
                     </div>
                     <Button

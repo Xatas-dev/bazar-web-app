@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { useUser, useUpdateProfile } from "@/hooks/useUser";
 
 interface ProfileFormData {
-  userName: string;
-  firstName: string;
-  lastName: string;
+  displayName: string;
 }
 
 export function useProfileForm() {
@@ -12,17 +10,13 @@ export function useProfileForm() {
   const updateProfileMutation = useUpdateProfile();
 
   const [formData, setFormData] = useState<ProfileFormData>({
-    userName: "",
-    firstName: "",
-    lastName: "",
+    displayName: "",
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        userName: user.userName || "",
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
+        displayName: user.displayName || "",
       });
     }
   }, [user]);
@@ -33,7 +27,7 @@ export function useProfileForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfileMutation.mutate(formData);
+    updateProfileMutation.mutate({ displayName: formData.displayName });
   };
 
   return {

@@ -243,15 +243,12 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canDownload = f
     return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Неизвестно');
   };
 
-  const normalizeName = (value: string | null | undefined) => value?.trim().toLowerCase() ?? '';
-
   const isOwnedByCurrentUser = (author: V1GetNodesAuthorResponse | null) => {
     if (!author || !currentUser) return false;
 
-    return (
-      normalizeName(author.firstName) === normalizeName(currentUser.firstName) &&
-      normalizeName(author.lastName) === normalizeName(currentUser.lastName)
-    );
+    const authorName = getDisplayName(author.firstName, author.lastName, '').trim().toLowerCase();
+    const currentName = (currentUser.displayName || '').trim().toLowerCase();
+    return authorName === currentName;
   };
 
   if (isLoading) {

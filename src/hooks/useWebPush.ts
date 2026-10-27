@@ -3,11 +3,11 @@
 import * as React from 'react';
 import { useEffect } from 'react';
 import { pushService } from '@/services/pushService';
-import { UserDtoResponse } from '@/types/api';
+import { UserDtoResponseV2 } from '@/types/api';
 import { useToast } from './use-toast';
 import { ToastAction } from '@/components/ui/toast';
 
-export const useWebPush = (user: UserDtoResponse | null | undefined) => {
+export const useWebPush = (user: UserDtoResponseV2 | null | undefined) => {
   const { toast } = useToast();
 
   useEffect(() => {
