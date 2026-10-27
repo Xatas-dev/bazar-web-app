@@ -1,18 +1,13 @@
-export interface UserDtoResponse {
+export interface UserDtoResponseV2 {
   id: string;
-  userName: string | null;
-  email: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  userPic: string | null;
+  username: string;
+  displayName: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface UpdateProfileDtoRequest {
-  userName?: string;
-  firstName?: string;
-  lastName?: string;
+export interface UpdateProfileDtoRequestV2 {
+  displayName: string;
 }
 
 export interface GetUsersDtoRequest {

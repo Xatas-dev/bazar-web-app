@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -51,47 +51,24 @@ export function ProfileRail() {
             <>
               <div className="flex items-center gap-4">
                 <Avatar className="h-14 w-14">
-                  <AvatarImage src={user.userPic || ""} />
-                  <AvatarFallback>{user.userName?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <p className="truncate text-lg font-semibold">{user.userName || "User"}</p>
+                  <p className="truncate text-lg font-semibold">{user.displayName || "User"}</p>
                   <p className="truncate text-sm text-muted-foreground">Обновите данные вашего профиля.</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="profile-userName">Имя пользователя</Label>
+                  <Label htmlFor="profile-displayName">Отображаемое имя</Label>
                   <Input
-                    id="profile-userName"
-                    name="userName"
-                    value={formData.userName}
+                    id="profile-displayName"
+                    name="displayName"
+                    value={formData.displayName}
                     onChange={handleChange}
-                    placeholder="Имя пользователя"
+                    placeholder="Отображаемое имя"
                   />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-firstName">Имя</Label>
-                    <Input
-                      id="profile-firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      placeholder="Имя"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-lastName">Фамилия</Label>
-                    <Input
-                      id="profile-lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      placeholder="Фамилия"
-                    />
-                  </div>
                 </div>
               </div>
 

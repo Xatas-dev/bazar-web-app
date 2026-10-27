@@ -4,7 +4,7 @@ import { useSpaces } from "@/hooks/useSpaces";
 import { useGetChatById } from "@/hooks/useChat";
 import { pushService } from "@/services/pushService";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -38,8 +38,7 @@ import { ThemeToggleMenuItem } from "@/components/ThemeToggle";
 
 
 type SidebarTopBarProps = {
-  userName?: string;
-  userPic?: string;
+  displayName?: string;
   spaceSearch: string;
   onSpaceSearchChange: (value: string) => void;
   onOpenProfile: () => void;
@@ -51,8 +50,7 @@ type SidebarTopBarProps = {
 };
 
 function SidebarTopBar({
-  userName,
-  userPic,
+  displayName,
   spaceSearch,
   onSpaceSearchChange,
   onOpenProfile,
@@ -74,11 +72,10 @@ function SidebarTopBar({
           <DropdownMenuContent align="start" className="w-72">
             <DropdownMenuItem onSelect={onOpenProfile} className="h-auto gap-3 px-2 py-2">
               <Avatar className="h-9 w-9">
-                <AvatarImage src={userPic || ""} />
-                <AvatarFallback>{userName?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarFallback>{displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{userName || "Пользователь"}</p>
+                <p className="truncate text-sm font-medium">{displayName || "Пользователь"}</p>
                 <p className="truncate text-xs text-muted-foreground">Открыть профиль</p>
               </div>
             </DropdownMenuItem>
@@ -126,11 +123,10 @@ function SidebarTopBar({
         <DropdownMenuContent align="start" className="w-72">
           <DropdownMenuItem onSelect={onOpenProfile} className="h-auto gap-3 px-2 py-2">
             <Avatar className="h-9 w-9">
-              <AvatarImage src={userPic || ""} />
-              <AvatarFallback>{userName?.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{userName || "User"}</p>
+              <p className="truncate text-sm font-medium">{displayName || "User"}</p>
               <p className="truncate text-xs text-muted-foreground">Open profile</p>
             </div>
           </DropdownMenuItem>
@@ -316,8 +312,7 @@ export const AppLayout = () => {
         className="surface-shell hidden h-full shrink-0 flex-col border-r border-border overflow-hidden md:flex"
       >
         <SidebarTopBar
-          userName={user?.userName ?? undefined}
-          userPic={user?.userPic ?? undefined}
+          displayName={user?.displayName ?? undefined}
           spaceSearch={spaceSearch}
           onSpaceSearchChange={setSpaceSearch}
           onOpenProfile={() => setProfileOpen(true)}
@@ -346,8 +341,7 @@ export const AppLayout = () => {
             </SheetTrigger>
             <SheetContent side="left" className="surface-panel-strong flex w-72 flex-col p-0">
               <SidebarTopBar
-                userName={user?.userName ?? undefined}
-                userPic={user?.userPic ?? undefined}
+                displayName={user?.displayName ?? undefined}
                 spaceSearch={spaceSearch}
                 onSpaceSearchChange={setSpaceSearch}
                 onOpenProfile={() => setProfileOpen(true)}

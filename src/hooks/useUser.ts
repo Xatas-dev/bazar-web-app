@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { personaAxiosInstance } from '@/lib/axios'
 import { useUserStore } from '@/store/userStore'
 import { useEffect } from 'react'
-import { UserDtoResponse, UpdateProfileDtoRequest } from '@/types/api'
+import { UserDtoResponseV2, UpdateProfileDtoRequestV2 } from '@/types/api'
 
 export const useUser = () => {
   const { setUser, setLoading } = useUserStore()
@@ -10,7 +10,7 @@ export const useUser = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['user', 'iam'],
     queryFn: async () => {
-      const response = await personaAxiosInstance.get<UserDtoResponse>('/users/iam')
+      const response = await personaAxiosInstance.get<UserDtoResponseV2>('/v2/users/iam')
       return response.data
     },
     retry: false,
@@ -34,8 +34,8 @@ export const useUpdateProfile = () => {
   const { setUser } = useUserStore();
 
   return useMutation({
-    mutationFn: async (data: UpdateProfileDtoRequest) => {
-      const response = await personaAxiosInstance.patch<UserDtoResponse>('/users/iam', data);
+    mutationFn: async (data: UpdateProfileDtoRequestV2) => {
+      const response = await personaAxiosInstance.patch<UserDtoResponseV2>('/v2/users/iam', data);
       return response.data;
     },
     onSuccess: (data) => {

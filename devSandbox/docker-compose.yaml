@@ -185,15 +185,14 @@ services:
       - "5005:5005"
 
   bazar-persona:
-    image: basegod/bazar-persona:latest
+    image: basegod/bazar-persona:1.0.1-SNAPSHOT
     container_name: bazar-persona
     platform: linux/amd64
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrpersona
       - DB_USER=postgres
       - DB_PASS=postgres
-      - KC_URL=http://keycloak:9999
-      - KC_EXTERNAL_URL=http://keycloak:9999
+      - KC_URL=http://keycloak:9999/realms/bazar-realm
       - KC_REALM=bazar-realm
       - LOGGING_LEVEL=INFO
     extra_hosts:
