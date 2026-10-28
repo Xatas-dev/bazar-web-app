@@ -128,7 +128,7 @@ services:
     restart: unless-stopped
 
   bazar-space:
-    image: basegod/bazar-space:1.0.3-SNAPSHOT
+    image: basegod/bazar-space:1.0.4-SNAPSHOT
     container_name: bazar-space
     platform: linux/amd64
     environment:

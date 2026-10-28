@@ -13,16 +13,20 @@ resourcePolicy:
               - expr: has(P.attr.is_creator) && P.attr.is_creator == true
               - expr: has(P.attr.allowed_actions) && 'space_user:ADD' in P.attr.allowed_actions
 
-    - actions: [DELETE]
+    - actions: [ DELETE ]
       effect: EFFECT_ALLOW
-      roles: [user]
+      roles: [ user ]
       condition:
         match:
-          any:
+          all:
             of:
-              - expr: has(P.attr.is_creator) && P.attr.is_creator == true
-              - expr: >
-                  has(P.attr.allowed_actions) &&
-                  'space_user:DELETE' in P.attr.allowed_actions &&
-                  has(R.attr.is_creator) &&
-                  R.attr.is_creator != true
+              # Gate: the resource must NOT belong to the creator (creator can't leave)
+              - expr: has(R.attr.is_creator) && R.attr.is_creator != true
+
+              # Original allow logic (only reachable when the gate above passes)
+              - any:
+                  of:
+                    - expr: has(P.attr.is_creator) && P.attr.is_creator == true
+                    - expr: >
+                        has(P.attr.allowed_actions) &&
+                        'space_user:DELETE' in P.attr.allowed_actions
