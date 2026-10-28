@@ -16,9 +16,9 @@ export interface SimpleRoleDto {
 export interface UserInSpaceDto {
   userId: string;
   spaceId: number;
-  userName: string;
-  firstName: string;
-  lastName: string;
+  username: string;
+  displayName: string;
+  creator: boolean;
   role?: SimpleRoleDto;
 }
 

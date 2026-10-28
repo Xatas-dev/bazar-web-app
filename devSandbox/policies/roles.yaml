@@ -24,9 +24,9 @@ resourcePolicy:
           any:
             of:
               - expr: has(P.attr.is_creator) && P.attr.is_creator == true
-              - expr: >
-                  has(P.attr.allowed_actions) &&
-                  'roles:ASSIGN' in P.attr.allowed_actions
+#              - expr: >
+#                  has(P.attr.allowed_actions) &&
+#                  'roles:ASSIGN' in P.attr.allowed_actions
     - actions: [ MANAGE ]
       effect: EFFECT_DENY
       roles: [ user ]
@@ -42,10 +42,10 @@ resourcePolicy:
           any:
             of:
               - expr: has(P.attr.is_creator) && P.attr.is_creator == true
-              - expr: >
-                  has(P.attr.allowed_actions) &&
-                  'roles:MANAGE' in P.attr.allowed_actions &&
-                  (
-                    !has(P.attr.actions_to_grant) ||
-                    P.attr.actions_to_grant.isSubset(P.attr.allowed_actions)
-                  )
+#              - expr: >
+#                  has(P.attr.allowed_actions) &&
+#                  'roles:MANAGE' in P.attr.allowed_actions &&
+#                  (
+#                    !has(P.attr.actions_to_grant) ||
+#                    P.attr.actions_to_grant.isSubset(P.attr.allowed_actions)
+#                  )

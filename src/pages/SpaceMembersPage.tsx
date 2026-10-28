@@ -4,7 +4,7 @@ import { useSearchUsers } from "@/hooks/useUsers";
 import { useGetRoles, useAssignRoleToUser } from "@/hooks/useRoles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, UserPlus, Search, Shield, Loader2, ArrowLeft } from "lucide-react";
+import { Trash2, UserPlus, Search, Shield, Loader2, ArrowLeft, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -150,20 +150,29 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                     <button
                       type="button"
                       className="surface-panel flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      aria-label={`Открыть действия для ${user.userName}`}
+                      aria-label={`Открыть действия для ${user.displayName || user.username}`}
                     >
                       <Avatar className="h-9 w-9 shrink-0">
-                        <AvatarFallback>{user.userName?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
+                        <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase() || user.username?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <span className="block truncate font-medium">{user.userName}</span>
-                        {(user.firstName || user.lastName) && (
+                        <span className="block truncate font-medium">{user.displayName || user.username}</span>
+                        {(user.username && user.displayName) && (
                           <span className="block truncate text-xs text-muted-foreground">
-                            {user.firstName} {user.lastName}
+                            {user.username}
                           </span>
                         )}
                       </div>
-                      {user.role && user.role.isVisible && (
+                      {user.creator && (
+                        <Badge
+                          variant="secondary"
+                          className="shrink-0 rounded-full border border-[hsl(var(--panel-border-strong))] bg-[hsl(var(--panel-surface-muted))] px-2 py-0 text-xs font-semibold uppercase tracking-wide text-primary"
+                        >
+                          <Crown className="mr-1 h-3 w-3" />
+                          Создатель
+                        </Badge>
+                      )}
+                      {!user.creator && user.role && user.role.isVisible && (
                         <Badge
                           variant="secondary"
                           className="shrink-0 rounded-full border border-[hsl(var(--panel-border-strong))] bg-[hsl(var(--panel-surface-muted))] px-2 py-0 text-xs font-semibold uppercase tracking-wide text-primary"
@@ -194,7 +203,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                         roles.map((role) => (
                           <DropdownMenuItem
                             key={role.id}
-                            onSelect={() => handleAssignRole(user.userId, role.id, role.name, user.userName)}
+                            onSelect={() => handleAssignRole(user.userId, role.id, role.name, user.displayName || user.username)}
                           >
                             <Shield className="mr-2 h-4 w-4" />
                             {role.name}
