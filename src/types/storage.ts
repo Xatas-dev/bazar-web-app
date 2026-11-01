@@ -4,13 +4,17 @@ export interface V1GetNodesAuthorResponse {
   status: string | null;
 }
 
+export type StorageNodeType = 'FILE' | 'FOLDER';
+
 export interface V1GetNodesResponse {
   nodeId: string;
-  fileName: string | null;
+  nodeName: string | null;
+  fileName?: string | null;
   size: number;
-  type: string;
+  type: StorageNodeType | string;
   uploadedAt: string | null;
   author: V1GetNodesAuthorResponse | null;
+  parentId?: string | null;
 }
 
 export interface V1GetNodesPaginationResponse {
@@ -30,6 +34,18 @@ export interface V1ErrorDetail {
   description: string;
 }
 
+export interface V1CreateNodeRequest {
+  name: string;
+  size?: number;
+  type: StorageNodeType;
+  parentId: string | null;
+}
+
+export interface V1CreateNodeResponse {
+  nodeId: string;
+  errors?: V1ErrorDetail[];
+}
+
 export interface V1GetUploadUrlResponse {
   uploadUrl: string;
   nodeId: string;
@@ -38,8 +54,6 @@ export interface V1GetUploadUrlResponse {
 
 export interface V1GetFileStatusResponse {
   status: string;
-  // Новое поле: author присутствует когда status = 'UPLOADED'
   author?: V1GetNodesAuthorResponse | null;
-  // Новое поле: errors когда status = 'ERROR'
   errors?: V1ErrorDetail[];
 }

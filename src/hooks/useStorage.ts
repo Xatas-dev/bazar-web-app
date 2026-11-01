@@ -1,21 +1,30 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storageAxiosInstance } from '@/lib/axios';
-import { V1GetNodesPaginationResponse, V1GetDownloadUrlResponse, V1GetUploadUrlResponse, V1GetFileStatusResponse } from '@/types/storage';
+import {
+  V1CreateNodeRequest,
+  V1CreateNodeResponse,
+  V1GetNodesPaginationResponse,
+  V1GetDownloadUrlResponse,
+  V1GetUploadUrlResponse,
+  V1GetFileStatusResponse,
+  StorageNodeType,
+} from '@/types/storage';
 
 interface GetNodesParams {
   spaceId: number;
   page?: number;
   pageSize?: number;
+  parentId?: string | null;
 }
 
-// API Functions
-const getNodes = async ({ spaceId, page = 0, pageSize = 20 }: GetNodesParams): Promise<V1GetNodesPaginationResponse> => {
+const getNodes = async ({ spaceId, page = 0, pageSize = 20, parentId = null }: GetNodesParams): Promise<V1GetNodesPaginationResponse> => {
   const { data } = await storageAxiosInstance.get<V1GetNodesPaginationResponse>(
     `/v1/spaces/${spaceId}/nodes`,
     {
       params: {
         page,
         pageSize,
+        parentId,
       },
     }
   );
@@ -33,32 +42,44 @@ const deleteNode = async ({ spaceId, nodeId }: { spaceId: number; nodeId: string
   await storageAxiosInstance.delete(`/v1/spaces/${spaceId}/nodes/${nodeId}`);
 };
 
-// Получение URL для upload (инициация загрузки)
-const getUploadUrl = async ({ spaceId, fileName, size }: { spaceId: number; fileName: string; size: number }) : Promise<V1GetUploadUrlResponse> => {
-  const { data } = await storageAxiosInstance.post<V1GetUploadUrlResponse>(
-    `/v1/spaces/${spaceId}/nodes`,
-    {
-      fileName,
-      size,
-    }
-  );
+const createNode = async ({ spaceId, name, size, type, parentId }: V1CreateNodeRequest & { spaceId: number }): Promise<V1CreateNodeResponse> => {
+  const { data } = await storageAxiosInstance.post<V1CreateNodeResponse>(`/v1/spaces/${spaceId}/nodes`, {
+    name,
+    ...(size !== undefined ? { size } : {}),
+    type,
+    parentId,
+  });
   return data;
 };
 
-// Проверка статуса файла
+const getUploadUrl = async ({ spaceId, nodeId }: { spaceId: number; nodeId: string }): Promise<V1GetUploadUrlResponse> => {
+  const { data } = await storageAxiosInstance.get<V1GetUploadUrlResponse>(`/v1/spaces/${spaceId}/nodes/${nodeId}/upload`);
+  return data;
+};
+
+const moveNode = async ({
+  spaceId,
+  nodeId,
+  parentId,
+}: {
+  spaceId: number;
+  nodeId: string;
+  parentId: string | null;
+}): Promise<void> => {
+  await storageAxiosInstance.patch(`/v1/spaces/${spaceId}/nodes/${nodeId}`, {
+    parentId,
+  });
+};
+
 export const getFileStatus = async ({ spaceId, nodeId }: { spaceId: number; nodeId: string }): Promise<V1GetFileStatusResponse> => {
-  const { data } = await storageAxiosInstance.get<V1GetFileStatusResponse>(
-    `/v1/spaces/${spaceId}/nodes/${nodeId}/status`
-  );
+  const { data } = await storageAxiosInstance.get<V1GetFileStatusResponse>(`/v1/spaces/${spaceId}/nodes/${nodeId}/status`);
   return data;
 };
 
-// Hooks
-
-export const useNodes = ({ spaceId, page = 0, pageSize = 20 }: GetNodesParams) => {
+export const useNodes = ({ spaceId, page = 0, pageSize = 20, parentId = null }: GetNodesParams) => {
   return useQuery({
-    queryKey: ['nodes', spaceId, page, pageSize],
-    queryFn: () => getNodes({ spaceId, page, pageSize }),
+    queryKey: ['nodes', spaceId, parentId, page, pageSize],
+    queryFn: () => getNodes({ spaceId, page, pageSize, parentId }),
   });
 };
 
@@ -107,6 +128,39 @@ export function useDeleteNode() {
 
 export const useInitiateUpload = () => {
   return useMutation({
-    mutationFn: ({ spaceId, fileName, size }: { spaceId: number; fileName: string; size: number }) => getUploadUrl({ spaceId, fileName, size }),
+    mutationFn: ({ spaceId, fileName, size, parentId = null }: { spaceId: number; fileName: string; size: number; parentId?: string | null }) =>
+      createNode({ spaceId, name: fileName, size, type: 'FILE' as StorageNodeType, parentId })
+    ,
+  });
+};
+
+export const useCreateNode = () => {
+  return useMutation({
+    mutationFn: ({
+      spaceId,
+      name,
+      type,
+      parentId,
+      size,
+    }: {
+      spaceId: number;
+      name: string;
+      type: StorageNodeType;
+      parentId?: string | null;
+      size?: number;
+    }) => createNode({ spaceId, name, type, parentId: parentId ?? null, size }),
+  });
+};
+
+export const useMoveNode = () => {
+  return useMutation({
+    mutationFn: ({ spaceId, nodeId, parentId }: { spaceId: number; nodeId: string; parentId: string | null }) =>
+      moveNode({ spaceId, nodeId, parentId }),
+  });
+};
+
+export const useUploadUrl = () => {
+  return useMutation({
+    mutationFn: ({ spaceId, nodeId }: { spaceId: number; nodeId: string }) => getUploadUrl({ spaceId, nodeId }),
   });
 };

@@ -9,7 +9,7 @@ import { useGetRole, useGetUserRoles } from "@/hooks/useRoles";
 import { Box, EyeOff, HardDrive, MessageSquare, Settings2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatTab } from "@/components/chat/ChatTab";
-import { StorageTab, StorageUploadButton } from "@/components/storage/StorageTab";
+import { StorageTab } from "@/components/storage/StorageTab";
 import { getPermissionKey, SPACE_PERMISSIONS } from "@/lib/permissions";
 import { ProfileRail } from "@/components/ProfileRail";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -223,11 +223,6 @@ export default function SpaceDashboardPage() {
                           title={!canReadStorage ? "У вас нет прав на просмотр хранилища" : "Хранилище"} />
                     </TabsList>
 
-                     {workspaceTab === "storage" && (
-                       <div className="absolute right-12 top-2 flex items-start">
-                         <StorageUploadButton spaceId={id} canUpload={canUploadStorage} />
-                       </div>
-                     )}
                    </div>
                  </div>
 
