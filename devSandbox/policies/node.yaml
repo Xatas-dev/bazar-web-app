@@ -43,3 +43,12 @@ resourcePolicy:
             of:
               - expr: has(P.attr.is_creator) && P.attr.is_creator == true
               - expr: has(P.attr.allowed_actions) && 'storage_node:DELETE' in P.attr.allowed_actions
+
+    - actions: [ UPDATE ]
+      effect: EFFECT_ALLOW
+      roles: [ user ]
+      condition:
+        match:
+          any:
+            of:
+              - expr: has(P.attr.allowed_actions) && 'storage_node:UPDATE' in P.attr.allowed_actions
