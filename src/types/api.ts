@@ -2,12 +2,23 @@ export interface UserDtoResponseV2 {
   id: string;
   username: string;
   displayName: string;
+  avatarUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface UpdateProfileDtoRequestV2 {
   displayName: string;
+}
+
+export interface AvatarUploadRequestDto {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface AvatarUploadTicketDtoResponse {
+  uploadUrl: string;
 }
 
 export interface GetUsersDtoRequest {

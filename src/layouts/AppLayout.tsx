@@ -4,7 +4,7 @@ import { useSpaces } from "@/hooks/useSpaces";
 import { useGetChatById } from "@/hooks/useChat";
 import { pushService } from "@/services/pushService";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -39,6 +39,7 @@ import { ThemeToggleMenuItem } from "@/components/ThemeToggle";
 
 type SidebarTopBarProps = {
   displayName?: string;
+  avatarUrl?: string;
   spaceSearch: string;
   onSpaceSearchChange: (value: string) => void;
   onOpenProfile: () => void;
@@ -51,6 +52,7 @@ type SidebarTopBarProps = {
 
 function SidebarTopBar({
   displayName,
+  avatarUrl,
   spaceSearch,
   onSpaceSearchChange,
   onOpenProfile,
@@ -72,6 +74,7 @@ function SidebarTopBar({
           <DropdownMenuContent align="start" className="w-72">
             <DropdownMenuItem onSelect={onOpenProfile} className="h-auto gap-3 px-2 py-2">
               <Avatar className="h-9 w-9">
+                {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName || "Аватар"} /> : null}
                 <AvatarFallback>{displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
@@ -123,6 +126,7 @@ function SidebarTopBar({
         <DropdownMenuContent align="start" className="w-72">
           <DropdownMenuItem onSelect={onOpenProfile} className="h-auto gap-3 px-2 py-2">
             <Avatar className="h-9 w-9">
+              {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName || "Аватар"} /> : null}
               <AvatarFallback>{displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
@@ -313,6 +317,7 @@ export const AppLayout = () => {
       >
         <SidebarTopBar
           displayName={user?.displayName ?? undefined}
+          avatarUrl={user?.avatarUrl ?? undefined}
           spaceSearch={spaceSearch}
           onSpaceSearchChange={setSpaceSearch}
           onOpenProfile={() => setProfileOpen(true)}
@@ -342,6 +347,7 @@ export const AppLayout = () => {
             <SheetContent side="left" className="surface-panel-strong flex w-72 flex-col p-0">
               <SidebarTopBar
                 displayName={user?.displayName ?? undefined}
+                avatarUrl={user?.avatarUrl ?? undefined}
                 spaceSearch={spaceSearch}
                 onSpaceSearchChange={setSpaceSearch}
                 onOpenProfile={() => setProfileOpen(true)}
