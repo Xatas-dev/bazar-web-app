@@ -24,8 +24,8 @@ export const useGetChatMessages = (spaceId: number | undefined, chatId: number |
     staleTime: 0,
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
-      if (lastPage.page < lastPage.totalPages - 1) {
-        return lastPage.page + 1;
+      if (lastPage.number < lastPage.totalPages - 1) {
+        return lastPage.number + 1;
       }
       return undefined;
     },

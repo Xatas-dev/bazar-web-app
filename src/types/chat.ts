@@ -77,7 +77,7 @@ export interface MessageResponse {
 
 export interface MessagePageResponse {
   content: MessageResponse[];
-  page: number;
+  number: number;
   pageSize: number;
   totalElements: number;
   totalPages: number;
