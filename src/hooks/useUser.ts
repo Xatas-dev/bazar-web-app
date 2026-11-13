@@ -10,8 +10,13 @@ export const useUser = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['user', 'iam'],
     queryFn: async () => {
-      const response = await personaAxiosInstance.get<UserDtoResponseV2>('/v2/users/iam')
-      return response.data
+      try {
+        const response = await personaAxiosInstance.get<UserDtoResponseV2>('/v2/users/iam')
+        return response.data
+      } catch {
+        const response = await personaAxiosInstance.get<UserDtoResponseV2>('/users/iam')
+        return response.data
+      }
     },
     retry: false,
     staleTime: Infinity,
@@ -35,8 +40,13 @@ export const useUpdateProfile = () => {
 
   return useMutation({
     mutationFn: async (data: UpdateProfileDtoRequestV2) => {
-      const response = await personaAxiosInstance.patch<UserDtoResponseV2>('/v2/users/iam', data);
-      return response.data;
+      try {
+        const response = await personaAxiosInstance.patch<UserDtoResponseV2>('/v2/users/iam', data);
+        return response.data;
+      } catch {
+        const response = await personaAxiosInstance.patch<UserDtoResponseV2>('/users/iam', data);
+        return response.data;
+      }
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['user', 'iam'], data);
