@@ -265,6 +265,7 @@ services:
       - SETTING_SCHEDULER_SEND_OUTBOX_EVENTS_CRON=2s
       - SETTING_SCHEDULER_SEND_OUTBOX_EVENTS_BATCH_SIZE=100
       - SETTING_OUTBOX_MAX_RETRY_COUNT=5
+      - SETTING_S3_BUCKET_PUBLIC=files-public
       - JAVA_OPTS_APPEND=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
     depends_on:
       postgresql:
