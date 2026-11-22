@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { personaAxiosInstance } from '@/lib/axios'
+import { AvatarUploadError } from '@/lib/avatar-upload'
 import { useUserStore } from '@/store/userStore'
 import { useEffect } from 'react'
 import { UserDtoResponseV2, UpdateProfileDtoRequestV2, AvatarUploadTicketDtoResponse } from '@/types/api'
@@ -70,7 +71,7 @@ export const useUpdateAvatar = () => {
       }
     }
 
-    throw new Error('Avatar update timed out');
+    throw new AvatarUploadError('Обработка изображения заняла слишком много времени. Попробуйте ещё раз.');
   };
 
   return useMutation({
@@ -95,7 +96,7 @@ export const useUpdateAvatar = () => {
       });
 
       if (!putResponse.ok) {
-        throw new Error('Avatar upload to storage failed');
+        throw new AvatarUploadError('Не удалось загрузить файл в хранилище.');
       }
 
       // 3. Wait for the backend to assign the new avatarUrl

@@ -6,7 +6,7 @@ import { useDeleteSpace, usePatchSpace, useSpaces } from "@/hooks/useSpaces";
 import { useUser } from "@/hooks/useUser";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { useGetRole, useGetUserRoles } from "@/hooks/useRoles";
-import { Box, EyeOff, HardDrive, MessageSquare, Settings2 } from "lucide-react";
+import { EyeOff, HardDrive, MessageSquare, Settings2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChatTab } from "@/components/chat/ChatTab";
 import { StorageTab } from "@/components/storage/StorageTab";
@@ -15,6 +15,7 @@ import { ProfileRail } from "@/components/ProfileRail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { notify } from "@/lib/notifications";
 import { SpaceSettingsDrawer } from "@/components/spaces/SpaceSettingsDrawer";
+import { SpaceAvatar } from "@/components/spaces/SpaceAvatar";
 import type { SettingsTab } from "@/components/spaces/SpaceSettingsDrawer";
 
 const sharedTabsListClass = "surface-panel-muted inline-flex h-auto gap-1 rounded-full p-1 text-muted-foreground";
@@ -61,7 +62,7 @@ export default function SpaceDashboardPage() {
    const [searchParams] = useSearchParams();
    const [workspaceTab, setWorkspaceTab] = useState<"chat" | "storage">("chat");
 
-  const isCreator = !!userRolesResponse?.roles?.some((r: any) => r.isCreator === true);
+  const isCreator = !!userRolesResponse?.roles?.some((r) => r.isCreator === true);
   const allowedPermissions = isCreator ? new Set<string>() : new Set<string>((assignedRole?.actions || []).map(getPermissionKey));
   const canReadRoles = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.rolesRead);
   const canCreateRoles = isCreator ? true : allowedPermissions.has(SPACE_PERMISSIONS.rolesCreate);
@@ -131,7 +132,7 @@ export default function SpaceDashboardPage() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active]);
+  }, [active, setActive]);
 
   const handleDeleteSpace = () => {
     if (confirm("Вы уверены, что хотите удалить этот спейс?")) {
@@ -165,12 +166,21 @@ export default function SpaceDashboardPage() {
            <button
              type="button"
              onClick={() => setActive('space-settings')}
-             className="group flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+             className="group flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
              aria-expanded={active === 'space-settings'}
              aria-controls="space-settings-drawer"
              title="Открыть настройки спейса"
            >
-             <Box className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6" />
+             {isSpacesLoading ? (
+               <Skeleton className="h-10 w-10 shrink-0 rounded-full sm:h-11 sm:w-11" />
+             ) : (
+               <SpaceAvatar
+                 name={currentSpace?.name ?? `Спейс #${id}`}
+                 avatarUrl={currentSpace?.avatarUrl}
+                 className="h-10 w-10 sm:h-11 sm:w-11"
+                 fallbackClassName="text-sm"
+               />
+             )}
              <h1 className="truncate text-xl font-bold sm:text-2xl">
                <AnimatePresence mode="wait">
                  <motion.span
@@ -257,6 +267,7 @@ export default function SpaceDashboardPage() {
            onClose={() => setActive(null)}
            id={id}
            currentSpaceName={currentSpace ? currentSpace.name : `Спейс #${id}`}
+           currentSpaceAvatarUrl={currentSpace?.avatarUrl}
            spaceName={spaceName}
            setSpaceName={setSpaceName}
            settingsTab={settingsTab}

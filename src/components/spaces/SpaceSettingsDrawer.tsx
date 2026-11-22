@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -12,6 +11,8 @@ import SpaceMembersPage from "@/pages/SpaceMembersPage";
 import RolesTab from "@/components/role/RolesTab";
 import RoleInfoPanel from "@/components/role/RoleInfoPanel";
 import RoleEditorScreen from "@/components/role/RoleEditorScreen";
+import { SpaceAvatarEditor } from "@/components/spaces/SpaceAvatarEditor";
+import { cn } from "@/lib/utils";
 
 type RoleScreen =
   | { kind: "list" }
@@ -60,6 +61,7 @@ interface SpaceSettingsDrawerProps {
   onClose: () => void;
   id: number;
   currentSpaceName: string;
+  currentSpaceAvatarUrl?: string | null;
   spaceName: string;
   setSpaceName: (value: string) => void;
   settingsTab: SettingsTab;
@@ -85,6 +87,7 @@ export function SpaceSettingsDrawer({
   onClose,
   id,
   currentSpaceName,
+  currentSpaceAvatarUrl,
   spaceName,
   setSpaceName,
   settingsTab,
@@ -145,52 +148,63 @@ export function SpaceSettingsDrawer({
 
     return (
       <>
-        <div className="surface-shell flex items-start justify-between gap-4 px-4 pb-2 pt-4 sm:px-6">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Настройки спейса
-            </p>
-            <h2 id="space-settings-title" className="truncate text-lg font-semibold sm:text-xl">
-              Управление {currentSpaceName}
-            </h2>
+        <Tabs
+          value={settingsTab}
+          onValueChange={(value) => setSettingsTab(value as SettingsTab)}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <div className="surface-shell relative flex items-center justify-center px-14 py-3">
+            <TabsList className={sharedTabsListClass}>
+              <WorkspaceTabsTrigger value="overview" icon={LayoutGrid} label="Обзор" />
+              <WorkspaceTabsTrigger value="members" icon={Users} label="Участники" />
+              <WorkspaceTabsTrigger
+                value="roles"
+                icon={Shield}
+                label="Роли"
+                disabled={!canReadRoles}
+                title={!canReadRoles ? "У вас нет прав на просмотр ролей" : undefined}
+              />
+            </TabsList>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  aria-label="Закрыть панель настроек"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 sm:right-4"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">Закрыть настройки</TooltipContent>
+            </Tooltip>
           </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Закрыть панель настроек">
-                <X className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">Закрыть настройки</TooltipContent>
-          </Tooltip>
-        </div>
 
-        <ScrollArea className="flex-1">
-          <div className="space-y-2 pb-4 pl-4 pr-4 pt-0 sm:px-6 sm:pb-6">
-            <Tabs value={settingsTab} onValueChange={(value) => setSettingsTab(value as SettingsTab)} className="flex min-h-0 flex-col">
-              <div className="flex justify-center px-1 pb-6">
-                <TabsList className={sharedTabsListClass}>
-                  <WorkspaceTabsTrigger value="overview" icon={LayoutGrid} label="Обзор" />
-                  <WorkspaceTabsTrigger value="members" icon={Users} label="Участники" />
-                  <WorkspaceTabsTrigger
-                    value="roles"
-                    icon={Shield}
-                    label="Роли"
-                    disabled={!canReadRoles}
-                    title={!canReadRoles ? "У вас нет прав на просмотр ролей" : undefined}
-                  />
-                </TabsList>
-              </div>
-
+          <ScrollArea className="flex-1">
+            <div className="pb-4 pl-4 pr-4 pt-0 sm:px-6 sm:pb-6">
               <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 <TabsContent value="overview" className="mt-0 flex-1 min-h-0 overflow-y-auto space-y-4">
-                  <div className="space-y-4">
-                    <div className="grid w-full items-center gap-1.5">
-                      <Label htmlFor="spaceName">Название спейса</Label>
-                      <div className="flex flex-col gap-2 sm:flex-row px-1">
+                  <div className="space-y-8 px-1">
+                    <div className="pb-4 pt-16">
+                      <SpaceAvatarEditor
+                        key={id}
+                        spaceId={id}
+                        name={currentSpaceName}
+                        avatarUrl={currentSpaceAvatarUrl}
+                        canEdit={canWriteSpace}
+                        onNoPermission={onNoPermissionSave}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
                         <Input
                           id="spaceName"
                           value={spaceName}
                           onChange={(e) => setSpaceName(e.target.value)}
+                          placeholder="Название спейса"
+                          aria-label="Название спейса"
                           className="flex-1"
                           disabled={!canWriteSpace}
                         />
@@ -199,7 +213,7 @@ export function SpaceSettingsDrawer({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span tabIndex={0}>
-                                  <Button size="icon" disabled>
+                                  <Button size="icon" disabled aria-label="Сохранение">
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                   </Button>
                                 </span>
@@ -209,7 +223,7 @@ export function SpaceSettingsDrawer({
                           ) : (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button onClick={onUpdateSpace} size="icon">
+                                <Button onClick={onUpdateSpace} size="icon" aria-label="Сохранить название">
                                   <Save className="h-4 w-4" />
                                 </Button>
                               </TooltipTrigger>
@@ -219,7 +233,12 @@ export function SpaceSettingsDrawer({
                         ) : (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button className="opacity-50" size="icon" onClick={onNoPermissionSave}>
+                              <Button
+                                className="opacity-50"
+                                size="icon"
+                                onClick={onNoPermissionSave}
+                                aria-label="Сохранить название"
+                              >
                                 <Save className="h-4 w-4" />
                               </Button>
                             </TooltipTrigger>
@@ -227,39 +246,23 @@ export function SpaceSettingsDrawer({
                           </Tooltip>
                         )}
                       </div>
-                    </div>
 
-                    <div className="surface-panel-muted mt-8 flex flex-col justify-between gap-4 rounded-lg p-4 sm:flex-row sm:items-center">
-                      <div>
-                        <h3 className="font-medium text-destructive">Удалить спейс</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Навсегда удалить этот спейс и все его данные.
-                        </p>
-                      </div>
-                      {canDeleteSpace ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="destructive" size="icon" onClick={onDeleteSpace}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="left">Удалить спейс</TooltipContent>
-                        </Tooltip>
-                      ) : (
+                      <div className="flex justify-end">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
                               variant="destructive"
                               size="icon"
-                              className="opacity-50"
-                              onClick={onNoPermissionDelete}
+                              className={cn(!canDeleteSpace && "opacity-50")}
+                              onClick={canDeleteSpace ? onDeleteSpace : onNoPermissionDelete}
+                              aria-label="Удалить спейс"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="left">Удалить спейс</TooltipContent>
                         </Tooltip>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
@@ -279,9 +282,9 @@ export function SpaceSettingsDrawer({
                   />
                 </TabsContent>
               </div>
-            </Tabs>
-          </div>
-        </ScrollArea>
+            </div>
+          </ScrollArea>
+        </Tabs>
       </>
     );
   };
@@ -297,9 +300,8 @@ export function SpaceSettingsDrawer({
           transition={{ duration: 0.18, ease: "easeOut" }}
           id="space-settings-drawer"
           role="complementary"
-          aria-labelledby="space-settings-title"
-          className="surface-shell flex h-full shrink-0 flex-col border-l border-border overflow-hidden"
-          style={{ maxWidth: "var(--right-sidebar-width)" }}
+          aria-label="Настройки спейса"
+          className="surface-shell flex h-full max-w-[var(--right-sidebar-width)] shrink-0 flex-col border-l border-border overflow-hidden"
         >
           {renderContent()}
         </motion.aside>

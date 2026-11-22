@@ -60,6 +60,8 @@
 
   /* Sidebar width tokens */
   --right-sidebar-width: 40rem;
+  /* Proportional so space avatars keep the same squircle shape at every size */
+  --space-avatar-radius: 14%;
   --left-sidebar-width: 20rem;
 }
 

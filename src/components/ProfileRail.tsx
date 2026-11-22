@@ -1,23 +1,22 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Save, Loader2, Pencil, ArrowLeft } from "lucide-react";
+import { X, Save, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { useProfileForm } from "@/hooks/useProfileForm";
 import { ProfileRailSkeleton } from "@/components/ProfileRailSkeleton";
-import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { AvatarEditor } from "@/components/AvatarEditor";
+import { useUpdateAvatar } from "@/hooks/useUser";
 
 export function ProfileRail() {
   const active = useSidebarStore((s) => s.active);
   const setActive = useSidebarStore((s) => s.setActive);
   const open = active === "profile";
-  const [editMode, setEditMode] = useState(false);
 
   const { user, isLoading, formData, handleChange, handleSubmit, isPending } = useProfileForm();
+  const updateAvatarMutation = useUpdateAvatar();
 
   return (
     <AnimatePresence mode="wait">
@@ -27,33 +26,14 @@ export function ProfileRail() {
           animate={{ width: "40rem", opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
-          className="surface-shell hidden h-full shrink-0 flex-col border-l border-border overflow-hidden md:flex"
-          style={{ maxWidth: "var(--right-sidebar-width)" }}
+          className="surface-shell hidden h-full max-w-[var(--right-sidebar-width)] shrink-0 flex-col border-l border-border overflow-hidden md:flex"
         >
       <div className="surface-shell flex items-start justify-between gap-4 px-4 py-4 sm:px-6">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Профиль</p>
-          <h2 className="truncate text-lg font-semibold sm:text-xl">
-            {editMode ? "Редактировать профиль" : "Мой профиль"}
-          </h2>
+          <h2 className="truncate text-lg font-semibold sm:text-xl">Мой профиль</h2>
         </div>
         <div className="flex items-center gap-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {editMode ? (
-                <Button variant="ghost" size="icon" onClick={() => setEditMode(false)} aria-label="Вернуться к просмотру профиля">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button variant="ghost" size="icon" onClick={() => setEditMode(true)} aria-label="Редактировать профиль">
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              )}
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              {editMode ? "Вернуться к просмотру" : "Редактировать профиль"}
-            </TooltipContent>
-          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={() => setActive(null)} aria-label="Закрыть панель профиля">
@@ -69,35 +49,33 @@ export function ProfileRail() {
         {isLoading ? (
           <ProfileRailSkeleton />
         ) : user ? (
-          editMode ? (
-            <form onSubmit={handleSubmit} className="space-y-6 p-4 sm:p-6">
-              <div className="flex items-center gap-4">
-                <ProfileAvatar user={user} className="h-14 w-14" editable={editMode} />
-                <div className="min-w-0">
-                  <p className="truncate text-lg font-semibold">{user.displayName || "User"}</p>
-                  <p className="truncate text-sm text-muted-foreground">Обновите данные вашего профиля.</p>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-8 px-5 pb-6 sm:px-7">
+              <div className="pb-4 pt-16">
+                <AvatarEditor
+                  name={user.displayName || user.username || "Пользователь"}
+                  avatarUrl={user.avatarUrl}
+                  upload={(file) => updateAvatarMutation.mutateAsync(file)}
+                  isUploading={updateAvatarMutation.isPending}
+                  editLabel="Изменить фотографию профиля"
+                  successDescription="Новая фотография профиля сохранена."
+                />
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="profile-displayName">Отображаемое имя</Label>
-                  <Input
-                    id="profile-displayName"
-                    name="displayName"
-                    value={formData.displayName}
-                    onChange={handleChange}
-                    placeholder="Отображаемое имя"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end">
+              <div className="flex gap-2">
+                <Input
+                  id="profile-displayName"
+                  name="displayName"
+                  value={formData.displayName}
+                  onChange={handleChange}
+                  placeholder="Отображаемое имя"
+                  aria-label="Отображаемое имя"
+                  className="flex-1"
+                />
                 {isPending ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span tabIndex={0}>
-                        <Button type="submit" size="icon" disabled>
+                        <Button type="submit" size="icon" disabled aria-label="Сохранение">
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </Button>
                       </span>
@@ -107,7 +85,7 @@ export function ProfileRail() {
                 ) : (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button type="submit" size="icon">
+                      <Button type="submit" size="icon" aria-label="Сохранить изменения">
                         <Save className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -116,17 +94,9 @@ export function ProfileRail() {
                 )}
               </div>
             </form>
-          ) : (
-            <div className="flex items-center gap-4 p-4 sm:p-6">
-              <ProfileAvatar user={user} className="h-14 w-14" />
-              <div className="min-w-0">
-                <p className="truncate text-lg font-semibold">{user.displayName || "User"}</p>
-                <p className="truncate text-sm text-muted-foreground">{user.username}</p>
-              </div>
-            </div>
-          )
+
         ) : (
-          <p className="text-sm text-muted-foreground">No profile data available.</p>
+          <p className="p-4 text-sm text-muted-foreground sm:p-6">Не удалось загрузить данные профиля.</p>
         )}
       </ScrollArea>
         </motion.aside>

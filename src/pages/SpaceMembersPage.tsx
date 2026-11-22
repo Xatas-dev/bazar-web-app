@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Trash2, UserPlus, Search, Shield, Loader2, ArrowLeft, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MembersListSkeleton } from "@/components/members/MembersListSkeleton";
 import { notify } from "@/lib/notifications";
 import { Badge } from "@/components/ui/badge";
@@ -99,9 +99,12 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
               {searchResults.map((user) => {
                 const isMember = memberUserIds.includes(user.id);
                 return (
-                  <div key={user.id} className="surface-panel flex items-center justify-between rounded-md p-3">
+                  <div key={user.id} className="surface-panel flex items-center justify-between rounded-lg p-1.5 pr-3">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-11 w-11 shrink-0">
+                        {user.avatarUrl ? (
+                          <AvatarImage src={user.avatarUrl} alt={user.displayName} className="object-cover" />
+                        ) : null}
                         <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
@@ -128,7 +131,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Участники ({users.length})</h3>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {users.length > 0 ? (
               users.map((user, i) => {
                 const isPickingRole = roleMenuUserId === user.userId;
@@ -149,10 +152,17 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      className="surface-panel flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="surface-panel flex w-full items-center gap-3 rounded-lg p-1.5 pr-4 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       aria-label={`Открыть действия для ${user.displayName || user.username}`}
                     >
-                      <Avatar className="h-9 w-9 shrink-0">
+                      <Avatar className="h-11 w-11 shrink-0">
+                        {user.avatarUrl ? (
+                          <AvatarImage
+                            src={user.avatarUrl}
+                            alt={user.displayName || user.username}
+                            className="object-cover"
+                          />
+                        ) : null}
                         <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase() || user.username?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
@@ -166,19 +176,19 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                       {user.creator && (
                         <Badge
                           variant="secondary"
-                          className="shrink-0 rounded-full border border-[hsl(var(--panel-border-strong))] bg-[hsl(var(--panel-surface-muted))] px-2 py-0 text-xs font-semibold uppercase tracking-wide text-primary"
+                          className="min-w-0 max-w-[45%] shrink-0 rounded-full border border-[hsl(var(--panel-border-strong))] bg-[hsl(var(--panel-surface-muted))] px-2 py-0 text-xs font-semibold uppercase tracking-wide text-primary"
                         >
-                          <Crown className="mr-1 h-3 w-3" />
-                          Создатель
+                          <Crown className="mr-1 h-3 w-3 shrink-0" />
+                          <span className="truncate">Создатель</span>
                         </Badge>
                       )}
                       {!user.creator && user.role && user.role.isVisible && (
                         <Badge
                           variant="secondary"
-                          className="shrink-0 rounded-full border border-[hsl(var(--panel-border-strong))] bg-[hsl(var(--panel-surface-muted))] px-2 py-0 text-xs font-semibold uppercase tracking-wide text-primary"
+                          className="min-w-0 max-w-[45%] shrink-0 rounded-full border border-[hsl(var(--panel-border-strong))] bg-[hsl(var(--panel-surface-muted))] px-2 py-0 text-xs font-semibold uppercase tracking-wide text-primary"
                         >
-                          <Shield className="mr-1 h-3 w-3" />
-                          {user.role.name}
+                          <Shield className="mr-1 h-3 w-3 shrink-0" />
+                          <span className="truncate">{user.role.name}</span>
                         </Badge>
                       )}
                     </button>
@@ -240,7 +250,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                 );
               })
             ) : (
-              <p className="text-muted-foreground">Пока нет участников.</p>
+              <p className="text-muted-foreground sm:col-span-2">Пока нет участников.</p>
             )}
         </div>
       </div>
