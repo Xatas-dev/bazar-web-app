@@ -46,14 +46,20 @@ const router = createBrowserRouter([
 
 import { Toaster } from "@/components/ui/toaster"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { DialogHost } from "@/components/DialogHost"
+import { MotionConfig } from "framer-motion"
 
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Honour the OS "reduce motion" setting for every framer-motion animation */}
+      <MotionConfig reducedMotion="user">
       <TooltipProvider delayDuration={300}>
         <RouterProvider router={router} />
         <Toaster />
+        <DialogHost />
       </TooltipProvider>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

@@ -43,6 +43,16 @@ function applyTheme(theme: Theme) {
   } else {
     root.classList.remove('dark')
   }
+  syncThemeColor()
+}
+
+// Mobile browser chrome (status bar / address bar) follows the shell surface token
+function syncThemeColor() {
+  const meta = document.querySelector('meta[name="theme-color"]')
+  const shell = getComputedStyle(document.documentElement).getPropertyValue('--shell-surface').trim()
+  if (meta && shell) {
+    meta.setAttribute('content', `hsl(${shell})`)
+  }
 }
 
 // Инициализация темы при загрузке приложения

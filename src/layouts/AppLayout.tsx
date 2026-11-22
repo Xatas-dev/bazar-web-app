@@ -2,123 +2,40 @@ import { useEffect, useState, useMemo } from "react";
 import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSpaces } from "@/hooks/useSpaces";
 import { useGetChatById } from "@/hooks/useChat";
-import { pushService } from "@/services/pushService";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  LogOut,
-  Menu,
-  Search,
-  Plus,
-  PanelLeftClose,
-  PanelLeft,
-} from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useThemeStore } from "@/store/themeStore";
-import { useUser } from "@/hooks/useUser";
+import { BREAKPOINTS, useMediaQuery } from "@/hooks/useMediaQuery";
+import { useAppViewportHeight } from "@/hooks/useAppViewportHeight";
+import { ArrowLeft, Menu, Search, PanelLeftClose, PanelLeft } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { ProfileRail } from "@/components/ProfileRail";
-import { ThemeToggleMenuItem } from "@/components/ThemeToggle";
+import { UserMenu } from "@/components/UserMenu";
+import { InstallAppSheet } from "@/components/InstallAppSheet";
 import { SpaceAvatar } from "@/components/spaces/SpaceAvatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { GetSpaceDto } from "@/types/space";
 
-
-type UserMenuProfileItemProps = {
-  displayName?: string;
-  avatarUrl?: string;
-  onOpenProfile: () => void;
-};
-
-function UserMenuProfileItem({ displayName, avatarUrl, onOpenProfile }: UserMenuProfileItemProps) {
-  return (
-    <DropdownMenuItem
-      onSelect={onOpenProfile}
-      className="h-auto gap-3 rounded-lg p-1.5 pr-3"
-    >
-      <Avatar className="h-11 w-11 shrink-0">
-        {avatarUrl ? (
-          <AvatarImage src={avatarUrl} alt={displayName || "Аватар"} className="object-cover" />
-        ) : null}
-        <AvatarFallback>{displayName?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
-      </Avatar>
-      <div className="min-w-0">
-        <p className="truncate text-base font-medium">{displayName || "Пользователь"}</p>
-        <p className="truncate text-xs text-muted-foreground">Открыть профиль</p>
-      </div>
-    </DropdownMenuItem>
-  );
-}
-
 type SidebarTopBarProps = {
-  displayName?: string;
-  avatarUrl?: string;
   spaceSearch: string;
   onSpaceSearchChange: (value: string) => void;
-  onOpenProfile: () => void;
-  onLogout: () => void;
-  theme: "light" | "dark";
-  onToggleTheme: () => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 };
 
-function SidebarTopBar({
-  displayName,
-  avatarUrl,
-  spaceSearch,
-  onSpaceSearchChange,
-  onOpenProfile,
-  onLogout,
-  theme,
-  onToggleTheme,
-  collapsed,
-  onToggleCollapse,
-}: SidebarTopBarProps) {
+const userMenuTrigger = (
+  <Button variant="ghost" size="icon" className="shrink-0" aria-label="Открыть меню пользователя">
+    <Menu className="h-5 w-5" />
+  </Button>
+);
+
+function SidebarTopBar({ spaceSearch, onSpaceSearchChange, collapsed, onToggleCollapse }: SidebarTopBarProps) {
   if (collapsed) {
     return (
       <div className="surface-shell flex flex-col items-center gap-2 px-1 py-2.5">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0" aria-label="Открыть меню пользователя">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-80">
-            <UserMenuProfileItem displayName={displayName} avatarUrl={avatarUrl} onOpenProfile={onOpenProfile} />
-            <DropdownMenuItem asChild>
-              <Link to="/spaces" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Создать спейс
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <ThemeToggleMenuItem theme={theme} onToggleTheme={onToggleTheme} />
-            <DropdownMenuItem
-              onSelect={onLogout}
-              className="flex items-center gap-2 text-destructive focus:text-destructive"
-            >
-              <LogOut className="h-4 w-4" />
-              Выйти
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
+        <UserMenu trigger={userMenuTrigger} />
         {onToggleCollapse && (
           <Button
             variant="ghost"
@@ -136,31 +53,7 @@ function SidebarTopBar({
 
   return (
     <div className="surface-shell flex items-center gap-3 px-3 py-3">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="shrink-0" aria-label="Открыть меню пользователя">
-            <Menu className="h-5 w-5" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-80">
-          <UserMenuProfileItem displayName={displayName} avatarUrl={avatarUrl} onOpenProfile={onOpenProfile} />
-          <DropdownMenuItem asChild>
-            <Link to="/spaces" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Создать спейс
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <ThemeToggleMenuItem theme={theme} onToggleTheme={onToggleTheme} />
-          <DropdownMenuItem
-            onSelect={onLogout}
-            className="flex items-center gap-2 text-destructive focus:text-destructive"
-          >
-            <LogOut className="h-4 w-4" />
-            Выйти
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <UserMenu trigger={userMenuTrigger} />
 
       <div className="relative min-w-0 flex-1">
         <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -191,19 +84,11 @@ function SidebarTopBar({
 type NavigationContentProps = {
   spaces: GetSpaceDto[];
   spaceSearch: string;
-  onSpaceClick: () => void;
-  isMobile?: boolean;
   /** Icon-only rail: avatars stay clickable, names move into tooltips */
   collapsed?: boolean;
 };
 
-function NavigationContent({
-  spaces,
-  spaceSearch,
-  onSpaceClick,
-  isMobile = false,
-  collapsed = false,
-}: NavigationContentProps) {
+function NavigationContent({ spaces, spaceSearch, collapsed = false }: NavigationContentProps) {
   if (collapsed) {
     return (
       <ScrollArea className="flex-1 py-3">
@@ -242,15 +127,9 @@ function NavigationContent({
       <div className="px-4 space-y-4">
         <nav className="space-y-1">
           {spaces.map((space) => (
-            <motion.div
-              key={space.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="group relative flex items-center"
-            >
+            <div key={space.id} className="group relative flex items-center">
               <NavLink
                 to={`/spaces/${space.id}`}
-                onClick={isMobile ? onSpaceClick : undefined}
                 className={({ isActive }) =>
                   cn(
                     "flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
@@ -266,7 +145,7 @@ function NavigationContent({
                 />
                 <span className="truncate">{space.name}</span>
               </NavLink>
-            </motion.div>
+            </div>
           ))}
           {spaceSearch.trim() && spaces.length === 0 ? (
             <p className="px-2 text-sm text-muted-foreground">Спейсы не найдены.</p>
@@ -278,23 +157,20 @@ function NavigationContent({
 }
 
 export const AppLayout = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useAppViewportHeight();
+  const isDesktop = useMediaQuery(BREAKPOINTS.md);
   const [spaceSearch, setSpaceSearch] = useState("");
-  const setActive = useSidebarStore((s) => s.setActive);
   const leftCollapsed = useSidebarStore((s) => s.leftCollapsed);
   const toggleLeftSidebar = useSidebarStore((s) => s.toggleLeftSidebar);
-  const setProfileOpen = (val: boolean) => setActive(val ? 'profile' : null);
   const location = useLocation();
   const isSpaceRoute = location.pathname.startsWith('/spaces/');
   const isSpaceDetailRoute = /^\/spaces\/\d+/.test(location.pathname);
-  const contentKey = isSpaceDetailRoute ? 'space-detail' : location.pathname;
-   const { user } = useUser();
-   const { theme, toggleTheme } = useThemeStore();
-   const { data: spacesData } = useSpaces();
-   const spaces = useMemo(() => spacesData?.spaces ?? [], [spacesData]);
-   const navigate = useNavigate();
+  const isSpaceListRoute = location.pathname === '/spaces';
+  const { data: spacesData } = useSpaces();
+  const spaces = useMemo(() => spacesData?.spaces ?? [], [spacesData]);
+  const navigate = useNavigate();
 
-   const searchParams = new URLSearchParams(location.search);
+  const searchParams = new URLSearchParams(location.search);
   const notificationChatIdParam = searchParams.get("chatId");
   const notificationMessageIdParam = searchParams.get("messageId");
   const notificationChatId = notificationChatIdParam ? Number(notificationChatIdParam) : undefined;
@@ -335,103 +211,53 @@ export const AppLayout = () => {
     return spaces.filter((space) => space.name.toLowerCase().includes(query));
   }, [spaceSearch, spaces]);
 
-   const handleLogout = async () => {
-     try {
-       await pushService.unsubscribe();
-
-       const logoutUrl = process.env.NODE_ENV === "development" ? "/logout" : "/api/logout";
-       await fetch(logoutUrl, {
-         method: "POST",
-         credentials: "include",
-         redirect: "follow",
-       });
-
-       window.location.href = "/";
-     } catch (error) {
-       console.error("Выход не удался", error);
-       window.location.href = "/";
-     }
-   };
-
-   // Закрывать меню при переходе на другую страницу
-  const handleNavClick = () => {
-    setMobileMenuOpen(false);
-  };
-
   return (
-    <div className="flex h-screen overflow-clip bg-transparent">
-      <motion.aside
-        initial={false}
-        animate={{ width: leftCollapsed ? "5rem" : "20rem" }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
-        className="surface-shell hidden h-full shrink-0 flex-col border-r border-border overflow-hidden md:flex"
-      >
-        <SidebarTopBar
-          displayName={user?.displayName ?? undefined}
-          avatarUrl={user?.avatarUrl ?? undefined}
-          spaceSearch={spaceSearch}
-          onSpaceSearchChange={setSpaceSearch}
-          onOpenProfile={() => setProfileOpen(true)}
-          onLogout={handleLogout}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          collapsed={leftCollapsed}
-          onToggleCollapse={toggleLeftSidebar}
-        />
-        <NavigationContent
-          // Search input is hidden while collapsed, so show every space there
-          spaces={leftCollapsed ? spaces : filteredSpaces}
-          spaceSearch={leftCollapsed ? "" : spaceSearch}
-          onSpaceClick={handleNavClick}
-          collapsed={leftCollapsed}
-        />
-      </motion.aside>
+    // Height follows the visual viewport so the on-screen keyboard never covers the chat composer
+    <div className="flex h-[var(--app-height,100dvh)] overflow-clip bg-transparent pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-[env(safe-area-inset-top)]">
+      {isDesktop ? (
+        <motion.aside
+          initial={false}
+          animate={{ width: leftCollapsed ? "5rem" : "20rem" }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="surface-shell flex h-full shrink-0 flex-col border-r border-border overflow-hidden"
+        >
+          <SidebarTopBar
+            spaceSearch={spaceSearch}
+            onSpaceSearchChange={setSpaceSearch}
+            collapsed={leftCollapsed}
+            onToggleCollapse={toggleLeftSidebar}
+          />
+          <NavigationContent
+            // Search input is hidden while collapsed, so show every space there
+            spaces={leftCollapsed ? spaces : filteredSpaces}
+            spaceSearch={leftCollapsed ? "" : spaceSearch}
+            collapsed={leftCollapsed}
+          />
+        </motion.aside>
+      ) : null}
 
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-clip">
-        <header className="surface-shell flex h-16 items-center border-b border-border px-4 md:hidden">
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Открыть меню">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="surface-panel-strong flex w-72 flex-col p-0">
-              <SidebarTopBar
-                displayName={user?.displayName ?? undefined}
-                avatarUrl={user?.avatarUrl ?? undefined}
-                spaceSearch={spaceSearch}
-                onSpaceSearchChange={setSpaceSearch}
-                onOpenProfile={() => setProfileOpen(true)}
-                onLogout={handleLogout}
-                theme={theme}
-                onToggleTheme={toggleTheme}
-              />
-              <NavigationContent
-                spaces={filteredSpaces}
-                spaceSearch={spaceSearch}
-                onSpaceClick={handleNavClick}
-                isMobile
-              />
-            </SheetContent>
-          </Sheet>
-        </header>
+        {/* Phones: the space list and space pages have their own headers; other pages get a way back */}
+        {!isDesktop && !isSpaceDetailRoute && !isSpaceListRoute ? (
+          <header className="surface-shell flex h-14 shrink-0 items-center border-b border-border px-2">
+            <Button variant="ghost" size="icon" className="h-11 w-11" asChild>
+              <Link to="/spaces" aria-label="К списку спейсов">
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </Button>
+          </header>
+        ) : null}
 
         <main className="min-h-0 flex-1 overflow-clip bg-transparent">
-          <AnimatePresence mode="sync">
-            <motion.div
-              key={contentKey}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.1, ease: "easeInOut" }}
-              className="h-full"
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          {/* Instant swap: an exit animation here stacked old + new pages for a frame (jump/blink) */}
+          <div className="h-full">
+            <Outlet />
+          </div>
         </main>
       </div>
 
       {!isSpaceRoute ? <ProfileRail /> : null}
+      <InstallAppSheet />
     </div>
   );
 };

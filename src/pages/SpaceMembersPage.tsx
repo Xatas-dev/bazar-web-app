@@ -5,10 +5,10 @@ import { useGetRoles, useAssignRoleToUser } from "@/hooks/useRoles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, UserPlus, Search, Shield, Loader2, ArrowLeft, Crown } from "lucide-react";
-import { motion } from "framer-motion";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MembersListSkeleton } from "@/components/members/MembersListSkeleton";
+import { confirmDialog } from "@/lib/dialogs";
 import { notify } from "@/lib/notifications";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -51,12 +51,18 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
       });
   };
 
-  const handleRemoveUser = (userId: string) => {
+  const handleRemoveUser = async (userId: string) => {
     if (!canDelete) {
         notify.error.forbidden();
         return;
     }
-    if (confirm("Удалить пользователя из спейса?")) {
+    const confirmed = await confirmDialog({
+        title: "Удалить участника?",
+        description: "Пользователь потеряет доступ к чату и файлам этого спейса.",
+        confirmLabel: "Удалить",
+        destructive: true,
+    });
+    if (confirmed) {
         removeUserMutation.mutate({ spaceId: id, userId });
     }
   };
@@ -133,15 +139,10 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
         <h3 className="text-lg font-medium">Участники ({users.length})</h3>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {users.length > 0 ? (
-              users.map((user, i) => {
+              users.map((user) => {
                 const isPickingRole = roleMenuUserId === user.userId;
                 return (
-                <motion.div
-                  key={user.userId}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: i * 0.04 }}
-                >
+                <div key={user.userId}>
                 <DropdownMenu
                   open={isPickingRole || undefined}
                   onOpenChange={(open) => {
@@ -246,7 +247,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                     </DropdownMenuContent>
                   )}
                 </DropdownMenu>
-                </motion.div>
+                </div>
                 );
               })
             ) : (

@@ -1,31 +1,79 @@
-import { useState } from "react";
+import { useRef, useState, type ComponentType, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useLongPress } from "@/hooks/useLongPress";
 import { ChatReactionResponse, MessageResponse, AllowedMessageAction } from "@/types/chat";
-import { Trash2, Reply, Edit2, Users, ArrowLeft, Loader2 } from "lucide-react";
+import { Trash2, Reply, Edit2, Users, ArrowLeft, Copy, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useGetMessageReactionUsers } from "@/hooks/useChatReactions";
-import { getDisplayName, getInitials } from "@/lib/user-display";
+import { toast } from "@/hooks/use-toast";
+import { COARSE_POINTER, useMediaQuery } from "@/hooks/useMediaQuery";
+import { ReactionUsersList } from "./ReactionUsersList";
 
 interface MessageContextMenuProps {
   spaceId: number;
   chatId: number;
   message: MessageResponse;
-  children: React.ReactNode;
+  children: ReactNode;
   availableReactions?: ChatReactionResponse[];
   reactionLabelById: Record<string, string>;
   onDelete: (messageId: number) => void;
   onReply: (message: MessageResponse) => void;
   onEdit: (message: MessageResponse) => void;
   onReact?: (messageId: number, reactionId: string) => void;
+  /** Own messages sit on the right, so the menu aligns to the bubble's right edge */
+  isOwn?: boolean;
 }
 
+/**
+ * Pointer-ups this soon after opening belong to the gesture that opened the menu (right-click release,
+ * long-press lift). Radix selects items on pointer-up, so they must be ignored or they hit a random item.
+ */
+const OPEN_GESTURE_GUARD_MS = 300;
+
+/** Reactions shown in the collapsed desktop row; the rest sit behind the expand chevron */
+const COLLAPSED_REACTION_COUNT = 5;
+
+function MenuAction({
+  icon: Icon,
+  label,
+  onSelect,
+  destructive,
+  large,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  onSelect: (event: Event) => void;
+  destructive?: boolean;
+  large?: boolean;
+}) {
+  return (
+    <DropdownMenuItem
+      onSelect={onSelect}
+      className={cn(
+        "cursor-pointer gap-2",
+        large && "h-11 gap-3 px-3 text-base",
+        destructive && "text-destructive focus:text-destructive"
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </DropdownMenuItem>
+  );
+}
+
+/**
+ * Message popup menu, the same on desktop (right-click) and phones (long-press).
+ * Anchored to the bubble (below it, aligned to its side) so it always stays on screen: it shifts
+ * sideways at the screen edge and flips above the bubble when there is no room below.
+ * Two floating blocks of equal width: a reaction bar on top and the action menu below.
+ * Phones: the reaction bar is one horizontally scrollable row.
+ * Desktop: one row plus a chevron that expands the full reaction grid downwards.
+ */
 export const MessageContextMenu = ({
   spaceId,
   chatId,
@@ -37,149 +85,182 @@ export const MessageContextMenu = ({
   onReply,
   onEdit,
   onReact,
+  isOwn = false,
 }: MessageContextMenuProps) => {
+  const isTouch = useMediaQuery(COARSE_POINTER);
+  const [open, setOpen] = useState(false);
+  const openedAtRef = useRef(0);
+  const openMenu = () => {
+    openedAtRef.current = performance.now();
+    setOpen(true);
+  };
+  const longPress = useLongPress(openMenu, { enabled: isTouch });
+
+  const swallowOpeningPointerUp = (event: ReactPointerEvent) => {
+    if (performance.now() - openedAtRef.current < OPEN_GESTURE_GUARD_MS) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  };
   const [showReactionUsers, setShowReactionUsers] = useState(false);
+  const [reactionsExpanded, setReactionsExpanded] = useState(false);
   const canDelete = message.allowedActions?.includes(AllowedMessageAction.DELETE) ?? false;
   const canEdit = message.allowedActions?.includes(AllowedMessageAction.EDIT) ?? false;
-  const hasReactions = message.reactions && message.reactions.length > 0;
+  const hasReactions = (message.reactions?.length ?? 0) > 0;
 
-  const { data: reactionUsersData, isLoading: isReactionUsersLoading } = useGetMessageReactionUsers(
-    spaceId,
-    chatId,
-    message.id,
-    showReactionUsers
-  );
-
-  const handleDelete = () => {
-    onDelete(message.id);
-  };
-
-  const handleReply = () => {
-    onReply(message);
-  };
-
-  const handleEdit = () => {
-    onEdit(message);
-  };
-
-  const handleReact = (reactionId: string) => {
-    if (onReact) {
-      onReact(message.id, reactionId);
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setShowReactionUsers(false);
+      setReactionsExpanded(false);
     }
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      toast({ title: "Скопировано", description: "Текст сообщения в буфере обмена." });
+    } catch {
+      toast({ variant: "destructive", title: "Не удалось скопировать" });
+    }
+  };
+
+  const canCollapse = !isTouch && availableReactions.length > COLLAPSED_REACTION_COUNT + 1;
+  const visibleReactions =
+    canCollapse && !reactionsExpanded ? availableReactions.slice(0, COLLAPSED_REACTION_COUNT) : availableReactions;
+
+  const renderReaction = (reaction: ChatReactionResponse) => {
+    const reacted =
+      message.reactions?.some((r) => r.reactionId === reaction.reactionId && r.reactedByMe) ?? false;
+    return (
+      <DropdownMenuItem
+        key={reaction.reactionId}
+        onSelect={() => onReact?.(message.id, reaction.reactionId)}
+        aria-label={`Реакция ${reaction.value}`}
+        className={cn(
+          "h-10 w-10 shrink-0 cursor-pointer justify-center rounded-full p-0 text-xl transition-transform hover:scale-110 active:scale-90",
+          reacted && "bg-primary/15 ring-1 ring-inset ring-primary/40"
+        )}
+      >
+        {reaction.value}
+      </DropdownMenuItem>
+    );
+  };
+
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent>
-        {showReactionUsers ? (
-          <>
-            <ContextMenuItem
-              onSelect={(e) => { e.preventDefault(); setShowReactionUsers(false); }}
-              className="cursor-pointer"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Назад
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            {isReactionUsersLoading ? (
-              <div className="flex items-center justify-center py-6 min-w-60">
-                <Loader2 className="h-5 w-5 animate-spin" />
-              </div>
-            ) : reactionUsersData && reactionUsersData.reactions.length > 0 ? (
-              <div className="max-h-64 overflow-y-auto px-1 min-w-60">
-                {reactionUsersData.reactions.map((group) => {
-                  const reactionLabel = reactionLabelById[group.reactionId] ?? group.reactionId;
-                  return (
-                    <div key={group.reactionId} className="mb-1">
-                      <div className="flex items-center gap-2 px-2 py-1 text-xs font-medium text-muted-foreground">
-                        <span className="text-sm leading-none">{reactionLabel}</span>
-                        <span>{group.users.length}</span>
-                      </div>
-                      {group.users.map((user) => (
-                        <div key={user.userId} className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-[10px]">
-                              {getInitials(user.firstName, user.lastName, "УП")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="truncate">{getDisplayName(user.firstName, user.lastName, "Удаленный пользователь")}</span>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
+      <div
+        className="relative w-fit max-w-full"
+        // Right-click on desktop; Android also fires this on long-press
+        onContextMenu={(event) => {
+          event.preventDefault();
+          openMenu();
+        }}
+        {...longPress}
+      >
+        {children}
+        {/* Invisible anchor covering the bubble: the menu opens below it or flips above it, never over it.
+            pointer-events-none, so clicks/selection on the bubble never open the menu */}
+        <DropdownMenuTrigger asChild>
+          <span aria-hidden tabIndex={-1} className="pointer-events-none absolute inset-0" />
+        </DropdownMenuTrigger>
+      </div>
+      <DropdownMenuContent
+        bare
+        side="bottom"
+        align={isOwn ? "end" : "start"}
+        sideOffset={6}
+        collisionPadding={12}
+        onPointerUpCapture={swallowOpeningPointerUp}
+        className="flex w-[17rem] max-w-[calc(100vw-1.5rem)] flex-col gap-2"
+      >
+        {/* Floating reaction bar (its own surface, same width as the menu) */}
+        {availableReactions.length > 0 && !showReactionUsers ? (
+          <div className="surface-panel-muted rounded-lg p-1" role="group" aria-label="Реакции">
+            {isTouch ? (
+              <div className="flex gap-1 overflow-x-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {availableReactions.map(renderReaction)}
               </div>
             ) : (
-              <div className="px-2 py-4 text-center text-sm text-muted-foreground min-w-60">
-                Нет реакций
+              <div className={cn("flex flex-wrap gap-1", reactionsExpanded && "grid grid-cols-6")}>
+                {visibleReactions.map(renderReaction)}
+                {canCollapse ? (
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      setReactionsExpanded((value) => !value);
+                    }}
+                    aria-label={reactionsExpanded ? "Свернуть реакции" : "Все реакции"}
+                    aria-expanded={reactionsExpanded}
+                    className="ml-auto h-10 w-10 shrink-0 cursor-pointer justify-center rounded-full p-0 text-muted-foreground"
+                  >
+                    <ChevronDown
+                      className={cn("h-4 w-4 transition-transform duration-200", reactionsExpanded && "rotate-180")}
+                    />
+                  </DropdownMenuItem>
+                ) : null}
               </div>
             )}
-          </>
-        ) : (
-          <>
-            {availableReactions.length > 0 && (
-              <>
-                <div className="px-2 pb-1 pt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Реакции
-                </div>
-                <div className="grid grid-cols-6 gap-1 px-1 pb-1">
-                  {availableReactions.map((reaction) => {
-                    const isAlreadyReacted = message.reactions?.some(
-                      (messageReaction) => messageReaction.reactionId === reaction.reactionId && messageReaction.reactedByMe
-                    ) ?? false;
+          </div>
+        ) : null}
 
-                    return (
-                      <ContextMenuItem
-                        key={reaction.reactionId}
-                        onSelect={() => handleReact(reaction.reactionId)}
-                        className={cn(
-                          "h-9 w-9 justify-center rounded-md px-0 text-lg transition-transform hover:scale-110 active:scale-75 data-[disabled]:opacity-30",
-                          isAlreadyReacted && "animate-reaction-blink bg-primary/10"
-                        )}
-                      >
-                        {reaction.value}
-                      </ContextMenuItem>
-                    );
-                  })}
-                </div>
-                <ContextMenuSeparator />
-              </>
-            )}
-
-            <ContextMenuItem onSelect={handleReply} className="cursor-pointer">
-              <Reply className="mr-2 h-4 w-4" />
-              Ответить
-            </ContextMenuItem>
-
-            {canEdit && (
-              <ContextMenuItem onSelect={handleEdit} className="cursor-pointer">
-                <Edit2 className="mr-2 h-4 w-4" />
-                Редактировать
-              </ContextMenuItem>
-            )}
-            {canDelete && (
-              <ContextMenuItem onSelect={handleDelete} className="text-destructive focus:text-destructive cursor-pointer">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Удалить
-              </ContextMenuItem>
-            )}
-
-            {hasReactions && (
-              <>
-                <ContextMenuSeparator />
-                <ContextMenuItem
-                  onSelect={(e) => { e.preventDefault(); setShowReactionUsers(true); }}
-                  className="cursor-pointer"
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Реакции
-                </ContextMenuItem>
-              </>
-            )}
-          </>
-        )}
-      </ContextMenuContent>
-    </ContextMenu>
+        {/* Action menu */}
+        <div className="surface-panel-muted rounded-lg p-1">
+          {showReactionUsers ? (
+            <>
+              <MenuAction
+                icon={ArrowLeft}
+                label="Назад"
+                large={isTouch}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  setShowReactionUsers(false);
+                }}
+              />
+              <DropdownMenuSeparator />
+              <ReactionUsersList
+                spaceId={spaceId}
+                chatId={chatId}
+                messageId={message.id}
+                enabled={showReactionUsers}
+                reactionLabelById={reactionLabelById}
+                className="max-h-64 min-w-0"
+              />
+            </>
+          ) : (
+            <>
+              <MenuAction icon={Reply} label="Ответить" large={isTouch} onSelect={() => onReply(message)} />
+              <MenuAction icon={Copy} label="Копировать текст" large={isTouch} onSelect={handleCopy} />
+              {canEdit ? (
+                <MenuAction icon={Edit2} label="Редактировать" large={isTouch} onSelect={() => onEdit(message)} />
+              ) : null}
+              {hasReactions ? (
+                <MenuAction
+                  icon={Users}
+                  label="Кто отреагировал"
+                  large={isTouch}
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    setShowReactionUsers(true);
+                  }}
+                />
+              ) : null}
+              {canDelete ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <MenuAction
+                    icon={Trash2}
+                    label="Удалить"
+                    destructive
+                    large={isTouch}
+                    onSelect={() => onDelete(message.id)}
+                  />
+                </>
+              ) : null}
+            </>
+          )}
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

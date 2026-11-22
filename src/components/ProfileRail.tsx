@@ -3,31 +3,22 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Save, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { AnimatePresence, motion } from "framer-motion";
-import { useSidebarStore } from "@/store/sidebarStore";
+import { RightDrawer } from "@/components/RightDrawer";
+import { usePanel } from "@/hooks/usePanel";
 import { useProfileForm } from "@/hooks/useProfileForm";
 import { ProfileRailSkeleton } from "@/components/ProfileRailSkeleton";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { useUpdateAvatar } from "@/hooks/useUser";
 
 export function ProfileRail() {
-  const active = useSidebarStore((s) => s.active);
-  const setActive = useSidebarStore((s) => s.setActive);
+  const { active, close } = usePanel();
   const open = active === "profile";
 
   const { user, isLoading, formData, handleChange, handleSubmit, isPending } = useProfileForm();
   const updateAvatarMutation = useUpdateAvatar();
 
   return (
-    <AnimatePresence mode="wait">
-      {open && (
-        <motion.aside
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: "40rem", opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className="surface-shell hidden h-full max-w-[var(--right-sidebar-width)] shrink-0 flex-col border-l border-border overflow-hidden md:flex"
-        >
+    <RightDrawer open={open} onClose={close} aria-label="Мой профиль">
       <div className="surface-shell flex items-start justify-between gap-4 px-4 py-4 sm:px-6">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Профиль</p>
@@ -36,7 +27,7 @@ export function ProfileRail() {
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={() => setActive(null)} aria-label="Закрыть панель профиля">
+              <Button variant="ghost" size="icon" onClick={close} aria-label="Закрыть панель профиля" className="h-11 w-11 sm:h-10 sm:w-10">
                 <X className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -99,8 +90,6 @@ export function ProfileRail() {
           <p className="p-4 text-sm text-muted-foreground sm:p-6">Не удалось загрузить данные профиля.</p>
         )}
       </ScrollArea>
-        </motion.aside>
-      )}
-    </AnimatePresence>
+    </RightDrawer>
   );
 }

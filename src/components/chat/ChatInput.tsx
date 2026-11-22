@@ -5,6 +5,7 @@ import {Edit2, Reply, SendHorizontal, X} from "lucide-react";
 import {AuthorStatus, MessageResponse} from "@/types/chat";
 import {cn} from "@/lib/utils";
 import { getDisplayName } from "@/lib/user-display";
+import { COARSE_POINTER, useMediaQuery } from "@/hooks/useMediaQuery";
 
 interface ChatInputProps {
     onSendMessage: (content: string, replyMessageId?: number) => void;
@@ -31,6 +32,15 @@ export const ChatInput = ({
                           }: ChatInputProps) => {
     const [content, setContent] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    // Phone keyboards have no Shift+Enter: Enter adds a new line, the button sends
+    const isTouch = useMediaQuery(COARSE_POINTER);
+
+    // Jump into the field when a reply/edit starts (e.g. after swipe-to-reply)
+    useEffect(() => {
+        if ((replyToMessage || editingMessage) && !readOnly) {
+            textareaRef.current?.focus();
+        }
+    }, [replyToMessage, editingMessage, readOnly]);
 
     // Update content when switching between edit and reply
     useEffect(() => {
@@ -75,6 +85,9 @@ export const ChatInput = ({
         if (readOnly) {
             return;
         }
+        if (isTouch || e.nativeEvent.isComposing) {
+            return;
+        }
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSend();
@@ -116,8 +129,9 @@ export const ChatInput = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 shrink-0"
+                            className="-my-1 h-9 w-9 shrink-0 md:h-7 md:w-7"
                             onClick={() => { setContent(""); onCancelEdit?.(); }}
+                            aria-label="Отменить редактирование"
                         >
                             <X className="h-4 w-4"/>
                         </Button>
@@ -144,8 +158,9 @@ export const ChatInput = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 shrink-0"
+                            className="-my-1 h-9 w-9 shrink-0 md:h-7 md:w-7"
                             onClick={onCancelReply}
+                            aria-label="Отменить ответ"
                         >
                             <X className="h-4 w-4"/>
                         </Button>
@@ -161,8 +176,10 @@ export const ChatInput = ({
                     onChange={(e) => setContent(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Введите сообщение..."
+                    aria-label="Сообщение"
+                    enterKeyHint={isTouch ? "enter" : "send"}
                     className="
-          min-h-[2rem] max-h-24 resize-none
+          min-h-[2.25rem] max-h-32 md:min-h-[2rem] md:max-h-24 resize-none
           !border-0 !bg-transparent !shadow-none !ring-0
           backdrop-blur-none
           !outline-none
@@ -179,8 +196,11 @@ export const ChatInput = ({
                     size="icon"
                     onClick={handleSend}
                     disabled={readOnly || !content.trim() || isLoading}
+                    aria-label={editingMessage ? "Сохранить изменения" : "Отправить сообщение"}
+                    // Keep the keyboard open: don't move focus away from the textarea on tap
+                    onPointerDown={(e) => { if (e.pointerType !== "mouse") e.preventDefault(); }}
                     className="
-          h-9 w-9 shrink-0 rounded-full
+          h-10 w-10 md:h-9 md:w-9 shrink-0 rounded-full
           !bg-[hsl(var(--panel-surface-strong))]
           !text-foreground
           hover:!bg-[hsl(var(--panel-surface-strong))]

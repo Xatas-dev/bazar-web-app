@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Shield, ChevronRight } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { RolesTabSkeleton } from "./RolesTabSkeleton";
 
@@ -85,13 +84,8 @@ export default function RolesTab({
         </Card>
       ) : (
         <div className="space-y-2">
-          {roles.map((role, i) => (
-            <motion.div
-              key={role.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, delay: i * 0.04 }}
-            >
+          {roles.map((role) => (
+            <div key={role.id}>
               <button
                 type="button"
                 onClick={() => onSelectRole?.(role.id)}
@@ -110,7 +104,7 @@ export default function RolesTab({
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </button>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

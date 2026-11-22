@@ -21,7 +21,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container max-w-2xl py-10">
+    <div className="container h-full max-w-2xl overflow-y-auto px-4 py-6 sm:px-8 sm:py-10">
       <Card>
         <CardHeader>
           <div className="flex w-full items-center gap-4">

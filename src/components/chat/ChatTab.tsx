@@ -85,7 +85,7 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
 
     if (!chat) {
         return (
-            <div className="flex h-full min-h-[400px] flex-col items-center justify-center gap-4 text-center">
+            <div className="flex h-full min-h-[400px] flex-col items-center justify-center gap-4 px-4 text-center">
                 <div
                     className="surface-panel-muted p-4 rounded-full">
                     <MessageSquarePlus className="h-8 w-8 text-muted-foreground"/>
@@ -105,12 +105,17 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
 
     return (
         <div className="relative flex h-full min-h-0 flex-col bg-transparent">
-            {/* Message List */}
-            <MessageList spaceId={spaceId} chatId={chat.id} onReply={handleReply} onEdit={handleEditMessage}/>
+            <MessageList
+                spaceId={spaceId}
+                chatId={chat.id}
+                onReply={handleReply}
+                onEdit={handleEditMessage}
+                hasComposerBanner={!!replyToMessage || !!editingMessage}
+            />
 
-            {/* Input Area */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-6 z-30">
-                <div className="mx-auto w-full max-w-4xl px-3 sm:px-6">
+            {/* Composer floats over the list (frosted); clears the home indicator on phones */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 md:bottom-6">
+                <div className="mx-auto w-full max-w-4xl px-3 md:px-6">
                     <ChatInput
                         className="pointer-events-auto w-full"
                         onSendMessage={handleSendMessage}

@@ -7,6 +7,11 @@ import { MessageContextMenu } from "./MessageContextMenu";
 import { MessageReactions } from "./MessageReactions";
 import { Reply } from "lucide-react";
 import { getDisplayName, getInitials } from "@/lib/user-display";
+import { useState } from "react";
+import { COARSE_POINTER, useMediaQuery } from "@/hooks/useMediaQuery";
+
+/** Swipe distance (px, leftwards) that triggers "reply" on touch devices */
+const SWIPE_REPLY_THRESHOLD = 56;
 
 interface MessageItemProps {
   spaceId: number;
@@ -15,6 +20,8 @@ interface MessageItemProps {
   isCurrentUser: boolean;
   showAvatar?: boolean;
   showAuthorName?: boolean;
+  /** Fade in on mount — only for messages that arrive while the chat is open */
+  animateIn?: boolean;
   availableReactions?: ChatReactionResponse[];
   reactionLabelById: Record<string, string>;
   onDelete?: (messageId: number) => void;
@@ -30,6 +37,7 @@ export const MessageItem = ({
   isCurrentUser,
   showAvatar = true,
   showAuthorName = false,
+  animateIn = false,
   availableReactions = [],
   reactionLabelById,
   onDelete,
@@ -37,6 +45,9 @@ export const MessageItem = ({
   onEdit,
   onReact,
 }: MessageItemProps) => {
+  const isTouch = useMediaQuery(COARSE_POINTER);
+  const [swipeReady, setSwipeReady] = useState(false);
+
   const formattedTime = new Date(message.createdAt).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
@@ -95,12 +106,38 @@ export const MessageItem = ({
     : "Неизвестно";
 
   return (
+    <div className="relative">
+    {isTouch ? (
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all duration-150",
+          swipeReady ? "scale-100 opacity-100" : "scale-50 opacity-0"
+        )}
+      >
+        <Reply className="h-4 w-4" />
+      </div>
+    ) : null}
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
+      initial={animateIn ? { opacity: 0, y: 6 } : false}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "tween", duration: 0.18, ease: "easeOut" }}
+      // Touch: swipe the message left to reply (vertical scrolling stays native)
+      drag={isTouch ? "x" : false}
+      dragDirectionLock
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={{ left: 0.45, right: 0 }}
+      dragSnapToOrigin
+      onDrag={(_, info) => setSwipeReady(info.offset.x <= -SWIPE_REPLY_THRESHOLD)}
+      onDragEnd={(_, info) => {
+        setSwipeReady(false);
+        if (info.offset.x <= -SWIPE_REPLY_THRESHOLD) {
+          navigator.vibrate?.(10);
+          handleReply();
+        }
+      }}
       className={cn(
-        "flex w-full items-end gap-2",
+        "relative flex w-full items-end gap-2",
         isCurrentUser ? "flex-row-reverse" : "flex-row"
       )}
     >
@@ -130,11 +167,19 @@ export const MessageItem = ({
           onReply={handleReply}
           onEdit={handleEdit}
           onReact={handleReact}
+          isOwn={isCurrentUser}
         >
-          <div className="w-fit max-w-full">
+          <div
+            className={cn(
+              "w-fit max-w-full",
+              // Touch: long-press opens the menu, so suppress the native text-selection callout
+              isTouch && "select-none [-webkit-touch-callout:none]"
+            )}
+          >
             <Card
               className={cn(
-                "relative w-fit max-w-full overflow-hidden rounded-lg text-sm cursor-text select-text backdrop-blur-none",
+                "relative w-fit max-w-full overflow-hidden rounded-lg text-sm backdrop-blur-none",
+                isTouch ? "select-none" : "cursor-text select-text",
                 showAvatar ? (!isCurrentUser ? "rounded-bl-none" : "rounded-br-none") : null,
                 isCurrentUser
                   ? "!bg-[hsl(var(--self-block))] text-[hsl(var(--self-block-foreground))]"
@@ -172,7 +217,7 @@ export const MessageItem = ({
                     {message.content}
                   </p>
                   <span className={cn(
-                    "shrink-0 text-[10px] font-medium translate-y-0.5 select-none",
+                    "shrink-0 text-xs font-medium translate-y-0.5 select-none",
                     isCurrentUser ? "text-[hsl(var(--self-block-foreground)/0.8)]" : "text-muted-foreground/80"
                   )}>
                     {formattedTime}
@@ -190,5 +235,6 @@ export const MessageItem = ({
         />
       </div>
     </motion.div>
+    </div>
   );
 };

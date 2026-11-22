@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { AnimatePresence, motion } from "framer-motion";
+import { RightDrawer } from "@/components/RightDrawer";
 import { Loader2, Save, Trash2, X, LayoutGrid, Users, Shield } from "lucide-react";
 import SpaceMembersPage from "@/pages/SpaceMembersPage";
 import RolesTab from "@/components/role/RolesTab";
@@ -14,18 +13,13 @@ import RoleEditorScreen from "@/components/role/RoleEditorScreen";
 import { SpaceAvatarEditor } from "@/components/spaces/SpaceAvatarEditor";
 import { cn } from "@/lib/utils";
 
-type RoleScreen =
-  | { kind: "list" }
-  | { kind: "info"; roleId: number }
-  | { kind: "editor"; roleId?: number; fromInfo?: boolean };
-
-type SettingsTab = "overview" | "members" | "roles";
+import { usePanel, type SettingsTab } from "@/hooks/usePanel";
 
 const sharedTabsListClass = "surface-panel-muted inline-flex h-auto gap-1 rounded-full p-1 text-muted-foreground";
 const sharedTabsTriggerClass =
-  "group inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground";
+  "group inline-flex h-10 items-center justify-center gap-2 overflow-hidden rounded-full px-3 max-md:w-10 max-md:px-0 text-sm font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground";
 const sharedTabsLabelClass =
-  "max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-24 group-hover:opacity-100 group-data-[state=active]:max-w-24 group-data-[state=active]:opacity-100";
+  "max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-24 group-hover:opacity-100 group-data-[state=active]:max-w-24 group-data-[state=active]:opacity-100 max-md:hidden";
 
 function WorkspaceTabsTrigger({
   value,
@@ -54,8 +48,6 @@ function WorkspaceTabsTrigger({
   );
 }
 
-export type { SettingsTab };
-
 interface SpaceSettingsDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -64,8 +56,6 @@ interface SpaceSettingsDrawerProps {
   currentSpaceAvatarUrl?: string | null;
   spaceName: string;
   setSpaceName: (value: string) => void;
-  settingsTab: SettingsTab;
-  setSettingsTab: (value: SettingsTab) => void;
   isCreator: boolean;
   canReadRoles: boolean;
   canCreateRoles: boolean;
@@ -90,8 +80,6 @@ export function SpaceSettingsDrawer({
   currentSpaceAvatarUrl,
   spaceName,
   setSpaceName,
-  settingsTab,
-  setSettingsTab,
   isCreator,
   canReadRoles,
   canCreateRoles,
@@ -107,13 +95,10 @@ export function SpaceSettingsDrawer({
   onNoPermissionSave,
   onNoPermissionDelete,
 }: SpaceSettingsDrawerProps) {
-  const [roleScreen, setRoleScreen] = useState<RoleScreen>({ kind: "list" });
-
-  useEffect(() => {
-    if (!open) {
-      setRoleScreen({ kind: "list" });
-    }
-  }, [open]);
+  // Tabs replace the history entry; role screens push one, so "back" walks out of them
+  const panel = usePanel();
+  const settingsTab = panel.state.settingsTab ?? "overview";
+  const roleScreen = panel.state.roleScreen ?? { kind: "list" };
 
   const renderContent = () => {
     if (roleScreen.kind === "info") {
@@ -122,26 +107,21 @@ export function SpaceSettingsDrawer({
           spaceId={id}
           roleId={roleScreen.roleId}
           canEdit={canEditRoles}
-          onBack={() => setRoleScreen({ kind: "list" })}
-          onEdit={() => setRoleScreen({ kind: "editor", roleId: roleScreen.roleId, fromInfo: true })}
+          onBack={panel.back}
+          onEdit={() => panel.push({ roleScreen: { kind: "editor", roleId: roleScreen.roleId, fromInfo: true } })}
         />
       );
     }
 
     if (roleScreen.kind === "editor") {
-      const roleId = roleScreen.roleId;
       return (
         <RoleEditorScreen
           spaceId={id}
-          roleId={roleId}
+          roleId={roleScreen.roleId}
           canEdit={canEditRoles}
           canCreate={canCreateRoles}
-          onBack={() =>
-            setRoleScreen(roleScreen.fromInfo && roleId ? { kind: "info", roleId } : { kind: "list" })
-          }
-          onDone={() =>
-            setRoleScreen(roleScreen.fromInfo && roleId ? { kind: "info", roleId } : { kind: "list" })
-          }
+          onBack={panel.back}
+          onDone={panel.back}
         />
       );
     }
@@ -150,10 +130,10 @@ export function SpaceSettingsDrawer({
       <>
         <Tabs
           value={settingsTab}
-          onValueChange={(value) => setSettingsTab(value as SettingsTab)}
+          onValueChange={(value) => panel.replace({ settingsTab: value as SettingsTab })}
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="surface-shell relative flex items-center justify-center px-14 py-3">
+          <div className="surface-shell relative flex items-center justify-center px-12 py-3 sm:px-14">
             <TabsList className={sharedTabsListClass}>
               <WorkspaceTabsTrigger value="overview" icon={LayoutGrid} label="Обзор" />
               <WorkspaceTabsTrigger value="members" icon={Users} label="Участники" />
@@ -172,7 +152,7 @@ export function SpaceSettingsDrawer({
                   size="icon"
                   onClick={onClose}
                   aria-label="Закрыть панель настроек"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 sm:right-4"
+                  className="absolute right-2 top-1/2 h-11 w-11 -translate-y-1/2 sm:right-4 sm:h-10 sm:w-10"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -277,8 +257,8 @@ export function SpaceSettingsDrawer({
                     isCreator={isCreator}
                     canCreate={canCreateRoles}
                     canRead={canReadRoles}
-                    onSelectRole={(roleId) => setRoleScreen({ kind: "info", roleId })}
-                    onCreateRole={() => setRoleScreen({ kind: "editor" })}
+                    onSelectRole={(roleId) => panel.push({ roleScreen: { kind: "info", roleId } })}
+                    onCreateRole={() => panel.push({ roleScreen: { kind: "editor" } })}
                   />
                 </TabsContent>
               </div>
@@ -290,22 +270,8 @@ export function SpaceSettingsDrawer({
   };
 
   return (
-    <AnimatePresence mode="wait">
-      {open && (
-        <motion.aside
-          key="settings"
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: "40rem", opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          id="space-settings-drawer"
-          role="complementary"
-          aria-label="Настройки спейса"
-          className="surface-shell flex h-full max-w-[var(--right-sidebar-width)] shrink-0 flex-col border-l border-border overflow-hidden"
-        >
-          {renderContent()}
-        </motion.aside>
-      )}
-    </AnimatePresence>
+    <RightDrawer open={open} onClose={onClose} id="space-settings-drawer" aria-label="Настройки спейса">
+      {renderContent()}
+    </RightDrawer>
   );
 }
