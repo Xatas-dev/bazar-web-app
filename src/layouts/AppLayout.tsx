@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/sheet";
 import {
   LogOut,
-  Box,
   Menu,
   Search,
   Plus,
@@ -35,7 +34,36 @@ import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { ProfileRail } from "@/components/ProfileRail";
 import { ThemeToggleMenuItem } from "@/components/ThemeToggle";
+import { SpaceAvatar } from "@/components/spaces/SpaceAvatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { GetSpaceDto } from "@/types/space";
 
+
+type UserMenuProfileItemProps = {
+  displayName?: string;
+  avatarUrl?: string;
+  onOpenProfile: () => void;
+};
+
+function UserMenuProfileItem({ displayName, avatarUrl, onOpenProfile }: UserMenuProfileItemProps) {
+  return (
+    <DropdownMenuItem
+      onSelect={onOpenProfile}
+      className="h-auto gap-3 rounded-lg p-1.5 pr-3"
+    >
+      <Avatar className="h-11 w-11 shrink-0">
+        {avatarUrl ? (
+          <AvatarImage src={avatarUrl} alt={displayName || "Аватар"} className="object-cover" />
+        ) : null}
+        <AvatarFallback>{displayName?.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <p className="truncate text-base font-medium">{displayName || "Пользователь"}</p>
+        <p className="truncate text-xs text-muted-foreground">Открыть профиль</p>
+      </div>
+    </DropdownMenuItem>
+  );
+}
 
 type SidebarTopBarProps = {
   displayName?: string;
@@ -71,17 +99,8 @@ function SidebarTopBar({
               <Menu className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-72">
-            <DropdownMenuItem onSelect={onOpenProfile} className="h-auto gap-3 px-2 py-2">
-              <Avatar className="h-9 w-9">
-                {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName || "Аватар"} /> : null}
-                <AvatarFallback>{displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{displayName || "Пользователь"}</p>
-                <p className="truncate text-xs text-muted-foreground">Открыть профиль</p>
-              </div>
-            </DropdownMenuItem>
+          <DropdownMenuContent align="start" className="w-80">
+            <UserMenuProfileItem displayName={displayName} avatarUrl={avatarUrl} onOpenProfile={onOpenProfile} />
             <DropdownMenuItem asChild>
               <Link to="/spaces" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
@@ -123,17 +142,8 @@ function SidebarTopBar({
             <Menu className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-72">
-          <DropdownMenuItem onSelect={onOpenProfile} className="h-auto gap-3 px-2 py-2">
-            <Avatar className="h-9 w-9">
-              {avatarUrl ? <AvatarImage src={avatarUrl} alt={displayName || "Аватар"} /> : null}
-              <AvatarFallback>{displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{displayName || "User"}</p>
-              <p className="truncate text-xs text-muted-foreground">Open profile</p>
-            </div>
-          </DropdownMenuItem>
+        <DropdownMenuContent align="start" className="w-80">
+          <UserMenuProfileItem displayName={displayName} avatarUrl={avatarUrl} onOpenProfile={onOpenProfile} />
           <DropdownMenuItem asChild>
             <Link to="/spaces" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -179,10 +189,12 @@ function SidebarTopBar({
 }
 
 type NavigationContentProps = {
-  spaces: Array<{ id: number; name: string }>;
+  spaces: GetSpaceDto[];
   spaceSearch: string;
   onSpaceClick: () => void;
   isMobile?: boolean;
+  /** Icon-only rail: avatars stay clickable, names move into tooltips */
+  collapsed?: boolean;
 };
 
 function NavigationContent({
@@ -190,7 +202,41 @@ function NavigationContent({
   spaceSearch,
   onSpaceClick,
   isMobile = false,
+  collapsed = false,
 }: NavigationContentProps) {
+  if (collapsed) {
+    return (
+      <ScrollArea className="flex-1 py-3">
+        <nav className="flex flex-col items-center gap-1.5 px-2" aria-label="Спейсы">
+          {spaces.map((space) => (
+            <Tooltip key={space.id}>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to={`/spaces/${space.id}`}
+                  aria-label={space.name}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      isActive ? "bg-accent" : "bg-transparent"
+                    )
+                  }
+                >
+                  <SpaceAvatar
+                    name={space.name}
+                    avatarUrl={space.avatarUrl}
+                    className="h-[3.25rem] w-[3.25rem]"
+                    fallbackClassName="text-sm"
+                  />
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right">{space.name}</TooltipContent>
+            </Tooltip>
+          ))}
+        </nav>
+      </ScrollArea>
+    );
+  }
+
   return (
     <ScrollArea className="flex-1 py-4">
       <div className="px-4 space-y-4">
@@ -207,12 +253,17 @@ function NavigationContent({
                 onClick={isMobile ? onSpaceClick : undefined}
                 className={({ isActive }) =>
                   cn(
-                    "flex-1 flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                    "flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
                     isActive ? "bg-accent text-accent-foreground" : "bg-transparent"
                   )
                 }
               >
-                <Box className="mr-2 h-4 w-4" />
+                <SpaceAvatar
+                  name={space.name}
+                  avatarUrl={space.avatarUrl}
+                  className="h-[3.25rem] w-[3.25rem] shrink-0"
+                  fallbackClassName="text-sm"
+                />
                 <span className="truncate">{space.name}</span>
               </NavLink>
             </motion.div>
@@ -240,7 +291,7 @@ export const AppLayout = () => {
    const { user } = useUser();
    const { theme, toggleTheme } = useThemeStore();
    const { data: spacesData } = useSpaces();
-   const spaces = spacesData?.spaces || [];
+   const spaces = useMemo(() => spacesData?.spaces ?? [], [spacesData]);
    const navigate = useNavigate();
 
    const searchParams = new URLSearchParams(location.search);
@@ -311,7 +362,7 @@ export const AppLayout = () => {
     <div className="flex h-screen overflow-clip bg-transparent">
       <motion.aside
         initial={false}
-        animate={{ width: leftCollapsed ? "3.25rem" : "20rem" }}
+        animate={{ width: leftCollapsed ? "5rem" : "20rem" }}
         transition={{ duration: 0.18, ease: "easeOut" }}
         className="surface-shell hidden h-full shrink-0 flex-col border-r border-border overflow-hidden md:flex"
       >
@@ -327,13 +378,13 @@ export const AppLayout = () => {
           collapsed={leftCollapsed}
           onToggleCollapse={toggleLeftSidebar}
         />
-        {!leftCollapsed && (
-          <NavigationContent
-            spaces={filteredSpaces}
-            spaceSearch={spaceSearch}
-            onSpaceClick={handleNavClick}
-          />
-        )}
+        <NavigationContent
+          // Search input is hidden while collapsed, so show every space there
+          spaces={leftCollapsed ? spaces : filteredSpaces}
+          spaceSearch={leftCollapsed ? "" : spaceSearch}
+          onSpaceClick={handleNavClick}
+          collapsed={leftCollapsed}
+        />
       </motion.aside>
 
       <div className="flex h-full min-w-0 flex-1 flex-col overflow-clip">

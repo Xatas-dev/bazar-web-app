@@ -128,20 +128,23 @@ services:
     restart: unless-stopped
 
   bazar-space:
-    image: basegod/bazar-space:1.0.4-SNAPSHOT
+    image: basegod/bazar-space:1.0.5-SNAPSHOT
     container_name: bazar-space
     platform: linux/amd64
     environment:
       - DB_URL=jdbc:postgresql://postgresql:5432/bzrspace
       - DB_USER=postgres
       - DB_PASS=postgres
-      - KC_URL=http://keycloak:9999
-      - KC_REALM=bazar-realm
+      - KC_URL=http://keycloak:9999/realms/bazar-realm
       - LOGGING_LEVEL=TRACE
       - BAZAR_AUTHORIZATION_HOST=bazar-authorization
       - BAZAR_AUTHORIZATION_PORT=9090
       - BAZAR_AUTHORIZATION_API_URL=http://bazar-authorization:8080/api
+      - BAZAR_FILES_API_URL=http://bazar-files:8080/api
       - BAZAR_PERSONA_API_URL=http://bazar-persona:8080/api
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - FILE_EVENTS_TOPIC=file.events
+      - KAFKA_SECURITY_PROTOCOL=PLAINTEXT
     depends_on:
       postgresql:
         condition: service_healthy
