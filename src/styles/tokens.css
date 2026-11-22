@@ -125,3 +125,18 @@
     linear-gradient(135deg, hsl(225 22.2% 10%) 0%, hsl(228 29.4% 14%) 55%, hsl(224.3 29.9% 20%) 100%);
   --particles-pattern: radial-gradient(circle, hsla(222, 55%, 42%, 0.32) 1px, transparent 1.6px);
 }
+
+/* Touch devices: lighter blur profiles keep scrolling smooth on phones */
+@media (pointer: coarse) {
+  :root {
+    --panel-backdrop-soft: blur(6px) saturate(1.12) brightness(1.04);
+    --panel-backdrop-strong: blur(10px) saturate(1.16) brightness(1.03);
+    --panel-backdrop-overlay: blur(10px) saturate(1.1) brightness(0.98);
+  }
+
+  .dark {
+    --panel-backdrop-soft: blur(6px) saturate(1.06) brightness(0.97);
+    --panel-backdrop-strong: blur(10px) saturate(1.08) brightness(0.94);
+    --panel-backdrop-overlay: blur(10px) saturate(1.06) brightness(0.9);
+  }
+}

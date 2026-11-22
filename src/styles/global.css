@@ -58,6 +58,38 @@
     opacity: 0.9;
   }
 
+  /* The app is a fixed-height shell: no page rubber-banding or pull-to-refresh */
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* "Reduce motion": CSS keyframes/transitions (framer-motion is handled by MotionConfig) */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Touch devices: fixed backgrounds are ignored on iOS and a 70px full-screen blur is costly on phones */
+  @media (pointer: coarse) {
+    body {
+      background-attachment: scroll;
+    }
+
+    body::before {
+      filter: none;
+    }
+  }
+
   /* Smooth fade mask for message list top/bottom edges */
   .message-fade-mask {
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 4%, black 96%, transparent 100%);

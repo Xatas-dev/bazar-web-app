@@ -1,27 +1,38 @@
 import { Skeleton } from "@/components/ui/skeleton"
 
-const FileRowSkeleton = () => (
-  <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3">
-    <Skeleton className="h-5 w-5 flex-shrink-0" />
+const NodeRowSkeleton = () => (
+  <div className="flex items-center gap-3 px-3 py-2.5">
+    <Skeleton className="h-10 w-10 shrink-0 rounded-md" />
     <div className="min-w-0 flex-1 space-y-1.5">
-      <Skeleton className="h-4 w-48" />
-      <Skeleton className="h-3 w-72" />
-    </div>
-    <div className="ml-2 flex flex-shrink-0 items-center gap-2">
-      <Skeleton className="h-10 w-10 rounded-md" />
-      <Skeleton className="h-10 w-10 rounded-md" />
+      <Skeleton className="h-4 w-2/5" />
+      <Skeleton className="h-3 w-3/5" />
     </div>
   </div>
 )
 
+/** Mirrors StorageTab: path line, one list panel, floating action bar. */
 export const StorageTabSkeleton = () => {
   return (
-    <div className="relative z-0 flex h-full min-h-0 flex-col bg-transparent">
-      <div className="relative z-10 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 sm:-mt-16 sm:pt-16">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 px-3 pb-24 sm:px-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <FileRowSkeleton key={i} />
-          ))}
+    <div className="relative flex h-full min-h-0 flex-col" aria-hidden>
+      <div className="relative z-0 -mt-14 min-h-0 flex-1 overflow-hidden pt-14 md:-mt-16 md:pt-16">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="surface-panel divide-y divide-[hsl(var(--panel-border))] overflow-hidden rounded-lg">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <NodeRowSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-30 md:bottom-6">
+        <div className="mx-auto w-full max-w-4xl px-3 md:px-6">
+          <div className="surface-panel-muted flex items-center gap-2 rounded-lg p-1.5 pl-4">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="ml-auto h-10 w-28 rounded-full" />
+          </div>
         </div>
       </div>
     </div>

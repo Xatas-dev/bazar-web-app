@@ -1,10 +1,11 @@
-import { useRef, useLayoutEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useLayoutEffect, useMemo, useState } from "react";
 import { useGetChatMessages, useDeleteMessages } from "@/hooks/useChatMessages";
 import { useGetChatReactions, useChangeMessageReaction } from "@/hooks/useChatReactions";
 import { MessageItem } from "./MessageItem";
 import { useUser } from "@/hooks/useUser";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useChatWebSocket } from "@/hooks/useChatWebSocket.ts";
 import { MessageResponse, MessageAuthor } from "@/types/chat";
 import { MessageListSkeleton } from "./MessageListSkeleton";
@@ -14,11 +15,13 @@ interface MessageListProps {
   chatId: number;
   onReply?: (message: MessageResponse) => void;
   onEdit?: (message: MessageResponse) => void;
+  /** Reply/edit banner is showing, so the floating desktop composer is taller */
+  hasComposerBanner?: boolean;
 }
 
 const EDGE_THRESHOLD = 16;
 
-export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListProps) => {
+export const MessageList = ({ spaceId, chatId, onReply, onEdit, hasComposerBanner = false }: MessageListProps) => {
   useChatWebSocket(chatId);
 
   const {
@@ -136,6 +139,29 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
     }
   });
 
+  // Messages present when the chat first renders (and older pages loaded later) appear instantly;
+  // only messages newer than that fade in, instead of the whole history blinking on every mount
+  const animateAfterIdRef = useRef<number | null>(null);
+  if (animateAfterIdRef.current === null && !isLoading && data) {
+    animateAfterIdRef.current = messages.reduce((max, m) => Math.max(max, m.id), 0);
+  }
+
+  // Keep the newest message in view when the list shrinks (on-screen keyboard, reply banner)
+  const autoScrollRef = useRef(shouldAutoScroll);
+  useEffect(() => {
+    autoScrollRef.current = shouldAutoScroll;
+  }, [shouldAutoScroll]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      if (autoScrollRef.current) container.scrollTop = container.scrollHeight;
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [isLoading, isError]);
+
   const loadOlderMessages = () => {
     if (!isFetchingNextPage && hasNextPage) {
       const container = scrollRef.current;
@@ -160,11 +186,17 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
   return (
     <>
       <div
-          className="relative z-0 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 message-fade-mask sm:-mt-16 sm:pt-16"
+          className="relative z-0 -mt-14 flex-1 min-h-0 overflow-y-auto overscroll-contain pt-14 message-fade-mask md:-mt-16 md:pt-16"
           onScroll={handleScroll}
           ref={scrollRef}
       >
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 px-3 pb-24 scroll-pb-72 sm:px-6">
+        <div
+          className={cn(
+            "mx-auto flex w-full max-w-4xl flex-col gap-2 px-3 sm:px-6",
+            // Room for the floating composer (taller while a reply/edit banner shows)
+            hasComposerBanner ? "pb-36 md:pb-40" : "pb-20 md:pb-24"
+          )}
+        >
           {hasNextPage && (
               <div className="flex justify-center py-2">
                   <Button
@@ -200,6 +232,7 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit }: MessageListPro
                           isCurrentUser={isCurrentUser}
                           showAvatar={showAvatar}
                           showAuthorName={showAuthorName}
+                          animateIn={animateAfterIdRef.current !== null && msg.id > animateAfterIdRef.current}
                           availableReactions={availableReactions || []}
                           reactionLabelById={reactionLabelById}
                           onDelete={handleDeleteMessage}

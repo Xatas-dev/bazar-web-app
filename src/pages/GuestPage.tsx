@@ -11,8 +11,8 @@ export default function GuestPage() {
         : config.auth.keycloakUrl;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-8">
-      <div className="surface-panel-strong flex w-full max-w-sm flex-col items-center gap-8 rounded-lg p-10">
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8">
+      <div className="surface-panel-strong flex w-full max-w-sm flex-col items-center gap-8 rounded-lg p-6 sm:p-10">
         <img
           src={mainWhiteLogo}
           alt="Bazar Space"

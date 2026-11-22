@@ -6,11 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { notify } from "@/lib/notifications";
+import { BREAKPOINTS, useMediaQuery } from "@/hooks/useMediaQuery";
+import { MobileSpaceList } from "@/components/spaces/MobileSpaceList";
 
 import mainBlackNoLogo from "@/static/main-black-no-log.svg";
 import mainWhiteNoLogo from "@/static/main-white-no-logo.svg";
 
 export default function HomePage() {
+  const isDesktop = useMediaQuery(BREAKPOINTS.md);
+
+  // Phones: the space list itself is the home screen
+  if (!isDesktop) {
+    return <MobileSpaceList />;
+  }
+
+  return <DesktopWelcome />;
+}
+
+function DesktopWelcome() {
   const createSpaceMutation = useCreateSpace();
   const [newSpaceName, setNewSpaceName] = useState("");
   const navigate = useNavigate();
@@ -31,14 +44,14 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+    <div className="flex h-full flex-col items-center justify-center overflow-y-auto p-4 text-center sm:p-6">
       <Card className="max-w-md w-full">
         <CardContent className="p-6 sm:p-8 space-y-4">
           <div className="mb-2 flex justify-center">
             <img src={mainWhiteNoLogo} alt="Bazar Space" className="hidden h-16 w-auto dark:block" />
             <img src={mainBlackNoLogo} alt="Bazar Space" className="h-16 w-auto dark:hidden" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Добро пожаловать в Bazar Space</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Добро пожаловать в Bazar Space</h1>
           <p className="text-muted-foreground">
             Выберите спейс из боковой панели, чтобы просмотреть детали, или создайте новый.
           </p>
@@ -47,6 +60,7 @@ export default function HomePage() {
               placeholder="Введите название спейса"
               value={newSpaceName}
               onChange={(e) => setNewSpaceName(e.target.value)}
+              aria-label="Название спейса"
             />
           <Button type="submit" disabled={createSpaceMutation.isPending} size="lg" className="w-full">
               {createSpaceMutation.isPending ? "Создание..." : <><Plus className="mr-2 h-4 w-4" /> Создать спейс</>}

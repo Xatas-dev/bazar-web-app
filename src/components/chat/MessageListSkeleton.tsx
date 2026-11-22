@@ -14,7 +14,7 @@ const MessageBubbleSkeleton = ({ alignRight = false }: { alignRight?: boolean })
 
 export const MessageListSkeleton = () => {
   return (
-    <div className="relative z-0 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 sm:-mt-16 sm:pt-16">
+    <div className="relative z-0 -mt-14 flex-1 min-h-0 overflow-y-auto pt-14 md:-mt-16 md:pt-16">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-3 pb-24 sm:px-6">
         <MessageBubbleSkeleton />
         <MessageBubbleSkeleton alignRight />
