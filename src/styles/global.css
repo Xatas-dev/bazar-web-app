@@ -168,3 +168,147 @@
     backdrop-filter: none;
   }
 }
+
+/* Landing page decorations — gradients come from the --landing-* tokens */
+@layer components {
+  .landing-gradient-text {
+    background-image: var(--landing-accent-gradient);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .landing-glow {
+    background-image: var(--landing-glow);
+  }
+
+  .landing-glow-secondary {
+    background-image: var(--landing-glow-secondary);
+  }
+
+  .landing-dots {
+    background-image: var(--particles-pattern);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 70%);
+    mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 70%);
+  }
+
+  /* Cursor-following highlight; --spot-x / --spot-y are set from JS */
+  .landing-spotlight {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .landing-spotlight::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(380px circle at var(--spot-x, 50%) var(--spot-y, 50%), hsl(var(--landing-spotlight-color)), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+    pointer-events: none;
+  }
+
+  .landing-spotlight:hover::after {
+    opacity: 1;
+  }
+
+  /* Soft fade at both ends of the hashtag ticker */
+  .landing-marquee-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+}
+
+/* "Legendary" gold button: spinning gold rim, light sweep and a warm aura */
+@property --legendary-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@layer components {
+  .landing-legendary {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    border-radius: 9999px;
+    padding: 2px;
+    background: conic-gradient(
+      from var(--legendary-angle),
+      hsl(var(--landing-gold-deep)),
+      hsl(var(--landing-gold)),
+      hsl(var(--landing-gold-light)),
+      hsl(var(--landing-gold)),
+      hsl(var(--landing-gold-deep)),
+      hsl(var(--landing-gold)),
+      hsl(var(--landing-gold-light)),
+      hsl(var(--landing-gold)),
+      hsl(var(--landing-gold-deep))
+    );
+    animation: legendary-spin 4s linear infinite;
+  }
+
+  /* Warm aura behind the button */
+  .landing-legendary::before {
+    content: '';
+    position: absolute;
+    inset: -1.5rem -2rem;
+    z-index: -1;
+    border-radius: 9999px;
+    background: radial-gradient(closest-side, hsl(var(--landing-gold-glow)), transparent);
+    pointer-events: none;
+  }
+
+  .landing-legendary-face {
+    position: relative;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--landing-gold-deep)) 0%,
+      hsl(var(--landing-gold)) 38%,
+      hsl(var(--landing-gold-light)) 50%,
+      hsl(var(--landing-gold)) 62%,
+      hsl(var(--landing-gold-deep)) 100%
+    );
+    color: hsl(var(--landing-gold-foreground));
+    transition: filter 0.3s ease-out;
+  }
+
+  .landing-legendary-face:hover {
+    filter: brightness(1.08) saturate(1.1);
+  }
+
+  /* Light sweep across the face */
+  .landing-legendary-face::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 35%;
+    background: linear-gradient(100deg, transparent, hsl(0 0% 100% / 0.7), transparent);
+    transform: translateX(-150%) skewX(-20deg);
+    animation: legendary-shine 3.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes legendary-spin {
+    to {
+      --legendary-angle: 360deg;
+    }
+  }
+
+  @keyframes legendary-shine {
+    0% {
+      transform: translateX(-150%) skewX(-20deg);
+    }
+    55%,
+    100% {
+      transform: translateX(400%) skewX(-20deg);
+    }
+  }
+}
+

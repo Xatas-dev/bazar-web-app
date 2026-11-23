@@ -167,3 +167,5 @@ Blur is centralized through `panel.backdrop-soft`, `panel.backdrop-strong`, and 
 ## Gradients
 
 App background gradients are defined under `gradients.light.app` and `gradients.dark.app` in the front matter. Use these tokens for the global background only; do not create ad-hoc gradients without adding tokens here first.
+
+The public landing page (`GuestPage`) has its own decorative tokens in `src/styles/tokens.css`: `--landing-accent-gradient` (gradient text), `--landing-glow` / `--landing-glow-secondary` (ambient orbs) and `--landing-spotlight-color` (cursor highlight on cards) and the `--landing-gold*` palette (the "legendary" hero button, `.landing-legendary`), plus `--landing-bear*` for the bear cub mascot on the sponsors section. They are exposed through the `landing-*` classes in `src/styles/global.css` and are not meant for the authenticated app.

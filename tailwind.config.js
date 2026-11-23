@@ -103,6 +103,13 @@ export default {
           "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "1" },
         },
+        "gradient-pan": {
+          to: { backgroundPosition: "200% center" },
+        },
+        marquee: {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -113,6 +120,8 @@ export default {
         "reaction-count-bump": "reaction-count-bump 0.15s ease-out",
         "reaction-exit": "reaction-exit 0.15s ease-out forwards",
         "reaction-blink": "reaction-blink 0.4s ease-in-out 2",
+        "gradient-pan": "gradient-pan 6s linear infinite",
+        marquee: "marquee 60s linear infinite",
       },
     },
   },
