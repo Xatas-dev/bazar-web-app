@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +37,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { confirmDialog, promptDialog } from '@/lib/dialogs';
 import { StorageTabSkeleton } from './StorageTabSkeleton';
-import { getDisplayName } from '@/lib/user-display';
+import { getInitialsFromDisplayName } from '@/lib/user-display';
 import { notify } from '@/lib/notifications';
 import { cn, formatBytes } from '@/lib/utils';
 import { useUser } from '@/hooks/useUser';
@@ -267,13 +268,13 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canUpload = fal
   const totalPages = nodesData?.totalPages || 0;
 
   const getAuthorName = (author: V1GetNodesAuthorResponse | null) => {
-   return getDisplayName(author?.firstName ?? null, author?.lastName ?? null, 'Неизвестно');
+   return author?.displayName?.trim() || 'Неизвестно';
   };
 
   const isOwnedByCurrentUser = (author: V1GetNodesAuthorResponse | null) => {
    if (!author || !currentUser) return false;
 
-   const authorName = getDisplayName(author.firstName, author.lastName, '').trim().toLowerCase();
+   const authorName = (author.displayName || '').trim().toLowerCase();
    const currentName = (currentUser.displayName || '').trim().toLowerCase();
    return authorName === currentName;
   };
@@ -609,17 +610,37 @@ export const StorageTab: React.FC<StorageTabProps> = ({ spaceId, canUpload = fal
                        </span>
                        <span className="min-w-0 flex-1">
                          <span className="block truncate font-medium text-foreground">{nodeName}</span>
-                         <span className="block truncate text-xs text-muted-foreground">
-                           {isFolder
-                             ? 'Папка'
-                             : [
-                                 formatBytes(node.size),
-                                 node.uploadedAt ? formatUploadedAt(node.uploadedAt) : null,
-                                 isCurrentUserFile ? 'вы' : getAuthorName(node.author),
-                               ]
-                                 .filter(Boolean)
-                                 .join(' · ')}
-                         </span>
+                         {isFolder ? (
+                           <span className="block truncate text-xs text-muted-foreground">Папка</span>
+                         ) : (
+                           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                             <span className="truncate">{formatBytes(node.size)}</span>
+                             {node.uploadedAt ? <span className="shrink-0">·</span> : null}
+                             {node.uploadedAt ? <span className="truncate">{formatUploadedAt(node.uploadedAt)}</span> : null}
+                             {node.author ? <span className="shrink-0">·</span> : null}
+                             {isCurrentUserFile ? (
+                               <span className="truncate">вы</span>
+                             ) : node.author ? (
+                               <>
+                                 <Avatar className="h-4 w-4 shrink-0">
+                                   {node.author.avatarUrl ? (
+                                     <AvatarImage
+                                       src={node.author.avatarUrl}
+                                       alt={getAuthorName(node.author)}
+                                       className="object-cover"
+                                     />
+                                   ) : null}
+                                   <AvatarFallback className="text-xs">
+                                     {getInitialsFromDisplayName(node.author.displayName, '??')}
+                                   </AvatarFallback>
+                                 </Avatar>
+                                 <span className="truncate">{getAuthorName(node.author)}</span>
+                               </>
+                             ) : (
+                               <span className="truncate">Неизвестно</span>
+                             )}
+                           </span>
+                         )}
                        </span>
                        {isFolder ? <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground md:hidden" aria-hidden /> : null}
                      </button>

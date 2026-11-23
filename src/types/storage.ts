@@ -1,6 +1,6 @@
 export interface V1GetNodesAuthorResponse {
-  firstName: string | null;
-  lastName: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
   status: string | null;
 }
 
