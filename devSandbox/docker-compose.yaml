@@ -236,6 +236,7 @@ services:
       - SETTING_SCHEDULE_DELETE_MARKED_FILES_BATCH_SIZE=2
       - SETTING_SCHEDULE_DELETE_MARKED_FILES_CRON=0 */2 * * * *
       - SETTING_SCHEDULE_DELETE_MARKED_FILES_RETENTION_DAYS=1
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5007
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -246,6 +247,8 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    ports:
+      - "5007:5007"
 
 
   bazar-files:
