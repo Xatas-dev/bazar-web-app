@@ -2,6 +2,13 @@ import axios from 'axios';
 import config from '@/config';
 import { notify } from '@/lib/notifications';
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    /** Don't show the global error toast for this request (the caller handles the failure itself) */
+    skipErrorToast?: boolean;
+  }
+}
+
 
 const getBaseURL = (apiConfig: { baseUrl: string; targetLocal: string }) => {
   return process.env.NODE_ENV === 'development'
@@ -85,6 +92,10 @@ const getErrorMessage = (error: any): string | undefined => {
 
 // Global response error interceptor
 const handleResponseError = (error: any) => {
+  if (error?.config?.skipErrorToast) {
+    return Promise.reject(error);
+  }
+
   if (error.response) {
     const status = error.response.status;
 

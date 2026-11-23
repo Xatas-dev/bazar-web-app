@@ -56,6 +56,24 @@
     radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.35), transparent 55%),
     linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(229.4 100% 91%) 55%, hsl(228 100% 88%) 100%);
   --particles-pattern: radial-gradient(circle, hsla(222, 55%, 42%, 0.28) 1px, transparent 1.6px);
+  /* Landing page only: accent text/borders, ambient glows and the cursor spotlight */
+  --landing-accent-gradient: linear-gradient(110deg, hsl(222 70% 45%) 0%, hsl(252 65% 58%) 35%, hsl(196 85% 45%) 65%, hsl(222 70% 45%) 100%);
+  --landing-glow: radial-gradient(circle, hsl(222 80% 55% / 0.4), transparent 65%);
+  --landing-glow-secondary: radial-gradient(circle, hsl(258 70% 62% / 0.3), transparent 65%);
+  /* Colour only: the gradient is built in .landing-spotlight so --spot-x/--spot-y resolve per element */
+  --landing-spotlight-color: 222 80% 55% / 0.12;
+  /* "Legendary" gold for the hero call-to-action */
+  --landing-gold: 44 100% 55%;
+  --landing-gold-light: 50 100% 88%;
+  --landing-gold-deep: 34 90% 40%;
+  --landing-gold-foreground: 30 70% 12%;
+  --landing-gold-glow: 44 100% 55% / 0.45;
+  /* Bear cub mascot on the sponsors section (same in both themes, .dark inherits these) */
+  --landing-bear: 28 45% 42%;
+  --landing-bear-light: 33 55% 72%;
+  --landing-bear-dark: 20 35% 14%;
+  --landing-bear-blush: 350 85% 72% / 0.55;
+  --landing-bear-shine: 0 0% 100%;
   --radius: 1.375rem;
 
   /* Sidebar width tokens */
@@ -124,6 +142,15 @@
     radial-gradient(900px circle at 90% 0%, hsl(253.8 20% 25.5% / 0.45), transparent 55%),
     linear-gradient(135deg, hsl(225 22.2% 10%) 0%, hsl(228 29.4% 14%) 55%, hsl(224.3 29.9% 20%) 100%);
   --particles-pattern: radial-gradient(circle, hsla(222, 55%, 42%, 0.32) 1px, transparent 1.6px);
+  --landing-accent-gradient: linear-gradient(110deg, hsl(222 95% 72%) 0%, hsl(258 90% 78%) 35%, hsl(190 90% 66%) 65%, hsl(222 95% 72%) 100%);
+  --landing-glow: radial-gradient(circle, hsl(222 85% 55% / 0.45), transparent 65%);
+  --landing-glow-secondary: radial-gradient(circle, hsl(262 75% 60% / 0.35), transparent 65%);
+  --landing-spotlight-color: 222 90% 65% / 0.14;
+  --landing-gold: 44 100% 55%;
+  --landing-gold-light: 50 100% 88%;
+  --landing-gold-deep: 34 90% 40%;
+  --landing-gold-foreground: 30 70% 12%;
+  --landing-gold-glow: 44 100% 52% / 0.4;
 }
 
 /* Touch devices: lighter blur profiles keep scrolling smooth on phones */

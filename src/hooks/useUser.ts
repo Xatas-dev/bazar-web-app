@@ -11,7 +11,8 @@ export const useUser = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['user', 'iam'],
     queryFn: async () => {
-      const response = await personaAxiosInstance.get<UserDtoResponseV2>('/v2/users/iam')
+      // No toast on failure: an unauthenticated / failed session just lands on the landing page (RootLayout)
+      const response = await personaAxiosInstance.get<UserDtoResponseV2>('/v2/users/iam', { skipErrorToast: true })
       return response.data
     },
     retry: false,
