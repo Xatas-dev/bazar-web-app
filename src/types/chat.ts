@@ -20,8 +20,8 @@ export enum AuthorStatus {
 
 export interface MessageAuthor {
   userId: string;
-  firstName: string | null;
-  lastName: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
   status: AuthorStatus;
 }
 
@@ -50,8 +50,8 @@ export interface ChatReactionResponse {
 
 export interface MessageReactionUserResponse {
   userId: string;
-  firstName: string | null;
-  lastName: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
   status: AuthorStatus;
 }
 

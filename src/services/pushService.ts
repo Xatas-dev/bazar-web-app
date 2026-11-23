@@ -291,18 +291,33 @@ export const pushService = {
       }
 
       // New format: { author: MessageAuthor, content: string, spaceId?, messageId? }
-      const asNew = data as Partial<{ author: { firstName?: string | null; lastName?: string | null }; content: string; spaceId?: number; messageId?: number }>;
+      const asNew = data as Partial<{
+        author: {
+          displayName?: string | null;
+          avatarUrl?: string | null;
+          firstName?: string | null;
+          lastName?: string | null;
+        };
+        content: string;
+        spaceId?: number;
+        messageId?: number;
+      }>;
 
       if (asNew.author && typeof asNew.content === 'string') {
-        const first = asNew.author.firstName || '';
-        const last = asNew.author.lastName || '';
-        const title = [first, last].map(s => s.trim()).filter(Boolean).join(' ') || 'New message';
-        const avatarDataUrl = generateAvatarForPush(asNew.author.firstName, asNew.author.lastName);
+        const legacyName = [asNew.author.firstName, asNew.author.lastName]
+          .map(s => s?.trim())
+          .filter(Boolean)
+          .join(' ');
+        const title = asNew.author.displayName || legacyName || 'New message';
+        const avatar = asNew.author.avatarUrl
+          || (asNew.author.firstName !== undefined || asNew.author.lastName !== undefined
+            ? generateAvatarForPush(asNew.author.firstName, asNew.author.lastName)
+            : undefined);
 
         return {
           title,
           body: asNew.content,
-          avatar: avatarDataUrl,
+          avatar,
           spaceId: typeof asNew.spaceId === 'number' ? asNew.spaceId : undefined,
           messageId: typeof asNew.messageId === 'number' ? asNew.messageId : undefined,
         };

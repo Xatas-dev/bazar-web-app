@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 import { MessageContextMenu } from "./MessageContextMenu";
 import { MessageReactions } from "./MessageReactions";
 import { Reply } from "lucide-react";
-import { getDisplayName, getInitials } from "@/lib/user-display";
+import { AvatarImage } from "@/components/ui/avatar";
+import { getInitialsFromDisplayName } from "@/lib/user-display";
 import { useState } from "react";
 import { COARSE_POINTER, useMediaQuery } from "@/hooks/useMediaQuery";
 
@@ -78,32 +79,10 @@ export const MessageItem = ({
     }
   };
 
-  const authorDisplayName = getDisplayName(
-    (message.author as any)?.firstName,
-    (message.author as any)?.lastName,
-    (message.author as any)?.userName || "Неизвестно"
-  );
+  const authorDisplayName = message.author?.displayName || "Неизвестный пользователь";
+  const authorInitials = getInitialsFromDisplayName(authorDisplayName);
 
-  const authorInitials = !message.author
-    ? "??"
-    : (() => {
-        const { firstName, lastName, userName } = message.author as any;
-        const fullName = [firstName, lastName].filter(Boolean).join(" ");
-        if (fullName) {
-          const parts = fullName.trim().split(/\s+/);
-          if (parts.length >= 2) return getInitials(parts[0], parts[1], "??");
-          return fullName.substring(0, 2).toUpperCase();
-        }
-        return (userName || "??").substring(0, 2).toUpperCase();
-      })();
-
-  const replyAuthorDisplayName = message.reply?.author
-    ? getDisplayName(
-        (message.reply.author as any).firstName,
-        (message.reply.author as any).lastName,
-        (message.reply.author as any).userName || "Unknown"
-      )
-    : "Неизвестно";
+  const replyAuthorDisplayName = message.reply?.author?.displayName || "Неизвестный пользователь";
 
   return (
     <div className="relative">
@@ -145,6 +124,9 @@ export const MessageItem = ({
         <div className="flex w-8 flex-shrink-0 items-end">
           {showAvatar ? (
             <Avatar className="h-8 w-8 ring-1 ring-[hsl(var(--panel-border))]">
+              {message.author?.avatarUrl ? (
+                <AvatarImage src={message.author.avatarUrl} alt={authorDisplayName} className="object-cover" />
+              ) : null}
               <AvatarFallback>{authorInitials}</AvatarFallback>
             </Avatar>
           ) : <div className="w-8" />}

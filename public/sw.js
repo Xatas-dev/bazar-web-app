@@ -80,10 +80,16 @@ self.addEventListener('push', (event) => {
 
   // Новый формат { author, content, optional spaceId, messageId }
   if (payload.author && typeof payload.content === 'string') {
-    const first = payload.author.firstName || '';
-    const last = payload.author.lastName || '';
-    const authorName = [first, last].map(s => s.trim()).filter(Boolean).join(' ') || 'New message';
-    const avatarDataUrl = generateAvatarDataUrl(first, last);
+    const legacyName = [payload.author.firstName, payload.author.lastName]
+      .map(s => (typeof s === 'string' ? s.trim() : ''))
+      .filter(Boolean)
+      .join(' ');
+    const authorName = payload.author.displayName || legacyName || 'New message';
+    const avatarUrl = typeof payload.author.avatarUrl === 'string' && payload.author.avatarUrl
+      ? payload.author.avatarUrl
+      : (payload.author.firstName !== undefined || payload.author.lastName !== undefined
+        ? generateAvatarDataUrl(payload.author.firstName, payload.author.lastName)
+        : undefined);
     const body = payload.content;
     const spaceId = typeof payload.spaceId === 'number' ? payload.spaceId : null;
     const messageId = typeof payload.messageId === 'number' ? payload.messageId : null;
@@ -94,8 +100,7 @@ self.addEventListener('push', (event) => {
       self.registration.showNotification(authorName, {
         body,
         data,
-        icon: avatarDataUrl,
-        badge: avatarDataUrl,
+        ...(avatarUrl ? { icon: avatarUrl, badge: avatarUrl } : {}),
         tag: `chat-${spaceId}`,
         requireInteraction: false,
       }),
