@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useGetMessageReactionUsers } from "@/hooks/useChatReactions";
-import { getDisplayName, getInitials } from "@/lib/user-display";
+import { getInitialsFromDisplayName } from "@/lib/user-display";
 import { cn } from "@/lib/utils";
 
 interface ReactionUsersListProps {
@@ -49,9 +49,12 @@ export function ReactionUsersList({
             {group.users.map((user) => (
               <div key={user.userId} className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm">
                 <Avatar className="h-6 w-6">
-                  <AvatarFallback className="text-xs">{getInitials(user.firstName, user.lastName, "УП")}</AvatarFallback>
+                  {user.avatarUrl ? (
+                    <AvatarImage src={user.avatarUrl} alt={user.displayName || "Удаленный пользователь"} className="object-cover" />
+                  ) : null}
+                  <AvatarFallback className="text-xs">{getInitialsFromDisplayName(user.displayName, "УП")}</AvatarFallback>
                 </Avatar>
-                <span className="truncate">{getDisplayName(user.firstName, user.lastName, "Удаленный пользователь")}</span>
+                <span className="truncate">{user.displayName || "Удаленный пользователь"}</span>
               </div>
             ))}
           </div>

@@ -197,7 +197,7 @@ export const useChatWebSocket = (chatId: number | undefined) => {
 
 // 🧪 TEST HELPER: Simulate WebSocket events manually (development only)
 // Usage in browser console:
-// window.simulateWSEvent({ type: 'CREATED', chatId: 1, payload: { id: 999, author: { userId: '1', firstName: 'Test', lastName: 'User', status: 'EXIST' }, content: 'Test message', createdAt: new Date().toISOString() } })
+// window.simulateWSEvent({ type: 'CREATED', chatId: 1, payload: { id: 999, author: { userId: '1', displayName: 'Test User', avatarUrl: null, status: 'EXIST' }, content: 'Test message', createdAt: new Date().toISOString() } })
 // window.simulateWSEvent({ type: 'DELETED', chatId: 1, payload: { ids: [999] } })
 // window.simulateWSEvent({ type: 'EDITED', chatId: 1, payload: { messageId: 999, newContent: 'Updated message content' } })
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
