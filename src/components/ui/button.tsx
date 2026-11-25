@@ -11,8 +11,11 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        // Transparent fill + the strong panel border: with an opaque bg-background fill and the
+        // low-contrast --input border, the visible shape was the inner fill, so outline buttons
+        // looked ~2px smaller than solid ones of the same height.
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-[hsl(var(--panel-border-strong))] bg-transparent hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",

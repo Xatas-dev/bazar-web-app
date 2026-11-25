@@ -29,7 +29,7 @@ import { LandingSponsors } from "@/components/landing/LandingSponsors";
 import { GlowOrb, Reveal, SpotlightCard, Stagger, StaggerItem } from "@/components/landing/LandingMotion";
 import { cn } from "@/lib/utils";
 
-import config from "@/config";
+import { getLoginUrl } from "@/lib/join";
 
 interface AboutPoint {
   icon: typeof MessagesSquare;
@@ -165,9 +165,7 @@ function ModuleSection({ id, icon: Icon, eyebrow, title, text, features, reverse
 }
 
 export default function GuestPage() {
-  const loginUrl = process.env.NODE_ENV === "development"
-    ? config.auth.targetLocal
-    : config.auth.keycloakUrl;
+  const loginUrl = getLoginUrl();
 
   return (
     <div id="top" className="flex min-h-dvh flex-col overflow-x-clip">

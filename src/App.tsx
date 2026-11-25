@@ -8,6 +8,7 @@ import GuestPage from "@/pages/GuestPage";
 import HomePage from "@/pages/HomePage";
 import SpaceDashboardPage from "@/pages/SpaceDashboardPage";
 import ProfilePage from "@/pages/ProfilePage";
+import JoinSpacePage from "@/pages/JoinSpacePage";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,11 @@ const router = createBrowserRouter([
           {
             index: true,
             element: <GuestPage />
+          },
+          {
+            // Public invite preview, reachable with or without a session
+            path: "join/:code",
+            element: <JoinSpacePage />
           }
         ]
       },

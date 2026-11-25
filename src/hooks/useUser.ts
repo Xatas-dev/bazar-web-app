@@ -17,6 +17,10 @@ export const useUser = () => {
     },
     retry: false,
     staleTime: Infinity,
+    // A failed (401) query has no data, so every newly mounted observer would treat it as stale
+    // and refetch. That refetch flips RootLayout back to its loading state, unmounting and
+    // remounting the page, which refetches again: an endless iam loop for guests.
+    refetchOnMount: false,
   })
 
   useEffect(() => {

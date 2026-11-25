@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export type PanelName = "profile" | "space-settings";
-export type SettingsTab = "overview" | "members" | "roles";
+export type SettingsTab = "overview" | "members" | "requests" | "roles";
 export type RoleScreen =
   | { kind: "list" }
   | { kind: "info"; roleId: number }
