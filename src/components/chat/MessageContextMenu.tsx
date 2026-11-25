@@ -172,6 +172,9 @@ export const MessageContextMenu = ({
         sideOffset={6}
         collisionPadding={12}
         onPointerUpCapture={swallowOpeningPointerUp}
+        // Don't return focus to the hidden anchor on close: focusing it scrolls the list back to this
+        // message (undoing the jump to the bottom on "Ответить") and steals focus from the composer
+        onCloseAutoFocus={(event) => event.preventDefault()}
         className="flex w-[17rem] max-w-[calc(100vw-1.5rem)] flex-col gap-2"
       >
         {/* Floating reaction bar (its own surface, same width as the menu) */}

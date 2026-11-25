@@ -29,7 +29,7 @@ import { LandingSponsors } from "@/components/landing/LandingSponsors";
 import { GlowOrb, Reveal, SpotlightCard, Stagger, StaggerItem } from "@/components/landing/LandingMotion";
 import { cn } from "@/lib/utils";
 
-import { getLoginUrl } from "@/lib/join";
+import { getLoginUrl } from "@/lib/auth";
 
 interface AboutPoint {
   icon: typeof MessagesSquare;

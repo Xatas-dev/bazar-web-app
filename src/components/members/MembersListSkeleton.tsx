@@ -14,10 +14,13 @@ const MemberRowSkeleton = () => (
 export const MembersListSkeleton = () => {
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <Skeleton className="h-6 w-28" />
-        <div className="relative">
-          <Skeleton className="h-10 w-full rounded-md" />
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton className="h-4 w-60" />
+        </div>
+        <div className="px-1">
+          <Skeleton className="h-11 w-full rounded-md sm:h-10" />
         </div>
       </div>
 

@@ -137,7 +137,7 @@ export function SpaceInviteLink({ spaceId, canInvite, onOpenRequests }: SpaceInv
             Пригласить участников
           </h3>
           <p className="text-sm text-muted-foreground">
-            Отправьте ссылку — человек сможет подать заявку на вступление.
+            Отправьте ссылку — любой сможет подать заявку в спейс.
           </p>
         </div>
       </div>

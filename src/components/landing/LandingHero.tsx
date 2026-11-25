@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { markLoginIntent } from "@/lib/auth";
 import { GlowOrb } from "./LandingMotion";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
@@ -90,6 +91,7 @@ function StartButton({ href }: { href: string }) {
     >
       <motion.a
         href={href}
+        onClick={markLoginIntent}
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.97 }}
         // Short tremble every couple of seconds, like an item that can barely contain its power

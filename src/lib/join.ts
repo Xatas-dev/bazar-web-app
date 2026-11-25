@@ -1,14 +1,9 @@
-import config from "@/config";
-
 /** Public invite page path; the backend builds invite links as `<origin>/join/<code>` */
 export const JOIN_PATH_PREFIX = "/join/";
 
 const PENDING_JOIN_KEY = "pending_join_code";
 /** A guest who abandons the login page shouldn't get a surprise request days later */
 const PENDING_JOIN_TTL_MS = 30 * 60 * 1000;
-
-export const getLoginUrl = () =>
-  process.env.NODE_ENV === "development" ? config.auth.targetLocal : config.auth.keycloakUrl;
 
 /**
  * A guest pressed "Отправить заявку": remember the invite code across the OAuth

@@ -12,12 +12,8 @@ import { useCreateJoinRequest, useSpacePreview } from "@/hooks/useJoinRequests";
 import { useUserStore } from "@/store/userStore";
 import { useThemeStore } from "@/store/themeStore";
 import { notify } from "@/lib/notifications";
-import {
-  clearPendingJoinCode,
-  getLoginUrl,
-  getPendingJoinCode,
-  setPendingJoinCode,
-} from "@/lib/join";
+import { clearPendingJoinCode, getPendingJoinCode, setPendingJoinCode } from "@/lib/join";
+import { redirectToLogin } from "@/lib/auth";
 
 const statusOf = (error: unknown) => (isAxiosError(error) ? error.response?.status : undefined);
 
@@ -83,7 +79,9 @@ export default function JoinSpacePage() {
         if (status === 404) {
           notify.error.generic("Спейс по этой ссылке не найден.");
         } else if (status === 401) {
-          notify.error.unauthorized();
+          // Session expired: log in again and send the request on the way back
+          setPendingJoinCode(code);
+          redirectToLogin();
         } else {
           notify.error.generic("Не удалось отправить заявку. Попробуйте ещё раз.");
         }
@@ -111,7 +109,7 @@ export default function JoinSpacePage() {
   const handleJoin = () => {
     if (!isAuthenticated) {
       setPendingJoinCode(code);
-      window.location.href = getLoginUrl();
+      redirectToLogin();
       return;
     }
     sendRequest();

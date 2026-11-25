@@ -1,6 +1,7 @@
 import axios from 'axios';
 import config from '@/config';
 import { notify } from '@/lib/notifications';
+import { isPublicPath, redirectToLogin } from '@/lib/auth';
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -92,6 +93,13 @@ const getErrorMessage = (error: any): string | undefined => {
 
 // Global response error interceptor
 const handleResponseError = (error: any) => {
+  // Not logged in / session expired: no toast. Protected pages go straight to login;
+  // public pages (landing, invite preview) treat it as "guest" and handle it themselves.
+  if (error?.response?.status === 401) {
+    if (!isPublicPath()) redirectToLogin();
+    return Promise.reject(error);
+  }
+
   if (error?.config?.skipErrorToast) {
     return Promise.reject(error);
   }
@@ -110,9 +118,6 @@ const handleResponseError = (error: any) => {
     switch (status) {
       case 400:
         notify.error.validation("The request could not be processed.");
-        break;
-      case 401:
-        notify.error.unauthorized();
         break;
       case 403:
         notify.error.forbidden();

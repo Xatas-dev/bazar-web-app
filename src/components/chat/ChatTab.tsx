@@ -1,3 +1,4 @@
+import {isAxiosError} from "axios";
 import {useCreateChat, useGetChatBySpace} from "@/hooks/useChat";
 import {useCreateMessage, useEditMessage} from "@/hooks/useChatMessages";
 import {MessageList} from "./MessageList";
@@ -21,6 +22,7 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
     const editMessageMutation = useEditMessage();
     const [replyToMessage, setReplyToMessage] = useState<MessageResponse | null>(null);
     const [editingMessage, setEditingMessage] = useState<MessageResponse | null>(null);
+    const [scrollToBottomKey, setScrollToBottomKey] = useState(0);
 
     const handleCreateChat = () => {
         if (!canWrite) {
@@ -33,11 +35,15 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
     const handleSendMessage = (content: string, replyMessageId?: number) => {
         if (chat?.id) {
             createMessageMutation.mutate({spaceId, chatId: chat.id, data: {content, replyMessageId}});
+            // Replying from the middle of the history must still show the sent message
+            setScrollToBottomKey((key) => key + 1);
         }
     };
 
     const handleReply = (message: MessageResponse) => {
         setReplyToMessage(message);
+        // Starting a reply takes the user down to the composer and the latest messages
+        setScrollToBottomKey((key) => key + 1);
     };
 
     const handleCancelReply = () => {
@@ -70,7 +76,7 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
     }
 
     if (isError) {
-        const status = (error as any)?.response?.status;
+        const status = isAxiosError(error) ? error.response?.status : undefined;
         if (status !== 404) {
             return (
                 <div className="rounded-lg border border-destructive bg-[hsl(var(--panel-surface-muted))] p-6 text-destructive">
@@ -111,6 +117,7 @@ export function ChatTab({spaceId, canWrite = true}: ChatTabProps) {
                 onReply={handleReply}
                 onEdit={handleEditMessage}
                 hasComposerBanner={!!replyToMessage || !!editingMessage}
+                scrollToBottomKey={scrollToBottomKey}
             />
 
             {/* Composer floats over the list (frosted); clears the home indicator on phones */}

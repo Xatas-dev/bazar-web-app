@@ -301,9 +301,9 @@ export default function SpaceDashboardPage() {
         <div className="flex min-h-0 flex-1 flex-col overflow-clip">
           {/* Keyed so per-space state (reply draft, folder) resets; no fade — it read as a blink */}
           <div key={id} className="flex min-h-0 flex-1 flex-col">
-              {/* Floating pill, top-left; the chat scrolls underneath it */}
+              {/* Floating pill (top-right on phones, top-left on desktop); the chat scrolls underneath it */}
               <div className="relative z-20 flex-shrink-0 px-3 pb-2 pt-2 md:px-4 md:pb-3 md:pt-0">
-                <div className="relative flex items-center gap-3">{workspaceTabsList}</div>
+                <div className="relative flex items-center justify-end gap-3 md:justify-start">{workspaceTabsList}</div>
               </div>
 
               {!canReadChat && !canReadStorage ? (

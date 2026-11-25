@@ -1,13 +1,11 @@
 import { useParams } from "react-router-dom";
-import { useSpaceUsers, useAddUserToSpace, useDeleteUserFromSpace } from "@/hooks/useSpaces";
-import { useSearchUsers } from "@/hooks/useUsers";
+import { useSpaceUsers, useDeleteUserFromSpace } from "@/hooks/useSpaces";
 import { useGetRoles, useAssignRoleToUser } from "@/hooks/useRoles";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Trash2, UserPlus, Search, Shield, Loader2, ArrowLeft, Crown } from "lucide-react";
-import { useState } from "react";
+import { Trash2, Shield, Loader2, ArrowLeft, Crown } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MembersListSkeleton } from "@/components/members/MembersListSkeleton";
+import { AddMemberSearch } from "@/components/members/AddMemberSearch";
 import { confirmDialog } from "@/lib/dialogs";
 import { notify } from "@/lib/notifications";
 import { Badge } from "@/components/ui/badge";
@@ -25,31 +23,23 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
   const { data: spaceUsersResponse, isLoading: isLoadingMembers } = useSpaceUsers(id);
   const users = spaceUsersResponse?.users || [];
 
-  const addUserMutation = useAddUserToSpace();
   const removeUserMutation = useDeleteUserFromSpace();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const { data: searchResults, isLoading: isSearching } = useSearchUsers(searchTerm);
-
+  const [menuUserId, setMenuUserId] = useState<string | null>(null);
   const [roleMenuUserId, setRoleMenuUserId] = useState<string | null>(null);
+  // Radix opens the dropdown on pointerdown, i.e. as soon as a finger touches the list, so every
+  // scroll gesture opened the menu. For touch/pen we open on click instead: the browser doesn't
+  // fire click when the gesture turns into a scroll.
+  const lastPointerTypeRef = useRef<string>("mouse");
   const { data: rolesResponse, isLoading: isLoadingRoles } = useGetRoles(id, roleMenuUserId !== null);
   const assignRoleMutation = useAssignRoleToUser();
   const roles = rolesResponse?.roles || [];
 
-  // Get list of user IDs already in the space
-  const memberUserIds = users.map(u => u.userId);
-
-  const handleAddUser = (userId: string) => {
-      if (!canAdd) {
-          notify.error.forbidden();
-          return;
-      }
-      addUserMutation.mutate({ spaceId: id, userId }, {
-          onSuccess: () => {
-              setSearchTerm("");
-          }
-      });
-  };
+  // Search results show "В спейсе" for these
+  const memberUserIds = useMemo(
+    () => new Set((spaceUsersResponse?.users ?? []).map((u) => u.userId)),
+    [spaceUsersResponse]
+  );
 
   const handleRemoveUser = async (userId: string) => {
     if (!canDelete) {
@@ -83,57 +73,7 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Добавить участника</h3>
-        <div className="space-y-4">
-          <div className="px-1">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-9"
-                placeholder="Поиск пользователей по имени (мин. 3 символа)..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {isSearching && <div className="text-sm text-muted-foreground">Поиск...</div>}
-
-          {searchResults && searchResults.length > 0 && (
-            <div className="surface-panel-muted max-h-60 overflow-y-auto rounded-md p-1 space-y-2 animate-in fade-in-0 slide-in-from-top-1 duration-150">
-              {searchResults.map((user) => {
-                const isMember = memberUserIds.includes(user.id);
-                return (
-                  <div key={user.id} className="surface-panel flex items-center justify-between rounded-lg p-1.5 pr-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-11 w-11 shrink-0">
-                        {user.avatarUrl ? (
-                          <AvatarImage src={user.avatarUrl} alt={user.displayName} className="object-cover" />
-                        ) : null}
-                        <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{user.displayName}</span>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      disabled={isMember || addUserMutation.isPending || !canAdd}
-                      onClick={() => handleAddUser(user.id)}
-                    >
-                      {isMember ? "Участник" : <><UserPlus className="mr-2 h-3 w-3" /> Добавить</>}
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {searchTerm.length >= 3 && searchResults?.length === 0 && !isSearching && (
-            <p className="text-sm text-muted-foreground">Пользователи не найдены.</p>
-          )}
-        </div>
-      </div>
+      {canAdd && <AddMemberSearch spaceId={id} memberUserIds={memberUserIds} />}
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Участники ({users.length})</h3>
@@ -144,15 +84,23 @@ export default function SpaceMembersPage({ canAssign, canAdd, canDelete }: { can
                 return (
                 <div key={user.userId}>
                 <DropdownMenu
-                  open={isPickingRole || undefined}
+                  open={menuUserId === user.userId}
                   onOpenChange={(open) => {
-                    if (!open && !isPickingRole) return;
+                    setMenuUserId(open ? user.userId : null);
                     if (!open) setRoleMenuUserId(null);
                   }}
                 >
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
+                      onPointerDown={(e) => {
+                        lastPointerTypeRef.current = e.pointerType;
+                        // Skips Radix's own pointerdown handler (it checks defaultPrevented)
+                        if (e.pointerType !== "mouse") e.preventDefault();
+                      }}
+                      onClick={() => {
+                        if (lastPointerTypeRef.current !== "mouse") setMenuUserId(user.userId);
+                      }}
                       className="surface-panel flex w-full items-center gap-3 rounded-lg p-1.5 pr-4 text-left transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       aria-label={`Открыть действия для ${user.displayName || user.username}`}
                     >

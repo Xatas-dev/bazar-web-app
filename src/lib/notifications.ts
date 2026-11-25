@@ -10,13 +10,6 @@ export const notify = {
         description: "У вас нет прав на выполнение этого действия.",
       }),
 
-    unauthorized: () =>
-      toast({
-        variant: "destructive",
-        title: "Требуется аутентификация",
-        description: "Пожалуйста, войдите снова для продолжения.",
-      }),
-
 
     serverError: () =>
       toast({

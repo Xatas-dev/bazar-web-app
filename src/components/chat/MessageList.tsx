@@ -17,11 +17,13 @@ interface MessageListProps {
   onEdit?: (message: MessageResponse) => void;
   /** Reply/edit banner is showing, so the floating desktop composer is taller */
   hasComposerBanner?: boolean;
+  /** Bumped when the user sends a message: jump to the bottom and follow new messages again */
+  scrollToBottomKey?: number;
 }
 
 const EDGE_THRESHOLD = 16;
 
-export const MessageList = ({ spaceId, chatId, onReply, onEdit, hasComposerBanner = false }: MessageListProps) => {
+export const MessageList = ({ spaceId, chatId, onReply, onEdit, hasComposerBanner = false, scrollToBottomKey = 0 }: MessageListProps) => {
   useChatWebSocket(chatId);
 
   const {
@@ -151,6 +153,17 @@ export const MessageList = ({ spaceId, chatId, onReply, onEdit, hasComposerBanne
   useEffect(() => {
     autoScrollRef.current = shouldAutoScroll;
   }, [shouldAutoScroll]);
+
+  // Sending (e.g. a reply from the middle of the history) brings the user down to their message.
+  // Instant on purpose: a smooth scroll fires intermediate scroll events that would switch
+  // auto-scroll back off before the sent message arrives.
+  useLayoutEffect(() => {
+    if (!scrollToBottomKey) return;
+    const container = scrollRef.current;
+    if (container) container.scrollTop = container.scrollHeight;
+    autoScrollRef.current = true;
+    setShouldAutoScroll(true);
+  }, [scrollToBottomKey]);
 
   useEffect(() => {
     const container = scrollRef.current;

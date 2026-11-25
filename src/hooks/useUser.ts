@@ -5,13 +5,13 @@ import { useUserStore } from '@/store/userStore'
 import { useEffect } from 'react'
 import { UserDtoResponseV2, UpdateProfileDtoRequestV2, AvatarUploadTicketDtoResponse } from '@/types/api'
 
-export const useUser = () => {
+export const useUser = ({ enabled = true }: { enabled?: boolean } = {}) => {
   const { setUser, setLoading } = useUserStore()
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['user', 'iam'],
     queryFn: async () => {
-      // No toast on failure: an unauthenticated / failed session just lands on the landing page (RootLayout)
+      // No toast on failure: a 401 goes to login (axios interceptor), other failures land on the landing page (RootLayout)
       const response = await personaAxiosInstance.get<UserDtoResponseV2>('/v2/users/iam', { skipErrorToast: true })
       return response.data
     },
@@ -21,6 +21,7 @@ export const useUser = () => {
     // and refetch. That refetch flips RootLayout back to its loading state, unmounting and
     // remounting the page, which refetches again: an endless iam loop for guests.
     refetchOnMount: false,
+    enabled,
   })
 
   useEffect(() => {

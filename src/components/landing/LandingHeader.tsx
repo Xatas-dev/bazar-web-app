@@ -4,6 +4,7 @@ import { ArrowRight, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useThemeStore } from "@/store/themeStore";
+import { markLoginIntent } from "@/lib/auth";
 import { LandingLogo } from "./LandingLogo";
 
 interface LandingHeaderProps {
@@ -68,7 +69,7 @@ export function LandingHeader({ loginUrl }: LandingHeaderProps) {
             <TooltipContent>{themeLabel}</TooltipContent>
           </Tooltip>
           <Button asChild className="group rounded-full px-5">
-            <a href={loginUrl}>
+            <a href={loginUrl} onClick={markLoginIntent}>
               Войти
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>
