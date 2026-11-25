@@ -1,19 +1,20 @@
 import type { ComponentType } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { RightDrawer } from "@/components/RightDrawer";
-import { Loader2, Save, Trash2, X, LayoutGrid, Users, Shield } from "lucide-react";
+import { X, LayoutGrid, Users, Shield, UserCheck } from "lucide-react";
 import SpaceMembersPage from "@/pages/SpaceMembersPage";
 import RolesTab from "@/components/role/RolesTab";
 import RoleInfoPanel from "@/components/role/RoleInfoPanel";
 import RoleEditorScreen from "@/components/role/RoleEditorScreen";
-import { SpaceAvatarEditor } from "@/components/spaces/SpaceAvatarEditor";
-import { cn } from "@/lib/utils";
+import { SpaceOverviewTab } from "@/components/spaces/SpaceOverviewTab";
+import JoinRequestsTab from "@/components/join-requests/JoinRequestsTab";
+import { useJoinRequests } from "@/hooks/useJoinRequests";
 
 import { usePanel, type SettingsTab } from "@/hooks/usePanel";
+import { cn } from "@/lib/utils";
 
 const sharedTabsListClass = "surface-panel-muted inline-flex h-auto gap-1 rounded-full p-1 text-muted-foreground";
 const sharedTabsTriggerClass =
@@ -21,29 +22,60 @@ const sharedTabsTriggerClass =
 const sharedTabsLabelClass =
   "max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:max-w-24 group-hover:opacity-100 group-data-[state=active]:max-w-24 group-data-[state=active]:opacity-100 max-md:hidden";
 
+const badgeClass =
+  "flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-primary-foreground";
+
 function WorkspaceTabsTrigger({
   value,
   icon: Icon,
   label,
   disabled,
   title,
+  badge,
 }: {
   value: string;
   icon: ComponentType<{ className?: string }>;
   label: string;
   disabled?: boolean;
   title?: string;
+  /** Counter: on the icon's corner while collapsed, after the label when expanded; hidden when 0 */
+  badge?: number;
 }) {
+  const showBadge = !!badge && badge > 0;
+  const badgeText = badge && badge > 99 ? "99+" : badge;
   return (
     <TabsTrigger
       value={value}
       disabled={disabled}
       title={title}
-      className={sharedTabsTriggerClass}
-      aria-label={label}
+      // The corner badge sits in the pill's rounded corner, so it must not be clipped
+      className={cn(sharedTabsTriggerClass, showBadge && "overflow-visible")}
+      aria-label={showBadge ? `${label}: ${badge}` : label}
     >
-      <Icon className="h-4 w-4 shrink-0" />
-      <span className={sharedTabsLabelClass}>{label}</span>
+      <span className="relative flex shrink-0">
+        <Icon className="h-4 w-4" />
+        {showBadge && (
+          // Collapsed tab: counter on the icon's corner. It fades out on desktop once the label
+          // expands (hover / active), where the inline counter after the label takes over.
+          <span
+            aria-hidden
+            className={cn(
+              badgeClass,
+              "absolute -right-2.5 -top-2 transition-opacity duration-200 md:group-hover:opacity-0 md:group-data-[state=active]:opacity-0"
+            )}
+          >
+            {badgeText}
+          </span>
+        )}
+      </span>
+      <span className={cn(sharedTabsLabelClass, "inline-flex items-center gap-1.5")}>
+        {label}
+        {showBadge && (
+          <span aria-hidden className={badgeClass}>
+            {badgeText}
+          </span>
+        )}
+      </span>
     </TabsTrigger>
   );
 }
@@ -65,7 +97,7 @@ interface SpaceSettingsDrawerProps {
   canWriteSpace: boolean;
   canAddMember: boolean;
   canDeleteMember: boolean;
-  onUpdateSpace: () => void;
+  onUpdateSpace: (options?: { onSuccess?: () => void }) => void;
   onDeleteSpace: () => void;
   isSaving: boolean;
   onNoPermissionSave: () => void;
@@ -97,7 +129,12 @@ export function SpaceSettingsDrawer({
 }: SpaceSettingsDrawerProps) {
   // Tabs replace the history entry; role screens push one, so "back" walks out of them
   const panel = usePanel();
-  const settingsTab = panel.state.settingsTab ?? "overview";
+  // Same cache entry as the «Заявки» tab and the invite card, so this adds no extra requests
+  const { data: joinRequestsData } = useJoinRequests(id, canAddMember && open);
+  const pendingRequests = joinRequestsData?.pages[0]?.total ?? 0;
+  const requestedTab = panel.state.settingsTab ?? "overview";
+  // Invite link and join requests are only for members with space_user:ADD
+  const settingsTab = requestedTab === "requests" && !canAddMember ? "overview" : requestedTab;
   const roleScreen = panel.state.roleScreen ?? { kind: "list" };
 
   const renderContent = () => {
@@ -137,6 +174,9 @@ export function SpaceSettingsDrawer({
             <TabsList className={sharedTabsListClass}>
               <WorkspaceTabsTrigger value="overview" icon={LayoutGrid} label="Обзор" />
               <WorkspaceTabsTrigger value="members" icon={Users} label="Участники" />
+              {canAddMember && (
+                <WorkspaceTabsTrigger value="requests" icon={UserCheck} label="Заявки" badge={pendingRequests} />
+              )}
               <WorkspaceTabsTrigger
                 value="roles"
                 icon={Shield}
@@ -164,92 +204,34 @@ export function SpaceSettingsDrawer({
           <ScrollArea className="flex-1">
             <div className="pb-4 pl-4 pr-4 pt-0 sm:px-6 sm:pb-6">
               <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                <TabsContent value="overview" className="mt-0 flex-1 min-h-0 overflow-y-auto space-y-4">
-                  <div className="space-y-8 px-1">
-                    <div className="pb-4 pt-16">
-                      <SpaceAvatarEditor
-                        key={id}
-                        spaceId={id}
-                        name={currentSpaceName}
-                        avatarUrl={currentSpaceAvatarUrl}
-                        canEdit={canWriteSpace}
-                        onNoPermission={onNoPermissionSave}
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex gap-2">
-                        <Input
-                          id="spaceName"
-                          value={spaceName}
-                          onChange={(e) => setSpaceName(e.target.value)}
-                          placeholder="Название спейса"
-                          aria-label="Название спейса"
-                          className="flex-1"
-                          disabled={!canWriteSpace}
-                        />
-                        {canWriteSpace ? (
-                          isSaving ? (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span tabIndex={0}>
-                                  <Button size="icon" disabled aria-label="Сохранение">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  </Button>
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent side="left">Сохранение...</TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button onClick={onUpdateSpace} size="icon" aria-label="Сохранить название">
-                                  <Save className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="left">Сохранить</TooltipContent>
-                            </Tooltip>
-                          )
-                        ) : (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                className="opacity-50"
-                                size="icon"
-                                onClick={onNoPermissionSave}
-                                aria-label="Сохранить название"
-                              >
-                                <Save className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="left">Сохранить</TooltipContent>
-                          </Tooltip>
-                        )}
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className={cn(!canDeleteSpace && "opacity-50")}
-                              onClick={canDeleteSpace ? onDeleteSpace : onNoPermissionDelete}
-                              aria-label="Удалить спейс"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="left">Удалить спейс</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  </div>
+                <TabsContent value="overview" className="mt-0 flex-1 min-h-0 overflow-y-auto">
+                  <SpaceOverviewTab
+                    spaceId={id}
+                    currentSpaceName={currentSpaceName}
+                    currentSpaceAvatarUrl={currentSpaceAvatarUrl}
+                    spaceName={spaceName}
+                    setSpaceName={setSpaceName}
+                    canWriteSpace={canWriteSpace}
+                    canDeleteSpace={canDeleteSpace}
+                    canAddMember={canAddMember}
+                    isSaving={isSaving}
+                    onUpdateSpace={onUpdateSpace}
+                    onDeleteSpace={onDeleteSpace}
+                    onNoPermissionSave={onNoPermissionSave}
+                    onNoPermissionDelete={onNoPermissionDelete}
+                    onOpenRequests={() => panel.replace({ settingsTab: "requests" })}
+                  />
                 </TabsContent>
 
                 <TabsContent value="members" className="mt-0 flex-1 min-h-0 overflow-y-auto">
                   <SpaceMembersPage canAssign={canAssignRoles} canAdd={canAddMember} canDelete={canDeleteMember} />
                 </TabsContent>
+
+                {canAddMember && (
+                  <TabsContent value="requests" className="mt-0 flex-1 min-h-0 overflow-y-auto">
+                    <JoinRequestsTab spaceId={id} />
+                  </TabsContent>
+                )}
 
                 <TabsContent value="roles" className="mt-0 flex-1 min-h-0 overflow-y-auto">
                   <RolesTab

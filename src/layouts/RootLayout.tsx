@@ -3,6 +3,7 @@ import { useUser } from "@/hooks/useUser";
 import { useWebPush } from "@/hooks/useWebPush";
 import { useServiceWorkerUpdate } from "@/hooks/useServiceWorkerUpdate";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getPendingJoinCode, JOIN_PATH_PREFIX } from "@/lib/join";
 
 export const RootLayout = () => {
   const { user, isLoading } = useUser();
@@ -22,11 +23,23 @@ export const RootLayout = () => {
     );
   }
 
+  // Invite pages are public: guests see the preview, members can send a request
+  const isJoinPage = location.pathname.startsWith(JOIN_PATH_PREFIX);
+
+  // Coming back from login after pressing "Отправить заявку" on an invite page
+  // (the OAuth redirect may land on "/" or straight on "/spaces")
+  const pendingJoinCode = user && (location.pathname === "/" || location.pathname === "/spaces")
+      ? getPendingJoinCode()
+      : null;
+  if (pendingJoinCode) {
+      return <Navigate to={`${JOIN_PATH_PREFIX}${encodeURIComponent(pendingJoinCode)}`} replace />;
+  }
+
   if (user && location.pathname === "/") {
       return <Navigate to="/spaces" replace />;
   }
 
-  if (!user && location.pathname !== "/") {
+  if (!user && location.pathname !== "/" && !isJoinPage) {
       return <Navigate to="/" replace />;
   }
 

@@ -3,6 +3,28 @@ import { persist } from 'zustand/middleware'
 
 type Theme = 'light' | 'dark'
 
+const STORAGE_KEY = 'theme-storage'
+const systemDarkQuery = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+  ? window.matchMedia('(prefers-color-scheme: dark)')
+  : null
+
+/** OS / browser preference, used until the user picks a theme explicitly */
+function getSystemTheme(): Theme {
+  return systemDarkQuery?.matches ? 'dark' : 'light'
+}
+
+/** The theme the user chose with the toggle, if any (persist only writes after a toggle) */
+function getStoredTheme(): Theme | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) return null
+    const theme = JSON.parse(stored)?.state?.theme
+    return theme === 'dark' || theme === 'light' ? theme : null
+  } catch {
+    return null
+  }
+}
+
 interface ThemeState {
   theme: Theme
   setTheme: (theme: Theme) => void
@@ -12,7 +34,7 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      theme: 'light',
+      theme: getStoredTheme() ?? getSystemTheme(),
       setTheme: (theme) => {
         set({ theme })
         applyTheme(theme)
@@ -24,7 +46,7 @@ export const useThemeStore = create<ThemeState>()(
       }
     }),
     {
-      name: 'theme-storage',
+      name: STORAGE_KEY,
       onRehydrateStorage: () => (state) => {
         // Применяем тему при загрузке из localStorage
         if (state) {
@@ -55,16 +77,17 @@ function syncThemeColor() {
   }
 }
 
-// Инициализация темы при загрузке приложения
+// Инициализация темы при загрузке приложения (до рендера, чтобы избежать мигания).
+// Без явного выбора пользователя тема следует системной настройке, в том числе при её смене.
 export function initializeTheme() {
-  const stored = localStorage.getItem('theme-storage')
-  if (stored) {
-    try {
-      const { state } = JSON.parse(stored)
-      applyTheme(state.theme)
-    } catch {
-      applyTheme('light')
-    }
-  }
-}
+  applyTheme(getStoredTheme() ?? getSystemTheme())
 
+  systemDarkQuery?.addEventListener('change', () => {
+    if (getStoredTheme()) return
+    const theme = getSystemTheme()
+    useThemeStore.setState({ theme })
+    // persist writes on every setState; drop it so a system switch isn't saved as the user's choice
+    useThemeStore.persist.clearStorage()
+    applyTheme(theme)
+  })
+}

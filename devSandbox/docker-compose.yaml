@@ -74,12 +74,11 @@ services:
       - app-network
 
   bazar-api-gateway:
-    image: basegod/bazar-api-gateway:latest
+    image: basegod/bazar-api-gateway:1.0.4-SNAPSHOT
     container_name: bazar-api-gateway
     platform: linux/amd64
     environment:
-      - KC_URL=http://keycloak:9999
-      - KC_REALM=bazar-realm
+      - KC_URL=http://keycloak:9999/realms/bazar-realm
       - CLIENT_ID=bazar-api-gateway
       - CLIENT_SECRET=secret
       - BAZAR_SPACE_URL=http://bazar-space:8080
@@ -113,7 +112,7 @@ services:
       - DB_PASS=postgres
       - KC_ISSUER_URL=http://keycloak:9999/realms/bazar-realm
       - KC_JWK_URL=http://keycloak:9999/realms/bazar-realm/protocol/openid-connect/certs
-      - LOGGING_LEVEL=INFO
+      - LOGGING_LEVEL=DEBUG
       - CERBOS_URL=cerbos:3593
       - BAZAR_SPACE_URL=http://bazar-space:8080/api
     depends_on:
@@ -128,7 +127,7 @@ services:
     restart: unless-stopped
 
   bazar-space:
-    image: basegod/bazar-space:1.0.5-SNAPSHOT
+    image: basegod/bazar-space:1.0.6-SNAPSHOT
     container_name: bazar-space
     platform: linux/amd64
     environment:
@@ -145,6 +144,10 @@ services:
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - FILE_EVENTS_TOPIC=file.events
       - KAFKA_SECURITY_PROTOCOL=PLAINTEXT
+      - JOIN_LINK_BASE_URL=http://localhost:5173/join
+      - KAFKA_PASSWORD=
+      - KAFKA_USERNAME=
+      - KAFKA_SASL_MECHANISM=
     depends_on:
       postgresql:
         condition: service_healthy

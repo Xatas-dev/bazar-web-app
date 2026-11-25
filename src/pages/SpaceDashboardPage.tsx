@@ -207,18 +207,15 @@ export default function SpaceDashboardPage() {
     </TabsList>
   );
 
-  const handleUpdateSpace = () => {
+  const handleUpdateSpace = (options?: { onSuccess?: () => void }) => {
     if (!spaceName.trim()) {
       notify.error.validation("Название спейса обязательно.");
       return;
     }
 
     patchSpaceMutation.mutate(
-        { spaceId: id, name: spaceName },
-        {
-          onSuccess: () => {
-          },
-        }
+        { spaceId: id, name: spaceName.trim() },
+        { onSuccess: () => options?.onSuccess?.() }
     );
   };
 
